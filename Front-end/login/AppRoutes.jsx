@@ -14,6 +14,7 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify" element={<Verify />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/" element={<App />} /> {/* Added a default route for the homepage */}
       </Routes>
     </BrowserRouter>
   );
