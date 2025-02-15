@@ -8,6 +8,7 @@ class Doctor(models.Model):
     specialty = models.CharField(max_length=100)
     email = models.EmailField(max_length=255, unique=True, null=True)
     phone = models.CharField(max_length=15, null=True, blank=True)  # Optional phone number
+    phd_certificate = models.FileField(upload_to='doctor_certificates/', null=True, blank=True)
     profile_picture = models.ImageField(upload_to='doctor_pics/', null=True, blank=True)  # Optional profile picture
     # Add other fields like phone, email, etc. done
 
