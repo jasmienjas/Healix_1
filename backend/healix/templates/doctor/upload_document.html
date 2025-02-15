@@ -1,0 +1,22 @@
+<!-- templates/doctor/upload_document.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload PhD Certificate</title>
+</head>
+<body>
+
+    <h2>Upload PhD Certificate</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}  <!-- Render the form fields -->
+        <button type="submit">Upload Certificate</button>
+    </form>
+
+    <a href="{% url 'doctor_dashboard' %}">Back to Dashboard</a>
+
+</body>
+</html>
