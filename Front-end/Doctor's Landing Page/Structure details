@@ -1,0 +1,11 @@
+/src
+  /components
+    Header.jsx
+    Sidebar.jsx
+    CalendarComponent.jsx
+    Footer.jsx
+    DashboardSummary.jsx
+    DarkModeToggle.jsx
+  LandingPage.jsx
+  LandingPage.css
+  App.jsx
