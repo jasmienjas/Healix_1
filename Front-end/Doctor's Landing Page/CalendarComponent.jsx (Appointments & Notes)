@@ -1,0 +1,31 @@
+import React, { useState } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+
+const CalendarComponent = () => {
+  const [events, setEvents] = useState([]);
+
+  const handleDateClick = (selectInfo) => {
+    const patientName = prompt("Enter patient name:");
+    if (patientName) {
+      setEvents([...events, { title: `Patient: ${patientName}`, start: selectInfo.date, color: "#007bff" }]);
+    }
+  };
+
+  return (
+    <div className="calendar-container">
+      <h2>Doctor's Schedule</h2>
+      <FullCalendar
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        initialView="timeGridWeek"
+        selectable={true}
+        events={events}
+        select={handleDateClick}
+      />
+    </div>
+  );
+};
+
+export default CalendarComponent;
