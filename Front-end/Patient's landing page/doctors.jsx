@@ -6,21 +6,21 @@ function Doctors() {
 
   const doctors = [
     {
-      name: 'Fatima Hassan',
+      name: 'Dr.Fatima Hassan',
       specialty: 'Cardiologist',
       image: 'https://i.postimg.cc/KYznk1k0/doctor-photo-3.jpg',
       universities: ['USJ', 'AUBMC'],
       experience: 5,
     },
     {
-      name: 'Mohamad Younes',
+      name: 'Dr.Mohamad Younes',
       specialty: 'Family Medicine',
       image: 'https://i.postimg.cc/mr24Wszx/dr-ahmad.jpg',
       universities: ['Hotel Dieu', 'Saint George Hospital'],
       experience: 3,
     },
     {
-      name: 'Lamia Mansour',
+      name: 'Dr.Lamia Mansour',
       specialty: 'Neurologist',
       image: 'https://i.postimg.cc/L8m55GYD/dr-may.webp',
       universities: ['AUBMC', 'Al Rasoul Hospital'],
