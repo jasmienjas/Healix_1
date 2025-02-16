@@ -6,51 +6,51 @@ function Doctors() {
 
   const doctors = [
     {
-      name: 'Fatima',
+      name: 'Fatima Hassan',
       specialty: 'Cardiologist',
-      image: 'https://postimg.cc/HJGTG48Z',
+      image: 'https://i.postimg.cc/KYznk1k0/doctor-photo-3.jpg',
       universities: ['USJ', 'AUBMC'],
       experience: 5,
     },
     {
-      name: 'Mohamad',
+      name: 'Mohamad Younes',
       specialty: 'Family Medicine',
-      image: 'https://postimg.cc/XppWpDw1',
+      image: 'https://i.postimg.cc/mr24Wszx/dr-ahmad.jpg',
       universities: ['Hotel Dieu', 'Saint George Hospital'],
       experience: 3,
     },
     {
-      name: 'Lamia',
+      name: 'Lamia Mansour',
       specialty: 'Neurologist',
-      image: 'https://postimg.cc/1f2Q6cBm',
+      image: 'https://i.postimg.cc/L8m55GYD/dr-may.webp',
       universities: ['AUBMC', 'Al Rasoul Hospital'],
       experience: 4,
     },
     {
-      name: 'Dr. Ahmad',
+      name: 'Dr. Ahmad Abdala',
       specialty: 'Pediatrician',
-      image: 'https://postimg.cc/9rwWxFLY',
+      image: 'https://i.postimg.cc/6qQzBMVp/hassan-dr.jpg',
       universities: ['USJ', 'LAU'],
       experience: 6,
     },
     {
-      name: 'Dr. Mustafa',
+      name: 'Dr. Mustafa Khcheich',
       specialty: 'Neurologist',
-      image: 'https://postimg.cc/XppWpDw1', // Add the correct image for Dr. Mustafa
+      image: 'https://i.postimg.cc/KjyFVgtf/dr-mustafa.avif', // Add the correct image for Dr. Mustafa
       universities: ['AUBMC', 'Saint George Hospital'],
       experience: 7,
     },
     {
-      name: 'Dr. May',
+      name: 'Dr. May Abdala',
       specialty: 'Emergency Medicine',
-      image: 'https://postimg.cc/1f2Q6cBm', // Add the correct image for Dr. May
+      image: 'https://i.postimg.cc/YCj6j4mb/may-doctors.webp', // Add the correct image for Dr. May
       universities: ['Hotel Dieu', 'Al Rasoul Hospital'],
       experience: 4,
     },
     {
-      name: 'Dr. Jessica',
+      name: 'Dr. Jessica Azzi',
       specialty: 'Oncologist',
-      image: 'https://postimg.cc/f3jnG4Ny', // Add the correct image for Dr. Jessica
+      image: 'https://i.postimg.cc/3NRR9Ghq/jessicab-azzi.avif', // Add the correct image for Dr. Jessica
       universities: ['LAU', 'AUBMC'],
       experience: 8,
     },
