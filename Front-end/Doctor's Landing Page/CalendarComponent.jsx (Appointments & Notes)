@@ -3,6 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction"; // for drag-and-drop functionality
+import './CalendarComponent.css';  // Import custom CSS for styling
 
 const CalendarComponent = () => {
   // Initial state for events and filtered events
@@ -100,4 +101,3 @@ const CalendarComponent = () => {
 };
 
 export default CalendarComponent;
-
