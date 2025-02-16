@@ -1,13 +1,28 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import './App.css'; // Make sure to add styling here
-import { FaUserMd, FaDumbbell, FaCalendarAlt, FaFileMedical, FaVideo, FaRobot, FaAmbulance, FaMapMarkerAlt, FaCapsules, FaHeartbeat, FaCog, FaBell } from 'react-icons/fa';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import './App.css'; 
+import AIChat from './AIchat';
+import Appointments from './appointments';
+import Emergency from './Emergency';
+import Dashboard from './dashboard';
+import LandingPage from './LandingPage';
+import Notifications from './Notifcations';
+import VideoCall from './videocall';
+import Navbar from './Navbar';
+import NearbyPharmacies from './nearbypharmacies';
+import HealthTracking from './HealthTracking';
+import Files from './files';
+import Fitness from './fitness';
+import Doctors from './doctors';
+import Settings from './settings';
 
 function App() {
   return (
     <Router>
       <div className="bg-blue-800 min-h-screen text-white">
-        <Navbar />
+        {/* Move Navbar outside Routes */}
+        <Navbar /> 
+        
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -29,3 +44,4 @@ function App() {
 }
 
 export default App;
+
