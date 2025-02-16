@@ -73,15 +73,24 @@ function App() {
       {/* Video background */}
       <div className="video-background">
         <iframe
-          width="560"
-          height="315"
-          src="https://www.youtube.com/embed/7dIGU2w-sRg?start=171&end=225&autoplay=1&mute=1&loop=1&playlist=7dIGU2w-sRg"
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-        ></iframe>
+
+width="100%"
+
+height="100%"
+
+src="https://www.youtube-nocookie.com/embed/Bv-J4XSRLx4?autoplay=1&mute=1&loop=1&playlist=Bv-J4XSRLx4&controls=0"
+
+title="YouTube video player"
+
+frameBorder="0"
+
+allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+
+referrerPolicy="strict-origin-when-cross-origin"
+
+allowFullScreen
+
+></iframe>
       </div>
 
       {/* Success Modal */}
