@@ -18,6 +18,7 @@ class DoctorProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     specialty = models.CharField(max_length=100)
     license_number = models.CharField(max_length=50)
+    certificate = models.FileField(upload_to='doctor_certificates/', null=True, blank=True)
 
 class PatientProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
