@@ -186,10 +186,13 @@ header {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   z-index: -1;
+  /* Make sure it's in the background */
   background-color: black;
+  opacity: 0.5;
+  /* Adjust the opacity if needed */
 }
 
 .video-background iframe {
@@ -199,9 +202,10 @@ header {
   top: 0;
   left: 0;
   z-index: -2;
+  /* Ensure the video stays behind */
   pointer-events: none;
+  /* Make sure the video doesn't block clicks */
 }
-
 
 .appointments-container {
   background-image: url('https://images.app.goo.gl/tjRfKPgb3qPuwuR19');
@@ -604,9 +608,62 @@ footer {
 
 .did-you-know-container p {
   color: white;
-  font-family: 'Pacifico', cursive;
-
+      font-family: 'Pacifico', cursive;
 }
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Emergency Button Styles */
+.emergency-button-container {
+  position: fixed;
+  bottom: 20px; /* Adjust based on your design */
+  right: 20px;  /* Adjust based on your design */
+  z-index: 1000; /* Ensures the button is always on top */
+}
+
+.emergency-button {
+  background-color: darkred;
+  color: white;
+  font-size: 20px;
+  font-family: "Poppins", sans-serif;
+  font-weight: bold;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 50px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emergency-button:hover {
+  background-color: darkred;
+}
+
+.emergency-button:active {
+  box-shadow: 0 0 20px 8px rgba(255, 255, 255, 0.9);
+}
+.fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0; /* Initially, it is 0 */
+  background-color: darkred; /* Change to any color for the progress bar */
+  transition: width 0.1s; /* Smooth transition for filling effect */
+  border-radius: 100px; /* Match the button's rounded corners */
+}
+
 
 /* Dark overlay to improve text readability */
 .did-you-know-container::before {
