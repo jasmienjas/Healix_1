@@ -1,0 +1,78 @@
+/* ========== DARK MODE STYLES ========== */
+
+body.dark-mode {
+  background-color: #121212; /* Dark background */
+  color: #ffffff; /* Light text */
+  background-image: none; /* Remove background image in dark mode */
+}
+
+/* Dark Mode for Header */
+header.dark-mode {
+  background-color: #1e1e1e;
+  color: #ddd;
+}
+
+/* Dark Mode for Testimonial Boxes */
+.testimonial-box.dark-mode {
+  background: #222; /* Dark card */
+  color: #ddd;
+}
+
+/* Dark Mode for Navbar */
+.nav-button.dark-mode {
+  background-color: #333;
+  color: white;
+}
+
+.nav-button.dark-mode:hover {
+  background-color: #555;
+}
+
+/* Dark Mode for Alphabet Buttons */
+.alphabet-button.dark-mode {
+  background-color: #444;
+  color: white;
+}
+
+.alphabet-button.dark-mode:hover {
+  background-color: #666;
+}
+
+/* Dark Mode for Forms */
+input.dark-mode,
+select.dark-mode {
+  background-color: #222;
+  color: white;
+  border: 1px solid #555;
+}
+
+/* Dark Mode for Buttons */
+button.dark-mode {
+  background-color: #444;
+  color: #fff;
+}
+
+button.dark-mode:hover {
+  background-color: #666;
+}
+
+/* Dark Mode for Footer */
+footer.dark-mode {
+  background-color: #1e1e1e;
+  color: #ddd;
+}
+
+/* Dark Mode for Modal */
+.modal.dark-mode {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.modal-content.dark-mode {
+  background-color: #222;
+  color: white;
+}
+
+/* Dark Mode for Notification Box */
+.notification-box.dark-mode {
+  background-color: rgba(255, 255, 255, 0.1);
+}
