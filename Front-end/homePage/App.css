@@ -186,13 +186,10 @@ header {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
-  /* Make sure it's in the background */
   background-color: black;
-  opacity: 0.5;
-  /* Adjust the opacity if needed */
 }
 
 .video-background iframe {
@@ -202,10 +199,9 @@ header {
   top: 0;
   left: 0;
   z-index: -2;
-  /* Ensure the video stays behind */
   pointer-events: none;
-  /* Make sure the video doesn't block clicks */
 }
+
 
 .appointments-container {
   background-image: url('https://images.app.goo.gl/tjRfKPgb3qPuwuR19');
