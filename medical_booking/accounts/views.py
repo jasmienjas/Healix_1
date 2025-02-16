@@ -9,6 +9,10 @@ from .token_serializers import CustomTokenObtainPairSerializer
 class RegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
+    def create(self, request, *args, **kwargs):
+        # We can perform any additional operations or logging here
+        response = super().create(request, *args, **kwargs)
+        return response
 
 class LoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
