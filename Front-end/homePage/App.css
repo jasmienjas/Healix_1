@@ -1,0 +1,728 @@
+/* Resetting default margin, padding, and setting a base font */
+body {
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f8ff;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-image: url('https://images.app.goo.gl/tjRfKPgb3qPuwuR19');
+  background-image: url('https://images.app.goo.gl/tjRfKPgb3qPuwuR19');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Header Styling */
+header {
+  background-color: #003366;
+  color: white;
+  height: 120px;
+  padding: 0;
+  text-align: center;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 0 20px;
+}
+
+.header-image {
+  max-width: 100%;
+  width: 23%;
+  max-height: 100%;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  width: 50%;
+}
+
+.nav-button {
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.nav-button:hover {
+  background-color: #001f33;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  text-align: center;
+  padding: 200px 50px 50px;
+  /* Increased top padding */
+}
+
+.testimonials {
+  display: flex;
+  justify-content: space-between;
+  margin: 50px auto;
+  padding: 0 20px;
+  max-width: 1200px;
+}
+
+.testimonial-box {
+  background: #441e4b; /* Purple background */
+  padding: 30px;  /* Increased padding for more height */
+  margin: 0 60px; /* Reduced the space between boxes to 5px */
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  width: 30%;  /* Adjusted to be a bit shorter */
+  min-height: 250px;  /* Increased minimum height */
+  color: #fff;  /* White text color */
+}
+
+.testimonial-box p {
+  font-size: 16px;
+  font-style: italic;
+  color: #fff;  /* White text color */
+}
+
+.testimonial-box span {
+  display: block;
+  margin-top: 30px;
+  font-weight: bold;
+  color: #dcdcdc; /* Light grey for the name to contrast with purple */
+}
+
+
+
+/* Title Styling */
+.alphabet-title {
+  font-family: 'Tiempos Headline';
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  color: #441e4b;
+  margin: 20px 0;
+  /* Added some margin to space it out */
+  letter-spacing: 2px;
+}
+
+/* Alphabet buttons */
+.alphabet-container {
+  margin-top: 20px;
+  text-align: center;
+  /* Ensure buttons align below title */
+}
+
+.alphabet-buttons {
+  display: grid;
+  grid-template-columns: repeat(13, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  justify-items: center;
+  margin: 20px auto;
+  max-width: 800px;
+}
+
+
+.alphabet-button {
+  background-color: #003366;
+  /* Ensures the button is navy */
+  color: white;
+  padding: 15px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 5px;
+}
+
+.alphabet-button:hover {
+  background-color: #441e4b;
+  /* Hover effect if desired */
+}
+
+.container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 20px;
+  /* Space between items */
+  width: 74%;
+  max-width: 806px;
+  /* Set a max width for the container */
+  height: 45vh;
+  /* Adjusted height for better balance */
+  padding: 40px;
+  border-radius: 50px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.7);
+  /* Dark background overlay */
+  margin: auto;
+  overflow: hidden;
+  /* Prevents the background from overflowing */
+  z-index: 1;
+  /* Ensure content is above the video */
+}
+
+/* Video background positioning */
+.video-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  /* Make sure it's in the background */
+  background-color: black;
+  opacity: 0.5;
+  /* Adjust the opacity if needed */
+}
+
+.video-background iframe {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -2;
+  /* Ensure the video stays behind */
+  pointer-events: none;
+  /* Make sure the video doesn't block clicks */
+}
+
+.appointments-container {
+  background-image: url('https://images.app.goo.gl/tjRfKPgb3qPuwuR19');
+  background-size: cover;
+  background-position: center;
+  padding: 60px 20px;
+  /* Keeps the title & subtitle positioned well */
+  text-align: center;
+}
+
+.appointments-container h1 {
+  margin-top: 90px;
+  /* Moves the title a bit lower */
+}
+
+.appointments-container h2 {
+  margin-top: 15px;
+  /* Moves the subtitle a bit lower */
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+  /* Even more spacing */
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  /* Slightly increased gap between buttons */
+}
+
+.appointment-button {
+  margin-top: -20px;
+  /* Keeps the button raised */
+  width: 250px;
+  /* Made the button smaller in width */
+}
+
+/* Description Styling */
+.description {
+  color: white;
+  font-family: 'Noe Display', serif;
+  z-index: 1;
+  margin-bottom: 20px;
+}
+
+.description h2 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.description p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* Form Grid */
+.form-container {
+  position: relative;
+  width: 92%;
+  z-index: 1;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+input,
+select {
+  width: 95%;
+  padding: 12px;
+  border: 2px solid #441e4b;
+  border-radius: 50px;
+  background-color: #f4f4f9;
+  font-size: 16px;
+  color: #808080;
+  margin-top: -15px;
+}
+
+input[type="date"],
+input[type="time"] {
+  appearance: none;
+  padding-left: 15px;
+}
+
+/* Button Styling */
+.btn {
+  grid-column: span 2;
+  background-color: #441e4b;
+  color: white;
+  border: none;
+  padding: 12px;
+  width: 50%;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: -10px;
+  margin-left: auto;
+  /* Centering horizontally */
+  margin-right: auto;
+  /* Centering horizontally */
+}
+
+/* Make the container transparent */
+.counter-container {
+  display: flex;
+  justify-content: center;
+  /* Align items horizontally */
+  gap: 20px;
+  /* Spacing between each counter */
+  margin-top: 20px;
+  flex-wrap: wrap;
+  /* Ensure they wrap if the screen is narrow */
+  opacity: 0;
+  /* Start with 0 opacity for fade-in effect */
+  transition: opacity 1s ease-in-out;
+  /* Smooth transition */
+  background: transparent;
+  /* Make the container background transparent */
+}
+
+/* Smooth transition for fading in */
+.counter-container.in-view {
+  opacity: 1;
+}
+
+/* Styling for each counter */
+.counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: transparent;
+  border-radius: 25px;
+  /* Increased radius for a more rounded effect */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  /* More pronounced shadow */
+  width: 150px;
+  /* Increased width for better spacing */
+  height: 150px;
+  /* Increased height for better spacing */
+  text-align: center;
+  transition: transform 0.3s ease-in-out;
+  /* Optional: adds scale effect */
+}
+
+/* Counter value styling */
+.counter-value {
+  font-size: 32px;
+  /* Increased font size for better visibility */
+  font-weight: bold;
+  color: #333;
+}
+
+/* Description text styling */
+.counter p {
+  margin-top: 8px;
+  font-size: 16px;
+  /* Slightly larger text for readability */
+  color: #555;
+}
+
+/* Optional: Scale effect on hover */
+.counter:hover {
+  transform: scale(1.05);
+  /* Slight scale on hover */
+}
+
+.btn:hover {
+  background-color: #4a0072;
+}
+
+/* Modal Styling */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal Container */
+.modal-content {
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+  text-align: center; /* Center the text and smiley */
+}
+
+/* Smiley */
+.smiley {
+  font-size: 100px; /* Adjust smiley size */
+  margin-bottom: 20px;
+}
+
+/* Close Button */
+.btn-close {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.btn-close:hover {
+  background-color: #45a049;
+}
+
+.modal h3 {
+  font-size: 24px;
+  color: #6a0dad;
+}
+
+.modal p {
+  font-size: 18px;
+  color: #555;
+}
+
+.modal .btn-close {
+  background-color: #6a0dad;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.modal .btn-close:hover {
+  background-color: #4a0072;
+}
+
+/* Footer styles */
+footer {
+  background-color: #003366;
+  color: white;
+  padding: 20px 10px;
+  text-align: center;
+  width: 100%;
+  margin-top: auto;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.footer-section {
+  flex: 1;
+  min-width: 220px;
+  margin-bottom: 20px;
+}
+
+.footer-section h3 {
+  border-bottom: 2px solid white;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section ul li {
+  margin: 8px 0;
+}
+
+.footer-bottom {
+  margin-top: 20px;
+  border-top: 1px solid white;
+  padding-top: 10px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .alphabet-buttons {
+    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .alphabet-buttons {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .header-content h1 {
+    font-size: 1.8rem;
+  }
+
+  .footer-section ul li {
+    font-size: 0.9rem;
+  }
+}
+
+/* Disease Finder Styling */
+.disease-finder-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.disease-buttons {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  justify-items: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.disease-button {
+  background-color: navy;
+  color: white;
+  padding: 15px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+}
+
+.disease-button:hover {
+  background-color: #6a1b9a;
+}
+
+.disease-list {
+  list-style: none;
+  padding: 0;
+}
+
+.disease-list li {
+  padding: 5px 0;
+  font-size: 18px;
+}
+
+.notification-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  font-size: 18px;
+  z-index: 1000;
+}
+
+/* Ensures container size matches the image */
+.did-you-know-container {
+  background-image: url('https://i.postimg.cc/SKrh9fF1/medical-report-with-medical-equipment-23-2148108963.avif');
+  background-size: cover;
+  /* Makes the image fully cover the container */
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100%;
+  /* Adjust to match the image size */
+  height: 300px; /* Increased height value */
+  /* Ensures it resizes based on the image */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  text-align: center;
+  position: relative;
+  margin-top: 180px; /* Adjust the space above the section */
+  justify-content: center; /* Centers the content horizontally */
+}
+
+.did-you-know-container img {
+  width: 60px; /* Set a smaller fixed width */
+  height: 50px; /* Set a fixed height */
+  object-fit: cover; /* Ensures the image doesn't distort if resizing */
+  margin: 0 auto; /* Centers the image horizontally */
+}
+
+.did-you-know-container h2 {
+  color: white;
+  font-family: 'Lora', serif;
+}
+
+.did-you-know-container p {
+  color: white;
+      font-family: 'Pacifico', cursive;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Emergency Button Styles */
+.emergency-button-container {
+  position: fixed;
+  bottom: 20px; /* Adjust based on your design */
+  right: 20px;  /* Adjust based on your design */
+  z-index: 1000; /* Ensures the button is always on top */
+}
+
+.emergency-button {
+  background-color: darkred;
+  color: white;
+  font-size: 20px;
+  font-family: "Poppins", sans-serif;
+  font-weight: bold;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 50px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emergency-button:hover {
+  background-color: darkred;
+}
+
+.emergency-button:active {
+  box-shadow: 0 0 20px 8px rgba(255, 255, 255, 0.9);
+}
+.fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0; /* Initially, it is 0 */
+  background-color: darkred; /* Change to any color for the progress bar */
+  transition: width 0.1s; /* Smooth transition for filling effect */
+  border-radius: 100px; /* Match the button's rounded corners */
+}
+
+
+/* Dark overlay to improve text readability */
+.did-you-know-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  /* Darkens the background slightly */
+  z-index: 1;
+}
+
+/* Ensures text stays above the overlay */
+.did-you-know-container * {
+  position: relative;
+  z-index: 2;
+  color: black;
+  /* Makes text white */
+}
+
+
+
+/* Notification box styling remains the same */
+.notification-box p {
+  margin: 0;
+}
+
+.prev-next-container {
+  display: flex;
+  justify-content: space-between;
+  /* Spreads buttons apart */
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+}
+
+.button {
+  background-color: #007bff;
+  /* Blue color */
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.button:hover {
+  background-color: #0056b3;
+}
+
+.prev-button {
+  margin-right: 10px;
+  /* Adds spacing */
+}
+
+.next-button {
+  margin-left: 10px;
+  /* Adds spacing */
+}
