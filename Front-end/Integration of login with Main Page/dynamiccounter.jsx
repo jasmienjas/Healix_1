@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./App.css"; // Ensure this has the correct CSS
+import "./AppOfMaria.css"; // Ensure this has the correct CSS
 
 const DynamicCounter = () => {
     const [count, setCount] = useState(0);

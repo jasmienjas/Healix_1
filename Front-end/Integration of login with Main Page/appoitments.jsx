@@ -1,5 +1,5 @@
 import React from "react";
-import "./App.css";
+import "./AppOfMaria.css";
 
 function App() {
   const handleSubmit = (event) => {

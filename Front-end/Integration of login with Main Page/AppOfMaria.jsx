@@ -1,13 +1,16 @@
 import React, { useState } from "react";
-import "./App.css";
+import "./AppOfMaria.css";
 import AlphabetChallenge from "./alphabet.jsx";  // Fixed the typo in the import
 import DidYouKnow from "./didyouknow.jsx";  // Fixed the typo in the import
 import Appointments from "./appoitments.jsx";  // Fixed the typo in the import
 import DynamicCounter from "./dynamiccounter.jsx";  // Fixed the typo in the import
 import EmergencyButton from "./emergency.jsx"; // Adjust the path based on where your emergency.jsx is located
+import { useNavigate } from "react-router-dom";
 
-const App = () => {
+
+const AppOfMaria = () => {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""); // Alphabet array
+  const navigate = useNavigate();
 
   // Array of diseases
   const diseases = [
@@ -120,8 +123,10 @@ const App = () => {
               <button className="nav-button" onClick={() => document.getElementById("contact-footer")?.scrollIntoView({ behavior: "smooth" })}>
                 Service
               </button>
-              <button className="nav-button">Login</button>
-              <button className="nav-button">Signup</button>
+              <button className="nav-button" onClick={()=> navigate("/login")}>Login</button>
+              <button className="nav-button" onClick={() => navigate("/home")}>
+      Signup
+    </button>
               <button className="nav-button" onClick={() => document.getElementById("contact-footer")?.scrollIntoView({ behavior: "smooth" })}>
                 Contact
               </button>
@@ -215,4 +220,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default AppOfMaria;
