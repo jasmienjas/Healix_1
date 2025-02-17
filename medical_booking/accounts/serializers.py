@@ -17,7 +17,7 @@ class PatientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RegisterSerializer(serializers.ModelSerializer):
-    phd_certificate = serializers.FileField(required=False)  # Initially optional, we'll make it conditionally required
+    phd_certificate = serializers.FileField(required=True)  # Initially optional, we'll make it conditionally required
 
     class Meta:
         model = CustomUser
