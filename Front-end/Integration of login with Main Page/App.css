@@ -1,6 +1,6 @@
 /* Reset and Global Styles */
 * {
-  margin: 10px;
+  margin: 0px;
   padding: 0;
   box-sizing: border-box;
 }
@@ -8,13 +8,14 @@
 /* Full-Screen Background */
 body {
   font-family: Arial, sans-serif;
-  background-color: #1c3d7f; /* Deep Navy Blue */
+  background-color: #1c3d7f !important; /* Deep Navy Blue */
   color: white;
   height: 100vh;
   width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
+
 }
 
 /* Container for Login & Sign-Up Pages */
@@ -25,6 +26,11 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.login-link,
+.forgot-password-link{
+  color:white;
 }
 
 /* Form Container (Login & Sign-Up) */
@@ -41,9 +47,13 @@ body {
 
 .home-container,
 .button-container,
-.signup-box-doctor,
-.signup-box-patient {
-  color: #1c3d7f; /* Deep Navy Blue */
+.signup-box-doctor h2,
+.signup-box-patient h2,
+.login-section h2,
+.forgot-password-container h2,
+.verify-container h2,
+.reset-password-container h2{
+  color: #1c3d7f !important; /* Deep Navy Blue */
   font-family: "Tiempos Headline";
 }
 
@@ -141,7 +151,7 @@ small {
 
 .signup-box-doctor a, 
 .signup-box-patient a {
-  color: #1c3d7f; /* Blue for any links inside "Join as Doctor" or "Join as Patient" sections */
+  color: #5871a3; /* Blue for any links inside "Join as Doctor" or "Join as Patient" sections */
 }
 
 .signup-box-doctor a:hover, 
@@ -154,6 +164,5 @@ small {
 .signup-box-doctor, 
 .signup-box-patient, 
 p {
-  color: #1c3d7f; /* Apply deep navy blue */
+  color: rgb(39, 17, 160); /* Apply deep navy blue */
 }
-
