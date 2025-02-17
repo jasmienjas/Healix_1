@@ -9,8 +9,8 @@ from .token_serializers import CustomTokenObtainPairSerializer
 class RegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
+
     def create(self, request, *args, **kwargs):
-        # We can perform any additional operations or logging here
         response = super().create(request, *args, **kwargs)
         return response
 
@@ -21,25 +21,33 @@ class LoginView(TokenObtainPairView):
         serializer = self.get_serializer(data=request.data)
 
         try:
-            user = CustomUser.objects.get(username=request.data['username'])
-            if not user.check_password(request.data['password']):
+            print("🔍 Login Attempt:", request.data)  # ✅ Debugging Line
+            
+            # ✅ Use email instead of username
+            user = CustomUser.objects.get(email=request.data['email'])
+
+            print("🔑 Checking Password for:", user.email)
+            print("Stored Password Hash:", user.password)
+
+            if not user.check_password(request.data['password']):  
+                print("❌ Password mismatch!")  # ✅ Debugging Line
                 return Response({'error': 'Invalid credentials'}, status=400)
 
         except CustomUser.DoesNotExist:
+            print("❌ User does not exist!")  # ✅ Debugging Line
             return Response({'error': 'Invalid credentials'}, status=400)
 
-        if serializer.is_valid():
-            tokens = serializer.validated_data  # ✅ Uses CustomTokenObtainPairSerializer
+        # ✅ Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
 
-            return Response({
-                'refresh': tokens['refresh'],
-                'access': tokens['access'],  
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'email': user.email,
-                    'user_type': user.user_type  # ✅ Ensure user_type is included
-                }
-            })
-
-        return Response({'error': 'Invalid credentials'}, status=400)
+        return Response({
+            'refresh': str(refresh),
+            'access': access_token,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'user_type': user.user_type  
+            }
+        })
