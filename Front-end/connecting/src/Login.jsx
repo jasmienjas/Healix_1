@@ -12,36 +12,39 @@ function Login() {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/accounts/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email.trim(),  // ✅ Ensure no spaces in email
-          password: formData.password,
-        }),
-      });
+        const response = await fetch("http://127.0.0.1:8000/api/accounts/login/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem("accessToken", data.access);  // ✅ Store access token for authentication
-        localStorage.setItem("refreshToken", data.refresh);
-        localStorage.setItem("user", JSON.stringify(data.user));  // ✅ Store user info
-        setMessage("Login successful! Redirecting...");
-        setTimeout(() => navigate("/home"), 2000);
-      } else {
-        setMessage(data.error || "Invalid credentials.");
-      }
+        if (response.ok) {
+            localStorage.setItem("token", data.access);
+            localStorage.setItem("user_type", data.user.user_type);  // Store user type in local storage
+
+            // Redirect only admin users to Django Admin
+            if (data.user.user_type === "admin") {
+                window.location.href = "http://127.0.0.1:8000/admin/";  // Directly send to Django Admin Panel
+            } else {
+                setMessage("Login successful! Redirecting...");
+            }
+        } else {
+            setMessage(data.error || "Invalid credentials.");
+        }
+        setShowModal(true);
     } catch (error) {
-      setMessage("Server error. Try again later.");
+        setMessage("Server error. Try again later.");
+        setShowModal(true);
     }
-    setShowModal(true);
-  };
+};
+
 
   return (
     <div className="login-page">
