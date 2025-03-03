@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
 /* Resetting default margin, padding, and setting a base font */
 body {
   font-family: "Roboto", sans-serif;
@@ -617,7 +618,7 @@ footer {
       font-family: 'Pacifico', cursive;
 }
 
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
+
 
 .button-container {
   display: flex;
