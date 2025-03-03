@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
-import CalendarComponent from "./components/CalendarComponent";
-import DashboardSummary from "./components/DashboardSummary";
-import Footer from "./components/Footer";
-import DarkModeToggle from "./components/DarkModeToggle";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
+import CalendarComponent from "./CalendarComponent";
+import DashboardSummary from "./DashboardSummary";
+import Footer from "./Footer";
+import DarkModeToggle from "./DarkModeToggle";
 import "./LandingPage.css";
 
 const LandingPage = () => {
