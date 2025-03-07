@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import './App.css'; 
+import './Dashboard.css'; 
 import AIChat from './AIchat';
 import Appointments from './appointments';
 import Emergency from './Emergency';
@@ -44,4 +44,3 @@ function App() {
 }
 
 export default App;
-
