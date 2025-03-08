@@ -10,7 +10,7 @@ import AppOfMaria from "./AppOfMaria"; // Main App page
 
 // ✅ New Dashboard Imports
 import DoctorDashboard from "./components/doctor_dashboard/LandingPage";
-import PatientDashboard from "./components/patient_dashboard/dashboard";
+import PatientDashboard from "./components/patient_dashboard/src/dashboard.jsx";
 
 function AppRoutes() {
   return (

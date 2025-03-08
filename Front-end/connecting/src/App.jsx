@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; 
-import "./App.css"; 
-import SuccessModal from "./SuccessModal"; 
+import { Link, useNavigate } from "react-router-dom";
+import "./App.css";
+import SuccessModal from "./SuccessModal";
+import FailModal from "./FailModal"; 
 
 function PatientSignup() {
   const [formData, setFormData] = useState({
@@ -12,8 +13,9 @@ function PatientSignup() {
   });
 
   const [showModal, setShowModal] = useState(false);
-  const [message, setMessage] = useState(""); 
-  const navigate = useNavigate(); 
+  const [isSuccess, setIsSuccess] = useState(false); // ✅ Track success or failure
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -21,8 +23,6 @@ function PatientSignup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // ✅ Ensure dob is formatted correctly (YYYY-MM-DD)
     const formattedDob = new Date(formData.dob).toISOString().split("T")[0];
 
     try {
@@ -30,11 +30,11 @@ function PatientSignup() {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        dob: formattedDob,  // ✅ Ensure the correct format
-        user_type: "patient",  // ✅ Explicitly set user type to "patient"
+        dob: formattedDob,
+        user_type: "patient",
       };
 
-      const response = await fetch("http://127.0.0.1:8000/api/accounts/register/", {  
+      const response = await fetch("http://127.0.0.1:8000/api/accounts/register/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
@@ -44,13 +44,16 @@ function PatientSignup() {
 
       if (response.ok) {
         setMessage("Signup successful! Redirecting to login...");
+        setIsSuccess(true); // ✅ Success state
         setTimeout(() => navigate("/login"), 2000);
       } else {
-        setMessage(data.error || JSON.stringify(data));  // ✅ Show actual server error message
+        setMessage(data.error || JSON.stringify(data));
+        setIsSuccess(false); // ❌ Failure state
       }
       setShowModal(true);
     } catch (error) {
       setMessage("Server error. Try again later.");
+      setIsSuccess(false);
       setShowModal(true);
     }
   };
@@ -70,14 +73,22 @@ function PatientSignup() {
       </div>
 
       {showModal && (
-        <SuccessModal
-          message={message}
-          onClose={() => setShowModal(false)}
-          onConfirm={() => setShowModal(false)}
-        />
+        isSuccess ? (
+          <SuccessModal
+            message={message}
+            onClose={() => setShowModal(false)}
+            onConfirm={() => setShowModal(false)}
+          />
+        ) : (
+          <FailModal
+            message={message}
+            onClose={() => setShowModal(false)}
+          />
+        )
       )}
     </div>
   );
 }
 
 export default PatientSignup;
+
