@@ -1,0 +1,184 @@
+/* Full-Screen Background */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #1c3d7f; /* Deep Navy Blue */
+  color: white;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0; /* Remove any default margin */
+}
+
+/* Home Page Background */
+.home-page {
+  background-color: #1c3d7f; /* Blue background for the entire HomePage */
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  padding: 20px; /* Optional padding */
+}
+
+/* Container for Login & Sign-Up Pages */
+
+.login-page, 
+.signup-page,
+.forgot-password-page,
+.verify-page,
+.reset-password-page {
+  background-color: #1c3d7f; /* Blue background for the entire Signup page */
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  padding: 20px; /* Optional padding */
+}
+
+.login-link,
+.forgot-password-link,
+.resend-link {
+  color:white;
+}
+
+/* Form Container (Login & Sign-Up) */
+.login-container, 
+.signup-container {
+  background-color: #003366; /* Dark Blue Box */
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.home-container,
+.button-container,
+.signup-box-doctor h2,
+.signup-box-patient h2,
+.login-section h2,
+.forgot-password-container h2,
+.verify-container h2,
+.reset-password-container h2{
+  color: white; /* Deep Navy Blue */
+  font-family: "Tiempos Headline";
+}
+
+/* Headings */
+h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: white;
+}
+
+/* Input & Select Fields */
+input, 
+select {
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: #003366; /* Dark background */
+  color: white;
+}
+
+/* Focus Effect on Inputs */
+input:focus, 
+select:focus {
+  outline: none;
+  border: 1px solid #0056b3 !important; /* Blue Border on Focus */
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #00408d; /* Standard Blue */
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #002f66 ; /* Darker Blue Hover */
+}
+
+/* Login & Sign-Up Links */
+p {
+  margin-top: 15px;
+  font-size: 14px;
+  color: white;
+}
+
+a {
+  color: #1c3d7f; /* Deep Navy Blue */
+  text-decoration: none;
+}
+
+a:hover {
+  color: #002f66; /* Darker Blue on hover */
+}
+
+/* "Choose Certification" Section */
+.certification-section {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.certification-section label {
+  font-size: 16px;
+  color: white;
+}
+
+.certification-section select {
+  background-color: #003366 !important;
+  border: 1px solid #ccc;
+  color: white;
+}
+
+/* Small Text */
+small {
+  color: white;
+  font-size: 12px;
+  display: block;
+  margin-top: 10px;
+}
+
+/* Additional styling for text in the "Join as Doctor" and "Join as Patient" sections */
+.signup-box-doctor, 
+.signup-box-patient {
+  color: white; /* Deep Navy Blue for all text */
+}
+
+.signup-box-doctor a, 
+.signup-box-patient a {
+  color: #5871a3; /* Blue for any links inside "Join as Doctor" or "Join as Patient" sections */
+}
+
+.signup-box-doctor a:hover, 
+.signup-box-patient a:hover {
+  color: #002f66; /* Darker blue on hover */
+  text-decoration: underline;
+}
+
+/* Text elements like "Already have an account?" and "Join as Doctor" "Join as Patient" */
+.signup-box-doctor, 
+.signup-box-patient, 
+p {
+  color:white; /* Apply deep navy blue */
+}
+
