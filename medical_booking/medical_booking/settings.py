@@ -80,10 +80,15 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'booking_medical',
+        'USER': 'root',
+        'PASSWORD': 'dadnameali55',
+        'HOST': 'localhost',   # or the IP address of your DB server
+        'PORT': '3306',        # default MySQL port
     }
 }
+
 
 
 # Password validation
@@ -134,11 +139,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # React frontend
 ]
 # JWT Authentication
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+# }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
