@@ -1,13 +1,11 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import styles from './App.module.css'; // Import the CSS module
+import styles from "./App.module.css"; // Use existing styles
 import SuccessModal from "./SuccessModal"; // Import SuccessModal
 
-function ForgotPassword() {
+function ForgotPassword({ onClose }) {
   const [email, setEmail] = useState("");
-  const [showModal, setShowModal] = useState(false); // State for modal visibility
-  const [message, setMessage] = useState(""); // State for modal message
-  const navigate = useNavigate(); // Initialize navigate hook
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
     setEmail(e.target.value);
@@ -16,31 +14,27 @@ function ForgotPassword() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (email) {
-      const successMessage = `Verification code sent to: ${email}`;
-      setMessage(successMessage); // Set the success message
-      setShowModal(true); // Show the modal
+      setMessage(`One-time password (OTP) sent to: ${email}`);
+      setShowSuccessModal(true);
     } else {
       alert("Please enter your email.");
     }
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false); // Close the modal
-  };
-
   const handleConfirmModal = () => {
-    setShowModal(false); // Close the modal after confirm
-    navigate("/verify"); // Navigate to the verify page
+    setShowSuccessModal(false);
+    onClose(); // Close both modals
   };
 
   return (
-    <div className={styles['forgot-password-page']}>
-      <div className={styles['forgot-password-container']}>
-        <h2>Forgot Password</h2>
+    <div className={styles["modal-overlay"]}>
+      <div className={styles["modal-content"]}>
+        {/* ✅ Title above the input field */}
+        <h2 className={styles["modal-title"]}>Send One Time Password</h2> 
+
         <form onSubmit={handleSubmit}>
           <input
             type="email"
-            id="email"
             placeholder="Enter your email"
             value={email}
             onChange={handleChange}
@@ -48,19 +42,16 @@ function ForgotPassword() {
           />
           <button type="submit">Send Verification Code</button>
         </form>
-        <p>
-          Remember your password?{" "}
-          <Link to="/login" className={styles['login-link']}>
-            Log in
-          </Link>
-        </p>
+        <button className={styles["close-button"]} onClick={onClose}>
+          Close
+        </button>
       </div>
 
-      {/* Conditionally render the SuccessModal */}
-      {showModal && (
+      {/* Success Message Modal */}
+      {showSuccessModal && (
         <SuccessModal
           message={message}
-          onClose={handleCloseModal}
+          onClose={handleConfirmModal}
           onConfirm={handleConfirmModal}
         />
       )}
@@ -69,3 +60,5 @@ function ForgotPassword() {
 }
 
 export default ForgotPassword;
+
+// The ForgotPassword component is a form that allows users to request a password reset by entering their email address. When the form is submitted, a success modal is displayed with a message indicating that a verification code has been sent to the provided email address.

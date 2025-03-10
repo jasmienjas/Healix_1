@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import styles from "./App.module.css";
 import SuccessModal from "./SuccessModal";
-import FailModal from "./FailModal"; // ✅ Import FailModal
+import FailModal from "./FailModal";
+import ForgotPassword from "./ForgotPassword"; // Import ForgotPassword modal
 
 function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false); // ✅ State to track success or failure
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false); // State for forgot password modal
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -31,13 +33,10 @@ function Login() {
         localStorage.setItem("token", data.access);
         localStorage.setItem("user_type", data.user.user_type);
 
-        console.log("User Type:", data.user.user_type); // ✅ Debugging log
-
         setMessage("Login successful! Redirecting...");
-        setIsSuccess(true); // ✅ Set success state
+        setIsSuccess(true);
         setShowModal(true);
 
-        // ✅ Redirect based on user role after modal is closed
         setTimeout(() => {
           if (data.user.user_type === "admin") {
             window.location.href = "http://127.0.0.1:8000/admin/";
@@ -49,7 +48,7 @@ function Login() {
         }, 2000);
       } else {
         setMessage(data.error || "Invalid credentials.");
-        setIsSuccess(false); // ❌ Set failure state
+        setIsSuccess(false);
         setShowModal(true);
       }
     } catch (error) {
@@ -60,16 +59,22 @@ function Login() {
   };
 
   return (
-    <div className={styles['login-page']}>
-       <div className={styles['login-container']}>
-      <h2>Log In</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="email" id="email" placeholder="Email" onChange={handleChange} required />
-        <input type="password" id="password" placeholder="Password" onChange={handleChange} required />
-        <button type="submit">Log In</button>
-      </form>
+    <div className={styles["login-page"]}>
+      <div className={styles["login-container"]}>
+        <h2>Log In</h2>
+        <form onSubmit={handleSubmit}>
+          <input type="email" id="email" placeholder="Email" onChange={handleChange} required />
+          <input type="password" id="password" placeholder="Password" onChange={handleChange} required />
+          <button type="submit">Log In</button>
+        </form>
+
+        {/* Forgot Password Button */}
+        <button className={styles["forgot-password-btn"]} onClick={() => setShowForgotPassword(true)}>
+          Forgot Password?
+        </button>
       </div>
 
+      {/* Show success or failure modal */}
       {showModal && (
         isSuccess ? (
           <SuccessModal
@@ -83,8 +88,14 @@ function Login() {
           />
         )
       )}
+
+      {/* Render ForgotPassword modal if button is clicked */}
+      {showForgotPassword && (
+        <ForgotPassword onClose={() => setShowForgotPassword(false)} />
+      )}
     </div>
   );
 }
 
 export default Login;
+// The Login component is a form that allows users to log in. When the form is submitted, a success modal is displayed with a message indicating that the login was successful. If the login fails, a failure modal is displayed with an error message. The component also includes a "Forgot Password?" button that opens the ForgotPassword modal when clicked.
