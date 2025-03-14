@@ -28,6 +28,7 @@ APPOINTMENT_STATUS_CHOICES = (
     ('pending', 'Pending'),
     ('confirmed', 'Confirmed'),
     ('cancelled', 'Cancelled'),
+    ('postponed', 'Postponed'),
 )
 
 class Appointment(models.Model):
