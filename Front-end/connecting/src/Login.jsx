@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./App.css";
+import styles from "./App.module.css";
 import SuccessModal from "./SuccessModal";
 import FailModal from "./FailModal"; // ✅ Import FailModal
 
@@ -60,13 +60,15 @@ function Login() {
   };
 
   return (
-    <div className="login-page">
+    <div className={styles['login-page']}>
+       <div className={styles['login-container']}>
       <h2>Log In</h2>
       <form onSubmit={handleSubmit}>
         <input type="email" id="email" placeholder="Email" onChange={handleChange} required />
         <input type="password" id="password" placeholder="Password" onChange={handleChange} required />
         <button type="submit">Log In</button>
       </form>
+      </div>
 
       {showModal && (
         isSuccess ? (

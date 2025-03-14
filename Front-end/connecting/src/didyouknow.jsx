@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import "./AppOfMaria.css"; // Import the external CSS file
+import styles from './AppOfMaria.module.css';  // Import the CSS module
 
 const DidYouKnow = ({ facts }) => {
   const [currentFactIndex, setCurrentFactIndex] = useState(0);
@@ -13,14 +13,14 @@ const DidYouKnow = ({ facts }) => {
   };
 
   return (
-    <div className="did-you-know-container">
-      <div className="did-you-know-cards">
-        <div className="did-you-know-card">
+    <div className={styles['did-you-know-container']}>
+      <div className={styles['did-you-know-cards']}>
+        <div className={styles['did-you-know-card']}>
           <h2>Did You Know?</h2>
           <p>{facts[currentFactIndex].fact}</p>
-          <div className="buttons-container">
-            <button onClick={showPreviousFact} className="prev-button">Previous</button>
-            <button onClick={showNextFact} className="next-button">Next</button>
+          <div className={styles['buttons-container']}>
+            <button onClick={showPreviousFact} className={styles['prev-button']}>Previous</button>
+            <button onClick={showNextFact} className={styles['next-button']}>Next</button>
           </div>
         </div>
       </div>

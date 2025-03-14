@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./AppOfMaria.css";
+import styles from './AppOfMaria.module.css'; // Import CSS module
 import AlphabetChallenge from "./alphabet.jsx";  // Fixed the typo in the import
 import DidYouKnow from "./didyouknow.jsx";  // Fixed the typo in the import
 import Appointments from "./appoitments.jsx";  // Fixed the typo in the import
@@ -108,36 +108,33 @@ const AppOfMaria = () => {
   };
 
   return (
-    <div className="app">
+    <div className={styles.app}>
       {/* Header Container */}
-      <div className="header-container">
+      <div className={styles['header-container']}>
         <header>
-          <div className="header-content">
+          <div className={styles['header-content']}>
             <img
               src="https://i.postimg.cc/N0bcLbBp/5aec84df-b722-4e37-9570-758698da942d-removebg-preview.png"
               alt="Header Image"
-              className="header-image"
+              className={styles['header-image']}
             />
-            <nav className="navbar">
-              <button className="nav-button">Home</button>
-              <button className="nav-button" onClick={() => document.getElementById("contact-footer")?.scrollIntoView({ behavior: "smooth" })}>
+            <nav className={styles.navbar}>
+              <button className={styles['nav-button']}>Home</button>
+              <button className={styles['nav-button']} onClick={() => document.getElementById("contact-footer")?.scrollIntoView({ behavior: "smooth" })}>
                 Service
               </button>
-              <button className="nav-button" onClick={()=> navigate("/login")}>Login</button>
-              <button className="nav-button" onClick={() => navigate("/home")}>
-      Signup
-    </button>
-              <button className="nav-button" onClick={() => document.getElementById("contact-footer")?.scrollIntoView({ behavior: "smooth" })}>
+              <button className={styles['nav-button']} onClick={() => navigate("/login")}>Login</button>
+              <button className={styles['nav-button']} onClick={() => navigate("/home")}>Signup</button>
+              <button className={styles['nav-button']} onClick={() => document.getElementById("contact-footer")?.scrollIntoView({ behavior: "smooth" })}>
                 Contact
               </button>
-              <button className="nav-button" onClick={() => document.getElementById("appointments-section").scrollIntoView({ behavior: "smooth" })}>
+              <button className={styles['nav-button']} onClick={() => document.getElementById("appointments-section").scrollIntoView({ behavior: "smooth" })}>
                 Book an Appointment
               </button>
             </nav>
           </div>
         </header>
       </div>
-
 
       {/* Did You Know Container */}
       <div>
@@ -149,35 +146,34 @@ const AppOfMaria = () => {
         <AlphabetChallenge alphabet={alphabet} handleLetterClick={handleLetterClick} />
       </div>
 
-      <div class="testimonials">
-        <div class="testimonial-box">
+      <div className={styles.testimonials}>
+        <div className={styles['testimonial-box']}>
           <p>"The neural rejuvenation therapy changed my life! I feel 20 years younger!"</p>
           <span>- Dr. John Doe, Age Reversed</span>
         </div>
-        <div class="testimonial-box">
+        <div className={styles['testimonial-box']}>
           <p>"Cybernetic implants gave me superhuman reflexes. Highly recommend!"</p>
           <span>- Sarah Connor, Cybernetics Enthusiast</span>
         </div>
-        <div class="testimonial-box">
+        <div className={styles['testimonial-box']}>
           <p>"Thanks to AI-guided meditation, I have achieved enlightenment in just 2 weeks!"</p>
           <span>- ZenMaster 3000, AI Guru</span>
         </div>
       </div>
 
-      <div className="appointments-container">
+      <div className={styles['appointments-container']}>
         <DynamicCounter inView={inView} id="counter" />
       </div>
 
-
       {/* Book an Appointment Section */}
-      <div id="appointments-section" className="appointments-container">
+      <div id="appointments-section" className={styles['appointments-container']}>
         <Appointments />
       </div>
 
       {/* Success Modal */}
-      <div id="successModal" className="modal">
-        <div className="modal-content">
-          <span className="close" onClick={closeModal}>&times;</span>
+      <div id="successModal" className={styles.modal}>
+        <div className={styles['modal-content']}>
+          <span className={styles.close} onClick={closeModal}>&times;</span>
           <h2>Appointment Booked!</h2>
           <p>Your appointment has been successfully booked.</p>
         </div>
@@ -185,26 +181,26 @@ const AppOfMaria = () => {
 
       {/* Notification Box */}
       {selectedDisease && (
-        <div className="notification-box">
+        <div className={styles['notification-box']}>
           <p>{selectedDisease}</p>
         </div>
       )}
 
       {/* Emergency Button */}
-      <div className="App">
+      <div className={styles.App}>
         <EmergencyButton />
       </div>
 
       {/* Footer Container */}
-      <div className="footer-container">
+      <div className={styles['footer-container']}>
         <footer id="contact-footer">
-          <div className="footer-section">
+          <div className={styles['footer-section']}>
             <h3>Contact Us</h3>
             <p>Lebanon, Beirut</p>
             <p>+961(81890345)</p>
             <p>healix@it.com</p>
           </div>
-          <div className="footer-section">
+          <div className={styles['footer-section']}>
             <h3>Services</h3>
             <ul>
               <li>Cardiology</li>
@@ -216,7 +212,7 @@ const AppOfMaria = () => {
           </div>
         </footer>
       </div>
-    </div >
+    </div>
   );
 };
 

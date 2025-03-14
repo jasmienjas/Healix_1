@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./App.css"; // Optional, style it as per your design
+import styles from './App.module.css'; // Import the CSS module
 import SuccessModal from "./SuccessModal"; // Import SuccessModal
 import FailModal from "./FailModal"; // Import FailModal
 
@@ -50,8 +50,8 @@ function ResetPassword() {
   };
 
   return (
-    <div className="reset-password-page">
-      <div className="reset-password-container">
+    <div className={styles['reset-password-page']}>
+      <div className={styles['reset-password-container']}>
         <h2>Reset Password</h2>
         <form onSubmit={handleSubmit}>
           <input

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // useNavigate is imported
-import "./App.css"; // Optional, create this file for styling
+import { Link, useNavigate } from "react-router-dom";
+import styles from './App.module.css'; // Import the CSS module
 import SuccessModal from "./SuccessModal"; // Import SuccessModal
 
 function ForgotPassword() {
@@ -34,8 +34,8 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="forgot-password-page">
-      <div className="forgot-password-container">
+    <div className={styles['forgot-password-page']}>
+      <div className={styles['forgot-password-container']}>
         <h2>Forgot Password</h2>
         <form onSubmit={handleSubmit}>
           <input
@@ -50,7 +50,7 @@ function ForgotPassword() {
         </form>
         <p>
           Remember your password?{" "}
-          <Link to="/login" className="back-to-login-link">
+          <Link to="/login" className={styles['login-link']}>
             Log in
           </Link>
         </p>

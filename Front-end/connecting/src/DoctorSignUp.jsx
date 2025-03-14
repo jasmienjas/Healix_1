@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./App.css";
+import styles from  "./App.module.css";
 import SuccessModal from "./SuccessModal";
 
 function DoctorSignup() {
@@ -61,8 +61,8 @@ function DoctorSignup() {
   };
 
   return (
-    <div className="signup-page">
-      <div className="signup-container">
+    <div className={styles['signup-page']}>
+      <div className={styles['signup-container']}>
         <h2>Doctor Sign Up</h2>
         <form onSubmit={handleSubmit} encType="multipart/form-data"> {/* ✅ Important for file upload */}
           <input type="text" id="username" placeholder="Username" onChange={handleChange} required />

@@ -1,5 +1,5 @@
 import React from "react";
-import "./AppOfMaria.css";
+import styles from './AppOfMaria.module.css';  // Import the CSS module
 
 function App() {
   const handleSubmit = (event) => {
@@ -33,8 +33,8 @@ function App() {
   };
 
   return (
-    <div className="container">
-      <div className="description">
+    <div className={styles.container}>
+      <div className={styles.description}>
         <h2>Make An Appointment</h2>
         <p>
           Schedule an appointment with our expert doctors across multiple
@@ -42,9 +42,9 @@ function App() {
         </p>
       </div>
 
-      <div className="form-container">
+      <div className={styles['form-container']}>
         <form id="appointmentForm" onSubmit={handleSubmit}>
-          <div className="form-grid">
+          <div className={styles['form-grid']}>
             <select id="department">
               <option value="">Choose Department</option>
               <option value="Cardiology">Cardiology</option>
@@ -60,9 +60,9 @@ function App() {
             <input type="email" id="email" placeholder="Your Email" />
             <input type="date" id="date" />
             <input type="time" id="time" />
-            <p className="error" id="emailError">
+            <p className={styles.error} id="emailError">
             </p>
-            <button type="submit" className="btn">
+            <button type="submit" className={styles.btn}>
               Make An Appointment
             </button>
           </div>
@@ -70,36 +70,26 @@ function App() {
       </div>
 
       {/* Video background */}
-      <div className="video-background">
-      <iframe
-
-width="100%"
-
-height="100%"
-
-src="https://www.youtube-nocookie.com/embed/Bv-J4XSRLx4?autoplay=1&mute=1&loop=1&playlist=Bv-J4XSRLx4&controls=0"
-
-title="YouTube video player"
-
-frameBorder="0"
-
-allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-
-referrerPolicy="strict-origin-when-cross-origin"
-
-allowFullScreen
-
-></iframe>
-
+      <div className={styles['video-background']}>
+        <iframe
+          width="100%"
+          height="100%"
+          src="https://www.youtube-nocookie.com/embed/Bv-J4XSRLx4?autoplay=1&mute=1&loop=1&playlist=Bv-J4XSRLx4&controls=0"
+          title="YouTube video player"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        ></iframe>
       </div>
 
       {/* Success Modal */}
-      <div id="successModal" className="modal">
-        <div className="modal-content">
-          <div className="smiley">😊</div>
+      <div id="successModal" className={styles.modal}>
+        <div className={styles['modal-content']}>
+          <div className={styles.smiley}>😊</div>
           <h3>Appointment Approved!</h3>
           <p>Check your inbox for more info.</p>
-          <button className="btn-close" onClick={closeModal}>
+          <button className={styles['btn-close']} onClick={closeModal}>
             Close
           </button>
         </div>

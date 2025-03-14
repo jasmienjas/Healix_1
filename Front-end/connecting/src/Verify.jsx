@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./App.css"; // Optional, style it as per your design
+import styles from './App.module.css'; // Import the CSS module
 import SuccessModal from "./SuccessModal"; // Import SuccessModal
 
 function Verify() {
@@ -34,8 +34,8 @@ function Verify() {
   };
 
   return (
-    <div className="verify-page">
-      <div className="verify-container">
+    <div className={styles['verify-page']}> {/* This should cover the entire page */}
+      <div className={styles['verify-container']}>
         <h2>Enter Verification Code</h2>
         <form onSubmit={handleSubmit}>
           <input
@@ -49,7 +49,7 @@ function Verify() {
           <button type="submit">Verify Code</button>
         </form>
         <p>
-          Didn't receive the code? <a href="/forgot-password" className="resend-link">Resend</a>
+          Didn't receive the code? <a href="/forgot-password" className={styles['resend-link']}>Resend</a>
         </p>
       </div>
 

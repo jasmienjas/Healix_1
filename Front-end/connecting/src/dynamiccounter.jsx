@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./AppOfMaria.css"; // Ensure this has the correct CSS
+import styles from './AppOfMaria.module.css'; // Import the CSS module
 
 const DynamicCounter = () => {
     const [count, setCount] = useState(0);
@@ -38,30 +38,30 @@ const DynamicCounter = () => {
     }, [inView]); // Dependency on `inView` to trigger this effect
 
     return (
-        <div className={`counter-container ${inView ? "in-view" : ""}`} id="counter">
+        <div className={`${styles['counter-container']} ${inView ? styles['in-view'] : ''}`} id="counter">
             {/* Counters */}
-            <div className="counter">
-                <span className="counter-value">{count}</span>
+            <div className={styles['counter']}>
+                <span className={styles['counter-value']}>{count}</span>
                 <p>Competent doctors</p>
             </div>
 
-            <div className="counter">
-                <span className="counter-value">{count * 2}</span>
+            <div className={styles['counter']}>
+                <span className={styles['counter-value']}>{count * 2}</span>
                 <p>Satisfied patients</p>
             </div>
 
-            <div className="counter">
-                <span className="counter-value">{count * 3}</span>
+            <div className={styles['counter']}>
+                <span className={styles['counter-value']}>{count * 3}</span>
                 <p>Successful treatments</p>
             </div>
 
-            <div className="counter">
-                <span className="counter-value">{count * 4}</span>
+            <div className={styles['counter']}>
+                <span className={styles['counter-value']}>{count * 4}</span>
                 <p>Happy families</p>
             </div>
 
-            <div className="counter">
-                <span className="counter-value">{count * 5}</span>
+            <div className={styles['counter']}>
+                <span className={styles['counter-value']}>{count * 5}</span>
                 <p>Positive reviews</p>
             </div>
         </div>

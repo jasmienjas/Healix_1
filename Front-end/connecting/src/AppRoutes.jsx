@@ -1,15 +1,15 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import App from "./App"; // SignUp page
-import Login from "./Login"; // Login page
-import ForgotPassword from "./ForgotPassword"; // Forgot Password page
-import Verify from "./Verify"; // Verify page
-import ResetPassword from "./ResetPassword"; // Reset Password page
-import HomePage from "./HomePage"; // Home page
-import DoctorSignup from "./DoctorSignUp"; // Doctor SignUp page
-import AppOfMaria from "./AppOfMaria"; // Main App page
+import App from "./App.jsx"; // SignUp page
+import Login from "./Login.jsx"; // Login page
+import ForgotPassword from "./ForgotPassword.jsx"; // Forgot Password page
+import Verify from "./Verify.jsx"; // Verify page
+import ResetPassword from "./ResetPassword.jsx"; // Reset Password page
+import HomePage from "./HomePage.jsx"; // Home page
+import DoctorSignup from "./DoctorSignUp.jsx"; // Doctor SignUp page
+import AppOfMaria from "./AppOfMaria.jsx"; // Main App page
 
 // ✅ New Dashboard Imports
-import DoctorDashboard from "./components/doctor_dashboard/LandingPage";
+import DoctorDashboard from "./components/doctor_dashboard/LandingPage.jsx";
 import PatientDashboard from "./components/patient_dashboard/src/dashboard.jsx";
 
 function AppRoutes() {

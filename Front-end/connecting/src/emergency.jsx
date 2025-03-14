@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import "./AppOfMaria.css"; // Import the external CSS file
+import styles from './AppOfMaria.module.css'; // Import the CSS module
 
 const EmergencyButton = () => {
   const [progress, setProgress] = useState(0);
@@ -26,15 +26,15 @@ const EmergencyButton = () => {
   };
 
   return (
-    <div className="emergency-button-container">
+    <div className={styles['emergency-button-container']}>
       <button
-        className="emergency-button"
+        className={styles['emergency-button']}
         onMouseDown={startHold}
         onMouseUp={cancelHold}
         onMouseLeave={cancelHold}
       >
         Emergency
-        <div className="fill" style={{ width: `${progress}%` }}></div>
+        <div className={styles['fill']} style={{ width: `${progress}%` }}></div>
       </button>
     </div>
   );
