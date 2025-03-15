@@ -61,7 +61,7 @@ class PostponeAppointmentView(APIView):
         appointment = get_object_or_404(Appointment, pk=pk)
         
         # Ensure that only doctors can postpone appointments
-        if request.user.user_type != 'doctor':
+        if request.user.user_type != 'patient':
             return Response({'error': 'Only doctors can postpone appointments.'},
                             status=status.HTTP_403_FORBIDDEN)
         
