@@ -91,4 +91,52 @@ class PostponeAppointmentView(APIView):
         
         serializer = AppointmentSerializer(appointment)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class CancelAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        # Retrieve the appointment by primary key
+        appointment = get_object_or_404(Appointment, pk=pk)
+        
+        # Check that only doctors can cancel appointments
+        if request.user.user_type != 'doctor':
+            return Response({'error': 'Only doctors can cancel appointments.'},
+                            status=status.HTTP_403_FORBIDDEN)
+        
+        # Get cancellation message from the request data
+        cancellation_message = request.data.get('cancellation_message')
+        if not cancellation_message:
+            return Response({'error': 'Cancellation message is required.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        # Update the appointment status and store the cancellation message
+        appointment.status = 'cancelled'
+        appointment.reason = cancellation_message  # reusing the "reason" field to store the cancellation note
+        appointment.save()
+        
+        # Retrieve the patient's email (assuming appointment.patient is a PatientProfile linked to a user)
+        patient_email = appointment.patient.user.email
+        
+        # Prepare the email details
+        subject = "Appointment Cancellation Notice"
+        message = (
+            f"Dear {appointment.patient.user.username},\n\n"
+            f"Your appointment scheduled on {appointment.appointment_datetime} has been cancelled by Dr. {appointment.doctor.user.username}.\n\n"
+            f"Message from doctor: {cancellation_message}\n\n"
+            f"Best regards,\nHealix Team"
+        )
+        from_email = settings.DEFAULT_FROM_EMAIL
+        recipient_list = [patient_email]
+        
+        # Send the email notification to the patient
+        try:
+            send_mail(subject, message, from_email, recipient_list)
+        except Exception as e:
+            # Log the error; you may also choose to return a warning in the response
+            print(f"Failed to send cancellation email: {e}")
+        
+        serializer = AppointmentSerializer(appointment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 

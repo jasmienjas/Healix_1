@@ -8,6 +8,7 @@ urlpatterns = [
     path('doctor-register/', DoctorRegisterView.as_view(), name='doctor-register'),  # ✅ Doctor registration route
     path('login/', LoginView.as_view(), name='login'),
     path('appointments/<int:pk>/postpone/', PostponeAppointmentView.as_view(), name='postpone-appointment'),
+    path('appointments/<int:pk>/cancel/', CancelAppointmentView.as_view(), name='cancel-appointment'),
     
 ]
 
