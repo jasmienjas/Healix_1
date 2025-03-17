@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import RegisterView, DoctorRegisterView, LoginView
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import PatientScheduleView, RegisterView, DoctorRegisterView, LoginView, PostponeAppointmentView, CancelAppointmentView
+
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -9,6 +10,7 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('appointments/<int:pk>/postpone/', PostponeAppointmentView.as_view(), name='postpone-appointment'),
     path('appointments/<int:pk>/cancel/', CancelAppointmentView.as_view(), name='cancel-appointment'),
+    path('appointments/schedule/', PatientScheduleView.as_view(), name='patient-schedule'),
     
 ]
 

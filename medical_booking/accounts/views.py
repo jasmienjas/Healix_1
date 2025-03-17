@@ -140,3 +140,17 @@ class CancelAppointmentView(APIView):
         serializer = AppointmentSerializer(appointment)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .models import Appointment
+from .serializers import AppointmentSerializer
+
+class PatientScheduleView(generics.ListAPIView):
+    """
+    View to list all appointments for the logged-in patient.
+    """
+    serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Appointment.objects.filter(patient__user=self.request.user)
