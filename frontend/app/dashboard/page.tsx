@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,6 +8,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, Clock, MapPin, Search } from "lucide-react"
 import Layout from "../components/layout"
+import { useAuth } from '../context/auth-context'
+import Link from "next/link"
 
 interface Doctor {
   id: string
@@ -32,7 +34,17 @@ interface Appointment {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth()
+  const [firstName, setFirstName] = useState('')
   const [date, setDate] = useState<Date>(new Date(2025, 1, 1))
+  const [greeting, setGreeting] = useState('')
+
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.first_name)
+      setGreeting(`Hi, ${user.first_name}`)
+    }
+  }, [user])
 
   const onlineDoctors: Doctor[] = [
     {
@@ -143,9 +155,35 @@ export default function DashboardPage() {
     <Layout>
       <div className="container mx-auto px-4 py-6">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-2">Hi, Amany</h1>
+          <h1 className="text-2xl font-semibold mb-2">{greeting}</h1>
           <h2 className="text-3xl font-bold">Welcome Back</h2>
         </div>
+
+        {/* Updated Hero Section with Image */}
+        <Card className="mb-8 bg-[#023664] text-white overflow-hidden">
+          <CardContent className="p-6 flex flex-col md:flex-row justify-between items-center">
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold">Your Heath Journey Starts Here</h3>
+              <p className="text-lg">Book Consultations on Your Own Terms</p>
+              <p className="text-sm">Find the Best Doctors Near you</p>
+              <div className="flex items-center gap-2 mt-4">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="w-8 h-8 rounded-full bg-white/20" />
+                  ))}
+                </div>
+                <span className="text-sm">+180 doctors are available</span>
+              </div>
+            </div>
+            <div className="mt-4 md:mt-0 relative w-[200px] h-[150px]">
+              <img
+                src="/images/doctor-consultation.jpg"
+                alt="Doctor Consultation"
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Search Bar */}
         <div className="mb-8 flex items-center gap-4">
@@ -176,36 +214,13 @@ export default function DashboardPage() {
               />
             </svg>
           </div>
-          <Button className="bg-blue-700">Search</Button>
+          <Link href="/doctors">
+            <Button className="bg-blue-700">Search</Button>
+          </Link>
         </div>
 
-        {/* Online Consultation Banner */}
-        <Card className="mb-8 bg-[#023664] text-white overflow-hidden">
-          <CardContent className="p-6 flex flex-col md:flex-row justify-between items-center">
-            <div className="space-y-2">
-              <h3 className="text-xl font-semibold">Your Heath Journey Starts Here</h3>
-              <p className="text-lg">Book Consultations on Your Own Terms</p>
-              <p className="text-sm">Find the Best Doctors Near you</p>
-              <div className="flex items-center gap-2 mt-4">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-white/20" />
-                  ))}
-                </div>
-                <span className="text-sm">+180 doctors are available</span>
-              </div>
-            </div>
-            <div className="mt-4 md:mt-0">
-              <Image
-                src="/placeholder.svg?height=150&width=200"
-                alt="Online consultation"
-                width={200}
-                height={150}
-                className="rounded-lg"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        
+        
 
         {/* Nearby Doctors */}
         <div className="mb-8">

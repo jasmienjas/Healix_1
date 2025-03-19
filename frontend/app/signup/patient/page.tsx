@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { Eye, EyeOff, X } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "../../context/auth-context"
+import { signupPatient } from "@/services/patient"
 
 export default function PatientSignupPage() {
   const [firstName, setFirstName] = useState("")
@@ -19,31 +20,18 @@ export default function PatientSignupPage() {
   const [birthDate, setBirthDate] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  // Update the state to include verification status
   const [isVerificationSent, setIsVerificationSent] = useState(false)
   const [registeredEmail, setRegisteredEmail] = useState("")
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [message, setMessage] = useState("")
 
   const router = useRouter()
   const { signup } = useAuth()
 
-  // Update the handleSignup function
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
-
-    // Simple validation
-    if (!firstName || !lastName || !email || !password || !phoneNumber || !birthDate) {
-      setError("Please fill in all required fields")
-      setIsLoading(false)
-      return
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long")
-      setIsLoading(false)
-      return
-    }
 
     try {
       const userData = {
@@ -55,29 +43,34 @@ export default function PatientSignupPage() {
         birthDate,
       }
 
-      const result = await signup(userData, "patient")
+      console.log('Sending signup data:', userData)
+      const result = await signupPatient(userData)
+      console.log('Signup response:', result)
 
       if (result.success) {
-        if (result.requiresVerification) {
-          // Show verification sent screen
-          setRegisteredEmail(email)
-          setIsVerificationSent(true)
-        } else {
-          // Successful signup without verification (shouldn't happen with current flow)
-          router.push("/dashboard")
-        }
+        setRegisteredEmail(email)
+        setIsVerificationSent(true)
+        setMessage("Please check your email for verification instructions.")
+        
+        // Store unverified user data temporarily
+        localStorage.setItem(`healix_unverified_${email}`, JSON.stringify({
+          email,
+          user_type: 'patient'
+        }))
+        
+        // Redirect to verification page
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`)
       } else {
-        setError("An error occurred during signup")
+        setError(result.message || "Registration failed")
       }
-    } catch (err) {
-      setError("An error occurred during signup")
-      console.error(err)
+    } catch (err: any) {
+      console.error('Signup error:', err)
+      setError(err.message || "An error occurred during signup")
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Add a function to resend verification email
   const handleResendVerification = async () => {
     setIsLoading(true)
     try {
@@ -101,12 +94,31 @@ export default function PatientSignupPage() {
     }
   }
 
-  // Update the return statement to conditionally render the verification sent screen
+  if (isVerificationSent) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+          <h2 className="text-2xl font-bold text-center mb-4">Verify Your Email</h2>
+          <p className="text-center mb-4">
+            We've sent a verification link to <strong>{registeredEmail}</strong>
+          </p>
+          <p className="text-center text-gray-600 mb-4">
+            Please check your email and click the verification link to complete your registration.
+          </p>
+          <button
+            onClick={() => router.push('/login')}
+            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen">
-      {/* Left side with image and logo - UPDATED */}
       <div className="relative hidden md:flex md:w-5/12 bg-[#023664] flex-col items-center justify-center text-white">
-        {/* Logo at the top */}
         <div className="absolute top-6 left-0 w-full flex justify-center z-10">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-iPLCdILTkVCTPt0ecxQ9Si1shZBv8k.png"
@@ -117,7 +129,6 @@ export default function PatientSignupPage() {
           />
         </div>
 
-        {/* New background image with healthcare professionals */}
         <div className="w-full h-full overflow-hidden">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-q4FMYU8IDDV1Fi8jIF2ooIw6hY0CCR.png"
@@ -130,7 +141,6 @@ export default function PatientSignupPage() {
         </div>
       </div>
 
-      {/* Right side with signup form or verification message */}
       <div className="w-full md:w-7/12 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="md:hidden absolute top-4 right-4">
@@ -153,7 +163,6 @@ export default function PatientSignupPage() {
 
               {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 
-              {/* Existing form code */}
               <form onSubmit={handleSignup}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>

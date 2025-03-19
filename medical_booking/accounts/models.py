@@ -22,4 +22,8 @@ class DoctorProfile(models.Model):
 
 class PatientProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
     medical_history = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}'s Profile"

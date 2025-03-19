@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, X } from "lucide-react"
@@ -17,32 +17,34 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   const router = useRouter()
-  const { login } = useAuth()
+  const { login: authLogin, isAuthenticated } = useAuth()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Prevent authenticated users from accessing login page
+  useEffect(() => {
+    const token = document.cookie.includes('healix_auth_token')
+    if (token) {
+      const userType = localStorage.getItem('user_type')
+      const dashboardPath = userType === 'doctor' ? '/dashboard/doctor' : '/dashboard'
+      router.push(dashboardPath)
+    }
+  }, [router])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
 
-    // Simple validation
-    if (!email || !password) {
-      setError("Please enter both email and password")
-      setIsLoading(false)
-      return
-    }
-
     try {
-      const success = await login(email, password)
-
+      // Use only the auth context login
+      const success = await authLogin(email, password)
       if (success) {
-        // Successful login
-        router.push("/dashboard")
-      } else {
-        setError("Invalid email or password")
+        const userType = localStorage.getItem('user_type')
+        const dashboardPath = userType === 'doctor' ? '/dashboard/doctor' : '/dashboard'
+        router.push(dashboardPath)
       }
-    } catch (err) {
-      setError("An error occurred during login")
-      console.error(err)
+    } catch (err: any) {
+      console.error('Login error:', err)
+      setError(err.message || 'Failed to login')
     } finally {
       setIsLoading(false)
     }
@@ -97,7 +99,7 @@ export default function LoginPage() {
 
           {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email address
