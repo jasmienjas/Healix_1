@@ -71,4 +71,32 @@ export async function logout() {
 
 export function isEmailVerified(email: string): boolean {
     return !localStorage.getItem(`healix_unverified_${email}`);
+}
+
+export async function requestPasswordReset(email: string) {
+  try {
+    const response = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send reset password link');
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      message: data.message,
+    };
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    return {
+      success: false,
+      message: 'Failed to send reset password link',
+    };
+  }
 } 

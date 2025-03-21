@@ -14,6 +14,7 @@ export function middleware(request: NextRequest) {
     path === "/forgot-password" ||
     path === "/verify-email" ||
     path === "/check-status" ||
+    path === "/check-email" ||
     path === "/upload"
 
   // Check for authentication token
