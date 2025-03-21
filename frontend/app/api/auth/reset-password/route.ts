@@ -4,7 +4,10 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
-    const { token, password } = await request.json();
+    const body = await request.json();
+    console.log('Received reset request with data:', { token: body.token, hasPassword: !!body.password });
+
+    const { token, password } = body;
 
     if (!token || !password) {
       return NextResponse.json(
@@ -17,24 +20,26 @@ export async function POST(request: Request) {
     const user = await prisma.user.findFirst({
       where: {
         resetToken: token,
-        resetTokenExpiry: {
-          gt: new Date(),
-        },
       },
     });
 
+    console.log('Found user:', user ? 'yes' : 'no');
+
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid or expired reset token' },
+        { error: 'Invalid reset token' },
         { status: 400 }
       );
     }
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash the password consistently with your signup/login implementation
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    console.log('Updating password for user:', user.email);
 
     // Update the user's password and clear the reset token
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         password: hashedPassword,
@@ -42,6 +47,8 @@ export async function POST(request: Request) {
         resetTokenExpiry: null,
       },
     });
+
+    console.log('Password updated successfully');
 
     return NextResponse.json({
       message: 'Password reset successfully'

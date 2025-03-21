@@ -30,6 +30,8 @@ export default function ResetPasswordPage() {
       return
     }
 
+    console.log('Token from URL:', token);
+    
     setIsLoading(true)
 
     try {
@@ -42,6 +44,7 @@ export default function ResetPasswordPage() {
       })
 
       const data = await response.json()
+      console.log('Reset password response:', data);
 
       if (response.ok) {
         toast.success("Password reset successfully")
@@ -50,6 +53,7 @@ export default function ResetPasswordPage() {
         toast.error(data.error || "Failed to reset password")
       }
     } catch (error) {
+      console.error('Reset error:', error);
       toast.error("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)
