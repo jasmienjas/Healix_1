@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import AlphabetChallenge from "@/components/home/alphabet"
 import DidYouKnow from "@/components/home/didyouknow"
-import Appointments from "@/components/home/appointments"
 import DynamicCounter from "@/components/home/dynamiccounter"
 import EmergencyButton from "@/components/home/emergency"
 import HomeHeader from "@/components/home/header"
@@ -202,10 +201,7 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* Appointments Section - Moved below testimonials */}
-            <section className="my-8">
-              <Appointments />
-            </section>
+           
 
             {/* Emergency Button */}
             <EmergencyButton />
