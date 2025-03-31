@@ -22,8 +22,23 @@ class DoctorProfile(models.Model):
 
 class PatientProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
     medical_history = models.TextField(blank=True, null=True)
+    
+APPOINTMENT_STATUS_CHOICES = (
+    ('pending', 'Pending'),
+    ('confirmed', 'Confirmed'),
+    ('cancelled', 'Cancelled'),
+    ('postponed', 'Postponed'),
+)
+
+class Appointment(models.Model):
+    doctor = models.ForeignKey('accounts.DoctorProfile', on_delete=models.CASCADE, related_name='appointments')
+    patient = models.ForeignKey('accounts.PatientProfile', on_delete=models.CASCADE, related_name='appointments')
+    appointment_datetime = models.DateTimeField(help_text="Date and time for the appointment")
+    status = models.CharField(max_length=10, choices=APPOINTMENT_STATUS_CHOICES, default='pending')
+    reason = models.TextField(blank=True, null=True, help_text="Reason for the appointment (optional)")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name}'s Profile"
+        return f"Appointment on {self.appointment_datetime} ({self.status})"
