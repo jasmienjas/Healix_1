@@ -1,4 +1,6 @@
 import { API_BASE_URL } from '@/config';
+import { sendVerificationEmail } from '@/lib/verify';
+import crypto from 'crypto';
 
 export async function login(email: string, password: string) {
     try {
@@ -88,5 +90,41 @@ export async function requestPasswordReset(email: string) {
       success: false,
       message: 'Failed to send reset password link',
     };
+  }
+}
+
+export async function signupWithVerification(userData: any) {
+  try {
+    // Generate verification token
+    const verificationToken = crypto.randomUUID();
+    const verificationTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+    // Add verification data to user data
+    const userWithVerification = {
+      ...userData,
+      emailVerified: false,
+      verificationToken,
+      verificationTokenExpiry,
+    };
+
+    // Make the signup API call
+    const response = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userWithVerification),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Send verification email
+      await sendVerificationEmail(userData.email, verificationToken);
+      return { success: true, message: 'Verification email sent' };
+    } else {
+      throw new Error(data.error || 'Signup failed');
+    }
+  } catch (error) {
+    console.error('Signup error:', error);
+    return { success: false, message: error.message };
   }
 } 

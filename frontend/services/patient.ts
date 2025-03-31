@@ -14,23 +14,26 @@ export async function signupPatient(data: PatientSignupData) {
     const url = `${baseUrl}api/accounts/register/patient/`;
     
     console.log('Making API call to:', url);
-    console.log('With data:', data);
 
     try {
+        const requestData = {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            password: data.password,
+            phoneNumber: data.phoneNumber,
+            birthDate: data.birthDate,
+            user_type: 'patient',
+        };
+
+        console.log('With data:', requestData);
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                firstName: data.firstName,
-                lastName: data.lastName,
-                email: data.email,
-                password: data.password,
-                phoneNumber: data.phoneNumber,
-                birthDate: data.birthDate,
-                user_type: 'patient'
-            }),
+            body: JSON.stringify(requestData),
             mode: 'cors',
         });
 
@@ -38,14 +41,35 @@ export async function signupPatient(data: PatientSignupData) {
         console.log('Raw API Response:', result);
 
         if (!response.ok) {
-            // Convert the error message object to a string if necessary
             const errorMessage = typeof result.message === 'object' 
                 ? JSON.stringify(result.message) 
                 : result.message || 'Registration failed';
             throw new Error(errorMessage);
         }
 
-        return result;
+        // Send verification email using the API route
+        try {
+            const emailResponse = await fetch('/api/auth/send-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: data.email
+                }),
+            });
+
+            if (!emailResponse.ok) {
+                console.error('Failed to send verification email');
+            }
+        } catch (emailError) {
+            console.error('Failed to send verification email:', emailError);
+        }
+
+        return {
+            ...result,
+            verificationEmailSent: true
+        };
     } catch (error) {
         console.error('Detailed API Error:', error);
         if (error instanceof Error) {

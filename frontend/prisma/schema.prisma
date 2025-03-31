@@ -8,10 +8,13 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  password        String
-  resetToken      String?   @unique
-  resetTokenExpiry DateTime?
+  id                     String    @id @default(cuid())
+  email                  String    @unique
+  password               String
+  resetToken             String?   @unique
+  resetTokenExpiry       DateTime?
+  emailVerified         Boolean   @default(false)
+  verificationToken     String?   @unique
+  verificationTokenExpiry DateTime?
   // Add other fields as needed
 } 
