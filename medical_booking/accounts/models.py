@@ -7,6 +7,7 @@ class CustomUser(AbstractUser):
         ('doctor', 'Doctor'),
         ('admin', 'Admin'),
     )
+    is_verified = models.BooleanField(default=False)
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='patient')
     dob = models.DateField(null=True, blank=True)  # ✅ Add Date of Birth (dob) field
 

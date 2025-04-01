@@ -12,5 +12,3 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(DoctorProfile)
 admin.site.register(PatientProfile)
-
-# Register your models here.

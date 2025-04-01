@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'accounts',
+    'rest_framework_simplejwt',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -80,8 +81,15 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'database_healix',
+        'USER': 'root',
+        'PASSWORD': '271LoginSignup',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
     }
 }
 
