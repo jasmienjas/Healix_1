@@ -13,39 +13,47 @@ export function middleware(request: NextRequest) {
     path === "/signup/patient" ||
     path === "/forgot-password" ||
     path === "/verify-email" ||
-    path === "/check-status"
+    path === "/check-status" ||
+    path === "/check-email" ||
+    path === "/reset-password" ||
+    path === "/upload"
 
-  // Check if user is authenticated by looking for the token in cookies
-  const token = request.cookies.get("healix_auth_token")?.value || ""
+  // Check for authentication token
+  const token = request.cookies.get("healix_auth_token")?.value
+  const userType = request.cookies.get("user_type")?.value
 
-  // If the path requires authentication and the user is not authenticated, redirect to login
+  // If trying to access protected routes without auth
   if (!isPublicPath && !token) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  // If the user is authenticated and trying to access a public path, redirect to dashboard
-  if (isPublicPath && token) {
+  // If trying to access doctor dashboard without being a doctor
+  if (path === "/dashboard/doctor" && userType !== "doctor") {
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
+  // If trying to access patient dashboard as a doctor
+  if (path === "/dashboard" && userType === "doctor") {
+    return NextResponse.redirect(new URL("/dashboard/doctor", request.url))
+  }
+
+  // Allow all other requests to proceed
   return NextResponse.next()
 }
 
-// Specify the paths that should be processed by the middleware
+// Update the config to match your routes
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/profile/:path*",
-    "/calendar/:path*",
-    "/messages/:path*",
-    "/help/:path*",
-    "/login",
-    "/signup",
-    "/signup/doctor",
-    "/signup/patient",
-    "/forgot-password",
-    "/verify-email",
-    "/check-status",
-  ],
+    '/',
+    '/login',
+    '/signup',
+    '/signup/doctor',
+    '/signup/patient',
+    '/dashboard',
+    '/dashboard/doctor',
+    '/verify-email',
+    '/check-status',
+    '/forgot-password'
+  ]
 }
 

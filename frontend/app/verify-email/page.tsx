@@ -1,61 +1,59 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
-import Link from "next/link"
-import { useAuth } from "../context/auth-context"
+import { toast } from "sonner"
 
 export default function VerifyEmailPage() {
-  const [isVerifying, setIsVerifying] = useState(true)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [error, setError] = useState("")
-
+  const [isLoading, setIsLoading] = useState(false)
+  
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { verifyEmail } = useAuth()
+  const token = searchParams?.get('token')
 
-  useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        // Get token from URL
-        const token = searchParams.get("token")
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-        if (!token) {
-          setError("Invalid verification link. Please try again or request a new verification email.")
-          setIsVerifying(false)
-          return
-        }
-
-        // Verify email with token
-        const success = await verifyEmail(token)
-
-        if (success) {
-          setIsSuccess(true)
-          // Redirect to dashboard after 3 seconds
-          setTimeout(() => {
-            router.push("/dashboard")
-          }, 3000)
-        } else {
-          setError("Failed to verify your email. The link may have expired or is invalid.")
-        }
-      } catch (err) {
-        console.error(err)
-        setError("An error occurred during verification. Please try again later.")
-      } finally {
-        setIsVerifying(false)
-      }
+    if (!token) {
+      toast.error("Invalid verification token.")
+      return
     }
 
-    verifyToken()
-  }, [searchParams, verifyEmail, router])
+    console.log('Token from URL:', token);
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      })
+
+      const data = await response.json()
+      console.log('Verify email response:', data);
+
+      if (response.ok) {
+        toast.success("Email verified successfully")
+        router.push('/login')
+      } else {
+        toast.error(data.error || "Failed to verify email")
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      toast.error("An error occurred. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left side with image and logo */}
-      <div className="relative hidden md:flex md:w-5/12 bg-[#023664] flex-col items-center justify-center text-white">
-        {/* Logo at the top */}
-        <div className="absolute top-6 left-0 w-full flex justify-center z-10">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-iPLCdILTkVCTPt0ecxQ9Si1shZBv8k.png"
             alt="HEALIX"
@@ -65,112 +63,30 @@ export default function VerifyEmailPage() {
           />
         </div>
 
-        {/* Background image with healthcare professionals */}
-        <div className="w-full h-full overflow-hidden">
-          <Image
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-q4FMYU8IDDV1Fi8jIF2ooIw6hY0CCR.png"
-            alt="Healthcare professionals"
-            width={600}
-            height={800}
-            className="object-cover w-full h-full"
-            priority
-          />
-        </div>
-      </div>
+        <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <h2 className="text-2xl font-bold text-center mb-8">Verify Your Email</h2>
+          
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-6">
+              <div className="text-center">
+                <p className="text-sm text-gray-500">
+                  Please verify your email address by clicking the link we sent to your inbox. 
+                  <br />
+                  If you did not receive the email, you can try verifying again.
+                </p>
+              </div>
 
-      {/* Right side with verification content */}
-      <div className="w-full md:w-7/12 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <div className="md:hidden mb-6 flex justify-center">
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-iPLCdILTkVCTPt0ecxQ9Si1shZBv8k.png"
-              alt="HEALIX"
-              width={120}
-              height={50}
-              className="mx-auto"
-            />
-          </div>
-
-          {isVerifying ? (
-            <>
-              <div className="animate-pulse mb-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 mx-auto flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-blue-600"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
-              <h2 className="text-2xl font-bold mb-2 text-center">Verifying your email</h2>
-              <p className="text-gray-600 text-center">Please wait while we verify your email address...</p>
-            </>
-          ) : isSuccess ? (
-            <>
-              <div className="mb-4">
-                <div className="w-16 h-16 rounded-full bg-green-100 mx-auto flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-green-600"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
-              <h2 className="text-2xl font-bold mb-2 text-center">Email Verified!</h2>
-              <p className="text-gray-600 mb-4 text-center">
-                Your email has been successfully verified. You are now being redirected to your dashboard.
-              </p>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                <div className="bg-blue-600 h-2.5 rounded-full w-full animate-[progress_3s_ease-in-out]"></div>
-              </div>
-              <p className="text-sm text-gray-500 text-center">
-                If you are not redirected automatically, please{" "}
-                <Link href="/dashboard" className="text-blue-600 hover:underline">
-                  click here
-                </Link>
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="mb-4">
-                <div className="w-16 h-16 rounded-full bg-red-100 mx-auto flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-red-600"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-              </div>
-              <h2 className="text-2xl font-bold mb-2 text-center">Verification Failed</h2>
-              <p className="text-gray-600 mb-6 text-center">{error}</p>
-              <div className="flex flex-col space-y-4">
-                <Link
-                  href="/signup"
-                  className="w-full bg-[#023664] text-white py-2 px-4 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-center"
-                >
-                  Try Again
-                </Link>
-                <Link href="/login" className="text-blue-600 hover:underline text-center">
-                  Back to login
-                </Link>
-              </div>
-            </>
-          )}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-[#023664] text-white py-2 px-4 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-70"
+              >
+                {isLoading ? "Verifying..." : "Verify Email"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   )
 }
-

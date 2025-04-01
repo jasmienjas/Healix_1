@@ -7,6 +7,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { X } from "lucide-react"
 import Link from "next/link"
+import { toast } from "sonner"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -18,22 +19,37 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Form submitted with email:', email)
+
     setError("")
     setIsLoading(true)
+    try {
+      console.log('Making API request...')
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+      
+      console.log('API Response:', response)
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+      const data = await response.json()
+      console.log('Response data:', data)
 
-    // Simple validation
-    if (!email) {
-      setError("Please enter your email address")
+      if (response.ok) {
+        setIsSubmitted(true)
+        toast.success("Reset password link sent to your email")
+      } else {
+        toast.error(data.error || "Failed to send reset link")
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      toast.error("An error occurred. Please try again.")
+    } finally {
       setIsLoading(false)
-      return
     }
-
-    // Mock password reset request - in a real app, this would be an API call
-    setIsSubmitted(true)
-    setIsLoading(false)
   }
 
   return (

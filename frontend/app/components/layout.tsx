@@ -12,6 +12,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "../context/auth-context"
+import {
+  LayoutDashboard,
+  Home,
+} from "lucide-react"
 
 interface LayoutProps {
   children: React.ReactNode
@@ -26,15 +30,56 @@ export default function Layout({ children }: LayoutProps) {
     setSidebarOpen(!sidebarOpen)
   }
 
+  const userFirstName = user?.first_name || 'Guest'
+
+  const navigation = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      current: pathname === "/dashboard",
+    },
+    {
+      name: "Home",
+      href: "/home",
+      icon: Home,
+      current: pathname === "/home",
+    },
+    {
+      name: "Calendar",
+      href: "/calendar",
+      icon: Calendar,
+      current: pathname === "/calendar",
+    },
+    {
+      name: "Profile",
+      href: "/profile",
+      icon: User,
+      current: pathname === "/profile",
+    },
+    {
+      name: "Messages",
+      href: "/messages",
+      icon: MessageSquare,
+      current: pathname === "/messages",
+    },
+    {
+      name: "Help",
+      href: "/help",
+      icon: HelpCircle,
+      current: pathname === "/help",
+    },
+  ]
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Header - Reduced height */}
+      {/* Header */}
       <header className="bg-[#023664] text-white py-2 px-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center">
             <Image
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-iPLCdILTkVCTPt0ecxQ9Si1shZBv8k.png"
-              alt="HEALIX - Where Every Click Heals"
+              alt="HEALIX"
               width={90}
               height={40}
               className="object-contain"
@@ -60,78 +105,22 @@ export default function Layout({ children }: LayoutProps) {
         >
           <div className="pt-16 md:pt-4 pb-6 px-4 h-full flex flex-col">
             <div className="flex-1 space-y-1">
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start",
-                  pathname === "/dashboard" && "text-primary font-semibold bg-blue-50",
-                )}
-                asChild
-              >
-                <Link href="/dashboard">
-                  <User className="h-5 w-5 mr-3" />
-                  Dashboard
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className={cn("w-full justify-start", pathname === "/home" && "text-primary font-semibold bg-blue-50")}
-                asChild
-              >
-                <Link href="/home">
-                  <User className="h-5 w-5 mr-3" />
-                  Home
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start",
-                  pathname === "/profile" && "text-primary font-semibold bg-blue-50",
-                )}
-                asChild
-              >
-                <Link href="/profile">
-                  <User className="h-5 w-5 mr-3" />
-                  Profile
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start",
-                  pathname === "/calendar" && "text-primary font-semibold bg-blue-50",
-                )}
-                asChild
-              >
-                <Link href="/calendar">
-                  <Calendar className="h-5 w-5 mr-3" />
-                  Calendar
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start",
-                  pathname === "/Notifications" && "text-primary font-semibold bg-blue-50",
-                )}
-                asChild
-              >
-                <Link href="/messages">
-                  <MessageSquare className="h-5 w-5 mr-3" />
-                  Notifications
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className={cn("w-full justify-start", pathname === "/help" && "text-primary font-semibold bg-blue-50")}
-                asChild
-              >
-                <Link href="/help">
-                  <HelpCircle className="h-5 w-5 mr-3" />
-                  Help
-                </Link>
-              </Button>
+              {navigation.map((item) => (
+                <Button
+                  key={item.name}
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start",
+                    item.current && "text-primary font-semibold bg-blue-50",
+                  )}
+                  asChild
+                >
+                  <Link href={item.href}>
+                    <item.icon className="h-5 w-5 mr-3" />
+                    {item.name}
+                  </Link>
+                </Button>
+              ))}
             </div>
             <Button variant="ghost" className="w-full justify-start" onClick={logout}>
               <LogOut className="h-5 w-5 mr-3" />
@@ -146,32 +135,26 @@ export default function Layout({ children }: LayoutProps) {
         {/* User panel for desktop */}
         <div className="hidden lg:block w-64 p-4">
           <div className="flex items-center gap-4 justify-end">
-            <div className="relative">
-              <Bell className="h-5 w-5 text-gray-600" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] flex items-center justify-center text-white">
-                3
-              </span>
-            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="flex items-center gap-2 cursor-pointer">
-                  <span>EN</span>
-                  <ChevronDown size={14} />
-                </div>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="/avatars/01.png" alt={userFirstName} />
+                    <AvatarFallback>{userFirstName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>EN</DropdownMenuItem>
-                <DropdownMenuItem>FR</DropdownMenuItem>
-                <DropdownMenuItem>AR</DropdownMenuItem>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuItem className="flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{userFirstName}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <div className="flex items-center gap-2">
-              <Avatar>
-                <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
-              </Avatar>
-              <span className="font-medium">{user?.name || "User"}</span>
-            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, DoctorProfile, PatientProfile
+from .models import CustomUser, DoctorProfile, PatientProfile, Appointment
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
@@ -12,3 +12,9 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(DoctorProfile)
 admin.site.register(PatientProfile)
+
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'doctor', 'patient', 'appointment_datetime', 'status', 'created_at')
+    list_filter = ('status', 'appointment_datetime')
+    search_fields = ('doctor__user__username', 'patient__user__username', 'reason')

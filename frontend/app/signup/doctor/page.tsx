@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { Eye, EyeOff, X, Calendar, Paperclip } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "../../context/auth-context"
+import { signupDoctor, checkDoctorApprovalStatus } from "@/services/doctor"
 
 export default function DoctorSignupPage() {
   const [firstName, setFirstName] = useState("")
@@ -26,6 +27,7 @@ export default function DoctorSignupPage() {
   // Update the state to include approval status
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [registeredEmail, setRegisteredEmail] = useState("")
+  const [message, setMessage] = useState("")
 
   const medicalLicenseRef = useRef<HTMLInputElement>(null)
   const phdCertificateRef = useRef<HTMLInputElement>(null)
@@ -77,26 +79,23 @@ export default function DoctorSignupPage() {
         officeNumber,
         officeAddress,
         birthDate,
-        medicalLicense: medicalLicense?.name,
-        phdCertificate: phdCertificate?.name,
+        medicalLicense,
+        phdCertificate,
       }
 
-      const result = await signup(userData, "doctor")
-
-      if (result.success) {
-        if (result.requiresApproval) {
-          // Show approval pending screen
-          setRegisteredEmail(email)
-          setIsSubmitted(true)
-        } else {
-          // Successful signup without approval (shouldn't happen with current flow)
-          router.push("/dashboard")
-        }
+      const result = await signupDoctor(userData)
+      
+      // Check if we got a successful response with an ID
+      if (result && result.id) {
+        setRegisteredEmail(result.email)
+        setIsSubmitted(true)
+        // You might want to show a success message
+        setMessage("Registration successful! Please wait for admin approval.")
       } else {
-        setError("An error occurred during signup")
+        setError("Registration failed. Please try again.")
       }
-    } catch (err) {
-      setError("An error occurred during signup")
+    } catch (err: any) {
+      setError(err.message || "An error occurred during signup")
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -109,10 +108,11 @@ export default function DoctorSignupPage() {
   const checkStatus = async () => {
     setIsLoading(true)
     try {
-      //const status = await checkApprovalStatus(registeredEmail);
-      //setApprovalStatus(status);
-    } catch (err) {
+      const status = await checkDoctorApprovalStatus(registeredEmail)
+      setApprovalStatus(status)
+    } catch (err: any) {
       console.error(err)
+      setError(err.message || "Failed to check status")
     } finally {
       setIsLoading(false)
     }
