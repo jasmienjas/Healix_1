@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from datetime import datetime
 
-from .models import CustomUser, DoctorProfile, Appointment
+from .models import CustomUser, DoctorProfile, Appointment, PatientProfile
 from .serializers import (
     RegisterSerializer,
     DoctorSerializer,

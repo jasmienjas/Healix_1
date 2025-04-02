@@ -6,7 +6,6 @@ from .views import (
     RegisterView,
     DoctorRegisterView,
     LoginView,
-    PatientRegisterView,
     PatientScheduleView,
     PostponeAppointmentView,
     CancelAppointmentView,
@@ -17,8 +16,8 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('doctor-register/', DoctorRegisterView.as_view(), name='doctor-register'),
     path('login/', LoginView.as_view(), name='login'),
-    path('register/patient/', PatientRegisterView.as_view(), name='patient-register'),
-    
+    path('register/patient/', RegisterView.as_view(), name='patient-register'),
+
     path('appointments/<int:pk>/postpone/', PostponeAppointmentView.as_view(), name='postpone-appointment'),
     path('appointments/<int:pk>/cancel/', CancelAppointmentView.as_view(), name='cancel-appointment'),
     path('appointments/schedule/', PatientScheduleView.as_view(), name='patient-schedule'),

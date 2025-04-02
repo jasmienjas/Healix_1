@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, DoctorProfile, PatientProfile
+from .models import CustomUser, DoctorProfile, PatientProfile, Appointment 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,3 +46,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             PatientProfile.objects.create(user=user, age=25)  # ✅ Set a default age for patients
 
         return user
+
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appointment
+        fields = '__all__'
