@@ -24,6 +24,7 @@ class DoctorProfile(models.Model):
 class PatientProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     medical_history = models.TextField(blank=True, null=True)
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
     
 APPOINTMENT_STATUS_CHOICES = (
     ('pending', 'Pending'),
@@ -43,3 +44,4 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"Appointment on {self.appointment_datetime} ({self.status})"
+    
