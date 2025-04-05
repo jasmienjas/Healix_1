@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import CustomUser, DoctorProfile, PatientProfile, Appointment
-from django.core.files.storage import default_storage, Appointment 
+#from django.core.files.storage import default_storage, Appointment 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
