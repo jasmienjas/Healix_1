@@ -8,6 +8,7 @@ class CustomUser(AbstractUser):
         ('doctor', 'Doctor'),
         ('admin', 'Admin'),
     )
+    is_verified = models.BooleanField(default=False)
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='patient')
     dob = models.DateField(null=True, blank=True)  # Date of Birth field
     first_name = models.CharField(max_length=30)  # Override first_name to make it required
@@ -54,6 +55,7 @@ class PatientProfile(models.Model):
     class Meta:
         verbose_name = "Patient Profile"
         verbose_name_plural = "Patient Profiles"
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
 
 APPOINTMENT_STATUS_CHOICES = (
     ('pending', 'Pending'),
@@ -77,4 +79,4 @@ class Appointment(models.Model):
     class Meta:
         ordering = ['-appointment_datetime']
         verbose_name = "Appointment"
-        verbose_name_plural = "Appointments"
+        verbose_name_plural = "Appointments"    

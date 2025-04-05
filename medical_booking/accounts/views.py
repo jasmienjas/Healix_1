@@ -1,5 +1,7 @@
 from rest_framework import generics, status
+from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -7,6 +9,13 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
+from django.shortcuts import get_object_or_404, render, redirect
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.models import User
+from django.urls import reverse
 from datetime import datetime
 from django.db.models import Q
 
@@ -87,7 +96,25 @@ class DoctorRegisterView(generics.CreateAPIView):
                 'lastName': user.last_name,
                 'user_type': 'doctor'
             }
-        }, status=status.HTTP_201_CREATED)
+        })
+
+class DoctorListView(APIView):
+    def get(self, request):
+        doctors = CustomUser.objects.filter(user_type='doctor')
+        doctor_data = []
+
+        for doctor in doctors:
+            try:
+                profile = doctor.doctorprofile
+                doctor_data.append({
+                    "id": doctor.id,
+                    "full_name": f"{doctor.first_name} {doctor.last_name}".strip() or doctor.username,
+                    "specialty": profile.specialty,
+                })
+            except DoctorProfile.DoesNotExist:
+                pass
+
+        return Response(doctor_data)
 
 class PostponeAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -104,7 +131,7 @@ class PostponeAppointmentView(APIView):
         
         new_datetime_str = request.data.get('appointment_datetime')
         postpone_reason = request.data.get('postpone_reason')
-        
+
         if not new_datetime_str:
             return Response({
                 'success': False,
@@ -127,6 +154,7 @@ class PostponeAppointmentView(APIView):
         
         appointment.appointment_datetime = new_datetime
         appointment.status = 'postponed'
+        appointment.reason = postpone_reason
         appointment.reason = postpone_reason
         appointment.save()
         
@@ -177,6 +205,7 @@ class CancelAppointmentView(APIView):
         
         appointment.status = 'cancelled'
         appointment.reason = cancellation_message
+        appointment.reason = cancellation_message
         appointment.save()
         
         # Send email notification
@@ -206,9 +235,6 @@ class CancelAppointmentView(APIView):
         }, status=status.HTTP_200_OK)
 
 class PatientScheduleView(generics.ListAPIView):
-    """
-    View to list all appointments for the logged-in patient.
-    """
     serializer_class = AppointmentSerializer
     permission_classes = [IsAuthenticated]
 
