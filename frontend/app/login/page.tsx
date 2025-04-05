@@ -1,13 +1,11 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import Image from "next/image"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, X } from "lucide-react"
 import Link from "next/link"
-import { useAuth } from "../context/auth-context"
+import Image from "next/image"
+import { useAuth } from '../context/auth-context'
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -15,33 +13,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-
+  
   const router = useRouter()
-  const { login: authLogin, isAuthenticated } = useAuth()
-
-  // Prevent authenticated users from accessing login page
-  useEffect(() => {
-    const token = document.cookie.includes('healix_auth_token')
-    if (token) {
-      const userType = localStorage.getItem('user_type')
-      const dashboardPath = userType === 'doctor' ? '/dashboard/doctor' : '/dashboard'
-      router.push(dashboardPath)
-    }
-  }, [router])
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
-
+    
     try {
-      // Use only the auth context login
-      const success = await authLogin(email, password)
-      if (success) {
-        const userType = localStorage.getItem('user_type')
-        const dashboardPath = userType === 'doctor' ? '/dashboard/doctor' : '/dashboard'
-        router.push(dashboardPath)
-      }
+      console.log('Login page: Attempting login')
+      await login(email, password)
+      // Remove router.push from here - let auth context handle it
     } catch (err: any) {
       console.error('Login error:', err)
       setError(err.message || 'Failed to login')
@@ -50,29 +34,30 @@ export default function LoginPage() {
     }
   }
 
+  // Rest of your component remains the same...
   return (
     <div className="flex min-h-screen">
-      {/* Left side with image and logo - UPDATED */}
+      {/* Left side with image and logo */}
       <div className="relative hidden md:flex md:w-5/12 bg-[#023664] flex-col items-center justify-center text-white">
-        {/* Logo at the top */}
         <div className="absolute top-6 left-0 w-full flex justify-center z-10">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-iPLCdILTkVCTPt0ecxQ9Si1shZBv8k.png"
             alt="HEALIX"
             width={180}
             height={70}
+            style={{ width: '180px', height: 'auto' }}
             className="object-contain"
           />
         </div>
 
-        {/* New background image with healthcare professionals */}
         <div className="w-full h-full overflow-hidden">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-q4FMYU8IDDV1Fi8jIF2ooIw6hY0CCR.png"
             alt="Healthcare professionals"
             width={600}
             height={800}
-            className="object-cover w-full h-full"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            className="object-cover"
             priority
           />
         </div>
@@ -88,9 +73,9 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Welcome back</h1>
+            <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
             <p className="text-gray-600">
-              New to Healix?{" "}
+              Don't have an account?{" "}
               <Link href="/signup" className="text-blue-600 hover:underline">
                 Sign up
               </Link>
@@ -111,12 +96,13 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Email address"
+                required
               />
             </div>
 
             <div className="mb-6">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Your password
+                Password
               </label>
               <div className="relative">
                 <input
@@ -125,12 +111,13 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
+                  required
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400" />
@@ -144,20 +131,23 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#023664] text-white py-2 px-4 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-70"
+              className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                isLoading
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              }`}
             >
-              {isLoading ? "Logging in..." : "Log in"}
+              {isLoading ? "Signing in..." : "Sign in"}
             </button>
-          </form>
 
-          <div className="mt-4 text-center">
-            <Link href="/forgot-password" className="text-blue-600 text-sm hover:underline">
-              Forgot password?
-            </Link>
-          </div>
+            <div className="mt-4 text-center">
+              <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                Forgot your password?
+              </Link>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   )
 }
-

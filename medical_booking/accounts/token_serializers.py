@@ -1,20 +1,41 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import serializers
+from django.contrib.auth import authenticate
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = 'email'
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        if email and password:
+            user = authenticate(request=self.context.get('request'),
+                             email=email, password=password)
+
+            if not user:
+                raise serializers.ValidationError('Invalid email or password.')
+
+            refresh = self.get_token(user)
+            return {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'user_type': user.user_type
+                }
+            }
+        else:
+            raise serializers.ValidationError('Must include "email" and "password".')
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
         
-        # ✅ Include user type inside the JWT token
-        token['user_type'] = user.user_type if hasattr(user, 'user_type') else "unknown"
-
-
-        return token
-
-    def validate(self, attrs):
-        data = super().validate(attrs)
+        # Add custom claims
+        token['user_type'] = user.user_type
+        token['email'] = user.email
         
-        # ✅ Include user type in the response payload
-        data['user_type'] = self.user.user_type  
-
-        return data
+        return token

@@ -10,8 +10,7 @@ interface PatientSignupData {
 }
 
 export async function signupPatient(data: PatientSignupData) {
-    const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
-    const url = `${baseUrl}api/accounts/register/patient/`;
+    const url = 'http://127.0.0.1:8000/api/accounts/register/patient/';
     
     console.log('Making API call to:', url);
 
@@ -22,59 +21,50 @@ export async function signupPatient(data: PatientSignupData) {
             email: data.email,
             password: data.password,
             phoneNumber: data.phoneNumber,
-            birthDate: data.birthDate,
-            user_type: 'patient',
+            birthDate: data.birthDate
         };
 
-        console.log('With data:', requestData);
+        console.log('Sending data:', { ...requestData, password: '***' });
 
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
-            body: JSON.stringify(requestData),
-            mode: 'cors',
+            body: JSON.stringify(requestData)
         });
 
-        const result = await response.json();
-        console.log('Raw API Response:', result);
+        console.log('Response status:', response.status);
+        
+        // Get the raw response text first
+        const responseText = await response.text();
+        console.log('Raw response text:', responseText);
+
+        // Try to parse the response as JSON
+        let result;
+        try {
+            result = JSON.parse(responseText);
+            console.log('Parsed response:', result);
+        } catch (e) {
+            console.error('Failed to parse response as JSON:', e);
+            throw new Error('Server returned invalid JSON');
+        }
 
         if (!response.ok) {
-            const errorMessage = typeof result.message === 'object' 
-                ? JSON.stringify(result.message) 
-                : result.message || 'Registration failed';
+            const errorMessage = result.message || result.error || 'Registration failed';
             throw new Error(errorMessage);
         }
 
-        // Send verification email using the API route
-        try {
-            const emailResponse = await fetch('/api/auth/send-verification', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: data.email
-                }),
-            });
-
-            if (!emailResponse.ok) {
-                console.error('Failed to send verification email');
-            }
-        } catch (emailError) {
-            console.error('Failed to send verification email:', emailError);
-        }
+        // Don't try to send verification email for now
+        // We'll add this back once basic registration works
 
         return {
-            ...result,
-            verificationEmailSent: true
+            success: true,
+            data: result
         };
     } catch (error) {
-        console.error('Detailed API Error:', error);
-        if (error instanceof Error) {
-            throw new Error(error.message);
-        }
-        throw new Error('An unexpected error occurred');
+        console.error('Registration error:', error);
+        throw error;
     }
-} 
+}

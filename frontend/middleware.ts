@@ -22,19 +22,15 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("healix_auth_token")?.value
   const userType = request.cookies.get("user_type")?.value
 
+  // If already logged in and trying to access login/signup pages
+  if (isPublicPath && token) {
+    // Always redirect to main dashboard
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
   // If trying to access protected routes without auth
   if (!isPublicPath && !token) {
     return NextResponse.redirect(new URL("/login", request.url))
-  }
-
-  // If trying to access doctor dashboard without being a doctor
-  if (path === "/dashboard/doctor" && userType !== "doctor") {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
-  }
-
-  // If trying to access patient dashboard as a doctor
-  if (path === "/dashboard" && userType === "doctor") {
-    return NextResponse.redirect(new URL("/dashboard/doctor", request.url))
   }
 
   // Allow all other requests to proceed
@@ -53,7 +49,9 @@ export const config = {
     '/dashboard/doctor',
     '/verify-email',
     '/check-status',
-    '/forgot-password'
+    '/forgot-password',
+    '/check-email',
+    '/reset-password'
   ]
 }
 

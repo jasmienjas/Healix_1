@@ -36,41 +36,13 @@ export default function DoctorSignupPage() {
   const { signup } = useAuth()
 
   // Update the handleSignup function
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
-
-    // Simple validation
-    if (
-      !firstName ||
-      !lastName ||
-      !email ||
-      !password ||
-      !phoneNumber ||
-      !officeNumber ||
-      !officeAddress ||
-      !birthDate
-    ) {
-      setError("Please fill in all required fields")
-      setIsLoading(false)
-      return
-    }
-
-    if (!medicalLicense) {
-      setError("Please upload your medical license")
-      setIsLoading(false)
-      return
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long")
-      setIsLoading(false)
-      return
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
     try {
-      const userData = {
+      const signupData = {
         firstName,
         lastName,
         email,
@@ -80,27 +52,20 @@ export default function DoctorSignupPage() {
         officeAddress,
         birthDate,
         medicalLicense,
-        phdCertificate,
-      }
+        phdCertificate
+      };
 
-      const result = await signupDoctor(userData)
-      
-      // Check if we got a successful response with an ID
-      if (result && result.id) {
-        setRegisteredEmail(result.email)
-        setIsSubmitted(true)
-        // You might want to show a success message
-        setMessage("Registration successful! Please wait for admin approval.")
-      } else {
-        setError("Registration failed. Please try again.")
-      }
-    } catch (err: any) {
-      setError(err.message || "An error occurred during signup")
-      console.error(err)
+      await signupDoctor(signupData);
+      setIsSubmitted(true);
+      setRegisteredEmail(email);
+      // Clear form or redirect as needed
+    } catch (error) {
+      console.error('Signup error:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred during signup');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Add a function to check approval status
   const [approvalStatus, setApprovalStatus] = useState<"pending" | "approved" | "rejected" | "not_found">("pending")
@@ -118,11 +83,31 @@ export default function DoctorSignupPage() {
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: (file: File | null) => void) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
+  const handleFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setFile: (file: File | null) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File size must be less than 5MB");
+      e.target.value = '';
+      return;
     }
-  }
+
+    // Check file type
+    const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      setError("Only JPG, PNG, and PDF files are allowed");
+      e.target.value = '';
+      return;
+    }
+
+    setFile(file);
+    setError('');
+  };
 
   // Update the return statement to conditionally render the approval pending screen
   return (
@@ -159,7 +144,7 @@ export default function DoctorSignupPage() {
               {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 
               {/* Existing form code */}
-              <form onSubmit={handleSignup}>
+              <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Left column */}
                   <div className="space-y-4">

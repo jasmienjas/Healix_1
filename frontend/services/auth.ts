@@ -2,129 +2,146 @@ import { API_BASE_URL } from '@/config';
 import { sendVerificationEmail } from '@/lib/verify';
 import crypto from 'crypto';
 
-export async function login(email: string, password: string) {
-    try {
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-            credentials: 'include',
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || 'Login failed');
-        }
-
-        if (data.success) {
-            // Store user data and tokens
-            localStorage.setItem('user', JSON.stringify(data.user));
-            localStorage.setItem('token', data.access);
-            
-            // Set cookies
-            document.cookie = `healix_auth_token=${data.access}; path=/; SameSite=Lax`;
-        }
-
-        return data;
-    } catch (error) {
-        console.error('Login error:', error);
-        throw error;
-    }
+interface LoginResponse {
+  success: boolean;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    user_type: string;
+  };
+  tokens: {
+    access: string;
+    refresh: string;
+  };
 }
 
-export async function logout() {
+export const auth = {
+  login: async (email: string, password: string): Promise<LoginResponse> => {
+    console.log('Starting login process for:', email);
+    
     try {
-        // Clear all cookies
-        document.cookie.split(';').forEach(cookie => {
-            const [name] = cookie.split('=');
-            document.cookie = `${name.trim()}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-        });
+      const response = await fetch(`${API_BASE_URL}/api/accounts/login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-        // Clear localStorage
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user_type');
+      const data = await response.json();
+      console.log('Server response:', data);
 
-        // Make a logout request to the backend if needed
-        // await fetch(`${API_BASE_URL}/api/accounts/logout/`, {
-        //     method: 'POST',
-        //     credentials: 'include',
-        // });
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
 
-        return true;
+      // Store auth data
+      localStorage.setItem('access_token', data.access);
+      localStorage.setItem('refresh_token', data.refresh);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      console.log('Stored user data:', data.user);
+      console.log('User type:', data.user.user_type);
+
+      return {
+        success: true,
+        user: data.user,
+        tokens: {
+          access: data.access,
+          refresh: data.refresh,
+        },
+      };
     } catch (error) {
-        console.error('Logout error:', error);
-        return false;
+      console.error('Login error:', error);
+      throw error;
     }
-}
+  },
 
-export function isEmailVerified(email: string): boolean {
+  logout: () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+  },
+
+  getUser: () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      return JSON.parse(userStr);
+    }
+    return userStr ? JSON.parse(userStr) : null;
+  },
+
+  isEmailVerified: (email: string): boolean => {
     return !localStorage.getItem(`healix_unverified_${email}`);
-}
+  },
 
-export async function requestPasswordReset(email: string) {
-  try {
-    const response = await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    });
+  requestPasswordReset: async (email: string) => {
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to send reset password link');
+      if (!response.ok) {
+        throw new Error('Failed to send reset password link');
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        message: data.message,
+      };
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      return {
+        success: false,
+        message: 'Failed to send reset password link',
+      };
     }
+  },
 
-    const data = await response.json();
-    return {
-      success: true,
-      message: data.message,
-    };
-  } catch (error) {
-    console.error('Password reset request error:', error);
-    return {
-      success: false,
-      message: 'Failed to send reset password link',
-    };
-  }
-}
+  signupWithVerification: async (userData: any) => {
+    try {
+      // Generate verification token
+      const verificationToken = crypto.randomUUID();
+      const verificationTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
 
-export async function signupWithVerification(userData: any) {
-  try {
-    // Generate verification token
-    const verificationToken = crypto.randomUUID();
-    const verificationTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+      // Add verification data to user data
+      const userWithVerification = {
+        ...userData,
+        emailVerified: false,
+        verificationToken,
+        verificationTokenExpiry,
+      };
 
-    // Add verification data to user data
-    const userWithVerification = {
-      ...userData,
-      emailVerified: false,
-      verificationToken,
-      verificationTokenExpiry,
-    };
+      // Make the signup API call
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userWithVerification),
+      });
 
-    // Make the signup API call
-    const response = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userWithVerification),
-    });
+      const data = await response.json();
 
-    const data = await response.json();
-
-    if (response.ok) {
-      // Send verification email
-      await sendVerificationEmail(userData.email, verificationToken);
-      return { success: true, message: 'Verification email sent' };
-    } else {
-      throw new Error(data.error || 'Signup failed');
+      if (response.ok) {
+        // Send verification email
+        await sendVerificationEmail(userData.email, verificationToken);
+        return { success: true, message: 'Verification email sent' };
+      } else {
+        throw new Error(data.error || 'Signup failed');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { success: false, message: error.message };
     }
-  } catch (error) {
-    console.error('Signup error:', error);
-    return { success: false, message: error.message };
-  }
-} 
+  },
+};
+
+export default auth; 

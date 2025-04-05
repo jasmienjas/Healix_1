@@ -1,149 +1,209 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .models import CustomUser, DoctorProfile
-from .serializers import RegisterSerializer, DoctorSerializer, UserSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from .models import Appointment
-from .serializers import AppointmentSerializer
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from django.conf import settings
 from datetime import datetime
+from django.db.models import Q
 
+import logging
+import os
 
-class RegisterView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = RegisterSerializer
+from .models import CustomUser, DoctorProfile, PatientProfile, Appointment
+from .serializers import (
+    UserSerializer,
+    PatientRegisterSerializer,
+    DoctorRegisterSerializer,
+    AppointmentSerializer,
+    DoctorProfileSerializer
+)
+from .token_serializers import CustomTokenObtainPairSerializer
 
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        return response
-
-
-class DoctorRegisterView(generics.CreateAPIView):
-    queryset = DoctorProfile.objects.all()
-    serializer_class = DoctorSerializer
-
+logger = logging.getLogger(__name__)
 
 class LoginView(TokenObtainPairView):
-    serializer_class = UserSerializer
+    serializer_class = CustomTokenObtainPairSerializer
 
-    def post(self, request, *args, **kwargs):
-        try:
-            user = CustomUser.objects.get(email=request.data['email'])  # ✅ Use email instead of username
-            if not user.check_password(request.data['password']):
-                return Response({'error': 'Invalid credentials'}, status=400)
-
-        except CustomUser.DoesNotExist:
-            return Response({'error': 'Invalid credentials'}, status=400)
-
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'user_type': user.user_type
-            }
-        })
+class PatientRegisterView(generics.CreateAPIView):
+    serializer_class = PatientRegisterSerializer
+    
+    def create(self, request, *args, **kwargs):
+        # Log the incoming request data
+        print("Received data:", request.data)
         
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            # Log validation errors
+            print("Validation errors:", serializer.errors)
+            return Response({
+                'success': False,
+                'message': 'Validation failed',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            user = serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Registration successful',
+                'data': {
+                    'id': user.id,
+                    'email': user.email,
+                    'firstName': user.first_name,
+                    'lastName': user.last_name,
+                    'user_type': 'patient'
+                }
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print("Error during registration:", str(e))
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+class DoctorRegisterView(generics.CreateAPIView):
+    """
+    View for doctor registration.
+    """
+    serializer_class = DoctorRegisterSerializer
+    parser_classes = (MultiPartParser, FormParser)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        
+        return Response({
+            'success': True,
+            'message': 'Registration successful. Please wait for admin approval.',
+            'data': {
+                'id': user.id,
+                'email': user.email,
+                'firstName': user.first_name,
+                'lastName': user.last_name,
+                'user_type': 'doctor'
+            }
+        }, status=status.HTTP_201_CREATED)
 
 class PostponeAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, pk):
-        # Get the appointment object
         appointment = get_object_or_404(Appointment, pk=pk)
         
         # Ensure that only doctors can postpone appointments
-        if request.user.user_type != 'patient':
-            return Response({'error': 'Only doctors can postpone appointments.'},
-                            status=status.HTTP_403_FORBIDDEN)
+        if request.user.user_type != 'doctor':
+            return Response({
+                'success': False,
+                'message': 'Only doctors can postpone appointments.'
+            }, status=status.HTTP_403_FORBIDDEN)
         
-        # Expecting new datetime and a postponement reason in the request data
         new_datetime_str = request.data.get('appointment_datetime')
         postpone_reason = request.data.get('postpone_reason')
         
         if not new_datetime_str:
-            return Response({'error': 'New appointment datetime is required.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'success': False,
+                'message': 'New appointment datetime is required.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         if not postpone_reason:
-            return Response({'error': 'A postpone reason is required.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'success': False,
+                'message': 'A postpone reason is required.'
+            }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            # Parse the ISO format datetime string (e.g., "2025-03-10T09:00:00")
             new_datetime = datetime.fromisoformat(new_datetime_str)
         except Exception:
-            return Response({'error': 'Invalid datetime format. Use ISO format (YYYY-MM-DDTHH:MM:SS).'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'success': False,
+                'message': 'Invalid datetime format. Use ISO format (YYYY-MM-DDTHH:MM:SS).'
+            }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Update the appointment details
         appointment.appointment_datetime = new_datetime
         appointment.status = 'postponed'
-        appointment.reason = postpone_reason  # Store the postponement reason
+        appointment.reason = postpone_reason
         appointment.save()
         
+        # Send email notification to patient
+        try:
+            subject = "Appointment Postponed"
+            message = (
+                f"Dear {appointment.patient.user.first_name},\n\n"
+                f"Your appointment with Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name} "
+                f"has been postponed to {new_datetime}.\n\n"
+                f"Reason: {postpone_reason}\n\n"
+                f"Best regards,\nHealix Team"
+            )
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [appointment.patient.user.email]
+            )
+        except Exception as e:
+            logger.error(f"Failed to send postponement email: {e}")
+        
         serializer = AppointmentSerializer(appointment)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    
+        return Response({
+            'success': True,
+            'message': 'Appointment postponed successfully',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
 class CancelAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, pk):
-        # Retrieve the appointment by primary key
         appointment = get_object_or_404(Appointment, pk=pk)
         
-        # Check that only doctors can cancel appointments
         if request.user.user_type != 'doctor':
-            return Response({'error': 'Only doctors can cancel appointments.'},
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                'success': False,
+                'message': 'Only doctors can cancel appointments.'
+            }, status=status.HTTP_403_FORBIDDEN)
         
-        # Get cancellation message from the request data
         cancellation_message = request.data.get('cancellation_message')
         if not cancellation_message:
-            return Response({'error': 'Cancellation message is required.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'success': False,
+                'message': 'Cancellation message is required.'
+            }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Update the appointment status and store the cancellation message
         appointment.status = 'cancelled'
-        appointment.reason = cancellation_message  # reusing the "reason" field to store the cancellation note
+        appointment.reason = cancellation_message
         appointment.save()
         
-        # Retrieve the patient's email (assuming appointment.patient is a PatientProfile linked to a user)
-        patient_email = appointment.patient.user.email
-        
-        # Prepare the email details
-        subject = "Appointment Cancellation Notice"
-        message = (
-            f"Dear {appointment.patient.user.username},\n\n"
-            f"Your appointment scheduled on {appointment.appointment_datetime} has been cancelled by Dr. {appointment.doctor.user.username}.\n\n"
-            f"Message from doctor: {cancellation_message}\n\n"
-            f"Best regards,\nHealix Team"
-        )
-        from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [patient_email]
-        
-        # Send the email notification to the patient
+        # Send email notification
         try:
-            send_mail(subject, message, from_email, recipient_list)
+            subject = "Appointment Cancellation Notice"
+            message = (
+                f"Dear {appointment.patient.user.first_name},\n\n"
+                f"Your appointment scheduled on {appointment.appointment_datetime} "
+                f"has been cancelled by Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name}.\n\n"
+                f"Message from doctor: {cancellation_message}\n\n"
+                f"Best regards,\nHealix Team"
+            )
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [appointment.patient.user.email]
+            )
         except Exception as e:
-            # Log the error; you may also choose to return a warning in the response
-            print(f"Failed to send cancellation email: {e}")
+            logger.error(f"Failed to send cancellation email: {e}")
         
         serializer = AppointmentSerializer(appointment)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-from .models import Appointment
-from .serializers import AppointmentSerializer
+        return Response({
+            'success': True,
+            'message': 'Appointment cancelled successfully',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
 
 class PatientScheduleView(generics.ListAPIView):
     """
@@ -154,3 +214,82 @@ class PatientScheduleView(generics.ListAPIView):
 
     def get_queryset(self):
         return Appointment.objects.filter(patient__user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'message': 'Appointments retrieved successfully',
+            'data': serializer.data
+        })
+
+class DoctorApprovalStatusView(APIView):
+    """
+    View to check doctor approval status
+    """
+    def get(self, request, email):
+        try:
+            doctor = DoctorProfile.objects.get(user__email=email)
+            return Response({
+                'success': True,
+                'status': 'approved' if doctor.is_approved else 'pending'
+            })
+        except DoctorProfile.DoesNotExist:
+            return Response({
+                'success': False,
+                'message': 'Doctor not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+class DoctorScheduleView(generics.ListAPIView):
+    """
+    View to list all appointments for the logged-in doctor.
+    """
+    serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Appointment.objects.filter(doctor__user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'message': 'Appointments retrieved successfully',
+            'data': serializer.data
+        })
+
+class DoctorSearchView(generics.ListAPIView):
+    serializer_class = DoctorProfileSerializer
+    permission_classes = []  # Allow public access
+
+    def get_queryset(self):
+        queryset = DoctorProfile.objects.filter(is_approved=True)
+        
+        name = self.request.query_params.get('name', None)
+        specialty = self.request.query_params.get('specialty', None)
+        location = self.request.query_params.get('location', None)
+
+        if name:
+            queryset = queryset.filter(
+                Q(user__first_name__icontains=name) |
+                Q(user__last_name__icontains=name)
+            )
+        
+        if specialty:
+            queryset = queryset.filter(specialty__icontains=specialty)
+            
+        if location:
+            queryset = queryset.filter(office_address__icontains=location)
+
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'message': 'Doctors retrieved successfully',
+            'data': serializer.data
+        })
