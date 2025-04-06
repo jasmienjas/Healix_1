@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { User, Calendar, MessageSquare, HelpCircle, LogOut, Bell, ChevronDown } from "lucide-react"
+import { User, Calendar, MessageSquare, HelpCircle, LogOut, Bell, ChevronDown, FileText, Clock, Search } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -32,44 +32,57 @@ export default function Layout({ children }: LayoutProps) {
 
   const userFirstName = user?.first_name || 'Guest'
 
-  const navigation = [
+  // Define navigation items for each user type
+  const doctorNavigation = [
     {
-      name: "Dashboard",
+      name: "My Appointments",
       href: "/dashboard",
-      icon: LayoutDashboard,
+      icon: Calendar,
       current: pathname === "/dashboard",
     },
     {
-      name: "Home",
-      href: "/home",
-      icon: Home,
-      current: pathname === "/home",
+      name: "Patient Records",
+      href: "/patient-records",
+      icon: FileText,
+      current: pathname === "/patient-records",
     },
     {
-      name: "Calendar",
-      href: "/calendar",
+      name: "My Availability",
+      href: "/availability",
+      icon: Clock,
+      current: pathname === "/availability",
+    }
+  ];
+
+  const patientNavigation = [
+    {
+      name: "Book Appointment",
+      href: "/book-appointment",
       icon: Calendar,
-      current: pathname === "/calendar",
+      current: pathname === "/book-appointment",
     },
     {
-      name: "Profile",
-      href: "/profile",
-      icon: User,
-      current: pathname === "/profile",
+      name: "My Appointments",
+      href: "/dashboard",
+      icon: Clock,
+      current: pathname === "/dashboard",
     },
     {
-      name: "Messages",
-      href: "/messages",
-      icon: MessageSquare,
-      current: pathname === "/messages",
+      name: "Medical Records",
+      href: "/medical-records",
+      icon: FileText,
+      current: pathname === "/medical-records",
     },
     {
-      name: "Help",
-      href: "/help",
-      icon: HelpCircle,
-      current: pathname === "/help",
-    },
-  ]
+      name: "Find Doctor",
+      href: "/find-doctor",
+      icon: Search,
+      current: pathname === "/find-doctor",
+    }
+  ];
+
+  // Select navigation based on user type
+  const navigation = user?.user_type === 'doctor' ? doctorNavigation : patientNavigation;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
