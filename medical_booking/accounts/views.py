@@ -267,24 +267,35 @@ class DoctorApprovalStatusView(APIView):
                 'message': 'Doctor not found'
             }, status=status.HTTP_404_NOT_FOUND)
 
-class DoctorScheduleView(generics.ListAPIView):
-    """
-    View to list all appointments for the logged-in doctor.
-    """
-    serializer_class = AppointmentSerializer
+class DoctorScheduleView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return Appointment.objects.filter(doctor__user=self.request.user)
+    def get(self, request):
+        try:
+            if request.user.user_type != 'doctor':
+                return Response({
+                    'success': False,
+                    'message': 'Only doctors can access this endpoint'
+                }, status=status.HTTP_403_FORBIDDEN)
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({
-            'success': True,
-            'message': 'Appointments retrieved successfully',
-            'data': serializer.data
-        })
+            doctor_profile = request.user.doctor_profile
+            appointments = Appointment.objects.filter(doctor=doctor_profile)
+            serializer = AppointmentSerializer(appointments, many=True)
+            
+            # Log the serialized data for debugging
+            logger.info(f"Serialized appointments: {serializer.data}")
+            
+            return Response({
+                'success': True,
+                'message': 'Appointments retrieved successfully',
+                'data': serializer.data
+            })
+        except Exception as e:
+            logger.error(f"Error in DoctorScheduleView: {str(e)}")
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DoctorSearchView(generics.ListAPIView):
     serializer_class = DoctorProfileSerializer

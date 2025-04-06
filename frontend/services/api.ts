@@ -54,15 +54,17 @@ export async function getDoctorAppointments() {
     }
     
     const result = await response.json()
-    console.log('Doctor appointments response:', result)
+    console.log('Raw API response:', result)
     
     // Check if the response has the expected structure
     if (!result.success) {
       throw new Error(result.message || 'Failed to fetch appointments')
     }
     
-    // Return the data array from the response
-    return result.data || []
+    // Ensure we're returning the data array and it's properly formatted
+    const appointments = result.data || []
+    console.log('Processed appointments:', appointments)
+    return appointments
   } catch (error) {
     console.error('Error fetching doctor appointments:', error)
     throw error

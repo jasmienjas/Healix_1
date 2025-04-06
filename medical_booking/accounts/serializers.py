@@ -178,98 +178,16 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         }
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    patient = serializers.SerializerMethodField()
-    doctor = serializers.SerializerMethodField()
-
     class Meta:
         model = Appointment
         fields = [
             'id',
-            'doctor',
             'patient',
+            'doctor',
             'appointment_datetime',
             'status',
             'reason',
             'created_at',
             'updated_at'
         ]
-
-    def get_patient(self, obj):
-        return {
-            'id': obj.patient.id,
-            'user': {
-                'id': obj.patient.user.id,
-                'username': obj.patient.user.username,
-                'email': obj.patient.user.email
-            }
-        }
-
-    def get_doctor(self, obj):
-        return {
-            'id': obj.doctor.id,
-            'user': {
-                'id': obj.doctor.user.id,
-                'username': obj.doctor.user.username,
-                'email': obj.doctor.user.email,
-            },
-            'specialty': obj.doctor.specialty
-        }
-
-    def to_representation(self, instance):
-        return {
-            'success': True,
-            'message': 'Registration successful. Please wait for admin approval.',
-            'data': {
-                'id': instance.id,
-                'email': instance.email,
-                'firstName': instance.first_name,
-                'lastName': instance.last_name,
-                'user_type': 'doctor'
-            }
-        }
-
-class AppointmentSerializer(serializers.ModelSerializer):
-    patient = serializers.SerializerMethodField()
-    doctor = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Appointment
-        fields = [
-            'id',
-            'doctor',
-            'patient',
-            'appointment_datetime',
-            'status',
-            'reason',
-            'created_at',
-            'updated_at'
-        ]
-
-    def get_patient(self, obj):
-        return {
-            'id': obj.patient.id,
-            'user': {
-                'id': obj.patient.user.id,
-                'username': obj.patient.user.username,
-                'email': obj.patient.user.email
-            }
-        }
-
-    def get_doctor(self, obj):
-        return {
-            'id': obj.doctor.id,
-            'user': {
-                'id': obj.doctor.user.id,
-                'username': obj.doctor.user.username,
-                'email': obj.doctor.user.email,
-            },
-            'specialty': obj.doctor.specialty
-        }
-
-
-
-
-class AppointmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Appointment
-        fields = '__all__'
+        depth = 2  # This will include nested serialization of patient and doctor

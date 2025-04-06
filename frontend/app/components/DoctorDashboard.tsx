@@ -4,17 +4,34 @@ import { Button } from '@/components/ui/button';
 import { getDoctorAppointments } from '@/services/api';
 import { useRouter } from 'next/navigation';
 
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+}
+
+interface PatientProfile {
+  id: number;
+  user: User;
+}
+
+interface DoctorProfile {
+  id: number;
+  user: User;
+  specialty: string;
+}
+
 interface Appointment {
   id: string;
-  patient: {
-    user: {
-      username: string;
-      email: string;
-    };
-  };
+  patient: PatientProfile;
+  doctor: DoctorProfile;
   appointment_datetime: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'postponed';
   reason: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function DoctorDashboard() {
@@ -33,13 +50,16 @@ export default function DoctorDashboard() {
 
     const fetchAppointments = async () => {
       try {
-        console.log('Fetching doctor appointments...');
+        console.log('Starting to fetch appointments...');
         const data = await getDoctorAppointments();
-        console.log('Received appointments:', data);
+        console.log('Raw API response:', data);
+        if (Array.isArray(data)) {
+          console.log('First appointment:', data[0]);
+        }
         setAppointments(data);
         setError(null);
       } catch (error) {
-        console.error('Error in dashboard:', error);
+        console.error('Error fetching appointments:', error);
         setError(error instanceof Error ? error.message : 'Failed to load appointments');
       } finally {
         setLoading(false);
@@ -64,6 +84,11 @@ export default function DoctorDashboard() {
         <Button onClick={() => window.location.reload()}>Try Again</Button>
       </div>
     );
+  }
+
+  console.log('Current appointments state:', appointments);
+  if (appointments.length > 0) {
+    console.log('First appointment structure:', JSON.stringify(appointments[0], null, 2));
   }
 
   return (
@@ -93,13 +118,22 @@ export default function DoctorDashboard() {
                         </div>
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold">Patient: {appointment.patient.user.username}</h4>
+                        <h4 className="font-semibold">
+                          Patient: {`${appointment.patient.user.first_name} ${appointment.patient.user.last_name}`}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          Email: {appointment.patient.user.email}
+                        </p>
                         <p className="text-sm text-gray-600">
                           Time: {new Date(appointment.appointment_datetime).toLocaleTimeString()}
                         </p>
-                        <p className="text-sm text-gray-600">Status: {appointment.status}</p>
+                        <p className="text-sm text-gray-600">
+                          Status: {appointment.status}
+                        </p>
                         {appointment.reason && (
-                          <p className="text-sm text-gray-600">Reason: {appointment.reason}</p>
+                          <p className="text-sm text-gray-600">
+                            Reason: {appointment.reason}
+                          </p>
                         )}
                       </div>
                       <div className="flex gap-2">
