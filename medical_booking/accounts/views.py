@@ -330,3 +330,28 @@ class DoctorSearchView(generics.ListAPIView):
             'message': 'Doctors retrieved successfully',
             'data': serializer.data
         })
+
+class DoctorProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            if request.user.user_type != 'doctor':
+                return Response({
+                    'success': False,
+                    'message': 'Only doctors can access this endpoint'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            doctor_profile = request.user.doctor_profile
+            serializer = DoctorProfileSerializer(doctor_profile)
+            
+            return Response({
+                'success': True,
+                'message': 'Profile retrieved successfully',
+                'data': serializer.data
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -10,7 +10,8 @@ from .views import (
     PostponeAppointmentView,
     CancelAppointmentView,
     DoctorApprovalStatusView,
-    DoctorSearchView
+    DoctorSearchView,
+    DoctorProfileView
 )
 
 urlpatterns = [
@@ -23,6 +24,7 @@ urlpatterns = [
     path('appointments/doctor-schedule/', DoctorScheduleView.as_view(), name='doctor-schedule'),
     path('doctor/approval-status/<str:email>/', DoctorApprovalStatusView.as_view(), name='doctor-approval-status'),
     path('doctors/search/', DoctorSearchView.as_view(), name='doctor-search'),
+    path('doctor/profile/', DoctorProfileView.as_view(), name='doctor-profile'),
 ]
 
 if settings.DEBUG:
