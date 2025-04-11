@@ -1,10 +1,11 @@
 [phases.setup]
-nixPkgs = ['python312']
+nixPkgs = ['python312', 'python312Packages.pip', 'postgresql']
+aptPkgs = ['python3-pip', 'python3-dev', 'build-essential']
 
 [phases.install]
 cmds = [
-    'python -m pip install --upgrade pip',
-    'cd medical_booking && pip install -r requirements.txt'
+    '/usr/bin/pip3 install --upgrade pip setuptools wheel',
+    'cd medical_booking && /usr/bin/pip3 install -r requirements.txt'
 ]
 
 [phases.build]
