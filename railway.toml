@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pip install -r medical_booking/requirements.txt"
+
+[deploy]
+startCommand = "cd medical_booking && python manage.py migrate && python manage.py collectstatic --noinput && gunicorn medical_booking.wsgi"
+healthcheckPath = "/admin/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+
+[env]
+PYTHON_VERSION = "3.12.0"
