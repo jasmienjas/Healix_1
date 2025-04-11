@@ -1,18 +1,24 @@
 [phases.setup]
 nixPkgs = ['python312', 'gcc']
-aptPkgs = ['python3-pip']
+aptPkgs = ['python3-pip', 'python3-dev', 'build-essential']
 
 [phases.install]
 cmds = [
-    'apt-get update',
-    'apt-get install -y python3-pip',
-    'pip3 install --no-cache-dir -r medical_booking/requirements.txt'
+    'python3 -m pip install --upgrade pip',
+    'python3 -m pip install wheel setuptools',
+    'cd medical_booking && python3 -m pip install -r requirements.txt --no-cache-dir'
+]
+
+[phases.build]
+cmds = [
+    'cd medical_booking && python3 manage.py collectstatic --noinput'
 ]
 
 [start]
-cmd = 'cd medical_booking && python3 manage.py migrate && python3 manage.py collectstatic --noinput && gunicorn medical_booking.wsgi'
+cmd = 'cd medical_booking && gunicorn medical_booking.wsgi'
 
 [env]
 PYTHONPATH = "/app/medical_booking"
 DJANGO_SETTINGS_MODULE = "medical_booking.settings"
 PYTHONUNBUFFERED = "1"
+PORT = "8000"
