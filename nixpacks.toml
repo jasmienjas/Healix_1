@@ -4,14 +4,18 @@ aptPkgs = ['python3-pip', 'python3-dev', 'build-essential']
 
 [phases.install]
 cmds = [
-    '/usr/bin/pip3 install --upgrade pip setuptools wheel',
-    'cd medical_booking && /usr/bin/pip3 install -r requirements.txt'
+    'python -m pip install --upgrade pip setuptools wheel',
+    'cd medical_booking && python -m pip install -r requirements.txt'
 ]
 
 [phases.build]
 cmds = [
-    'cd medical_booking && python manage.py collectstatic --noinput'
+    'cd medical_booking && python -m pip install -r requirements.txt && python manage.py collectstatic --noinput'
 ]
 
 [start]
 cmd = 'cd medical_booking && python manage.py migrate && gunicorn medical_booking.wsgi'
+
+[env]
+PYTHONPATH = "/app/medical_booking"
+DJANGO_SETTINGS_MODULE = "medical_booking.settings"
