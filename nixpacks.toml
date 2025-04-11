@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ['python312', 'postgresql']
+
+[phases.install]
+cmds = [
+  'python -m pip install --upgrade pip',
+  'pip install -r medical_booking/requirements.txt'
+]
+
+[phases.build]
+cmds = [
+  'cd medical_booking',
+  'python manage.py collectstatic --noinput'
+]
+
+[start]
+cmd = 'cd medical_booking && gunicorn medical_booking.wsgi'
