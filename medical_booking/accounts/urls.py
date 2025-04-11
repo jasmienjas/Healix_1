@@ -11,7 +11,8 @@ from .views import (
     CancelAppointmentView,
     DoctorApprovalStatusView,
     DoctorSearchView,
-    DoctorProfileView
+    DoctorProfileView,
+    DoctorAvailabilityView
 )
 
 urlpatterns = [
@@ -25,6 +26,7 @@ urlpatterns = [
     path('doctor/approval-status/<str:email>/', DoctorApprovalStatusView.as_view(), name='doctor-approval-status'),
     path('doctors/search/', DoctorSearchView.as_view(), name='doctor-search'),
     path('doctor/profile/', DoctorProfileView.as_view(), name='doctor-profile'),
+    path('doctor/availability/', DoctorAvailabilityView.as_view(), name='doctor-availability'),
 ]
 
 if settings.DEBUG:

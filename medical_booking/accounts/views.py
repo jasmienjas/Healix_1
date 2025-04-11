@@ -16,13 +16,14 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
 from django.urls import reverse
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.db.models import Q
+from django.db.utils import IntegrityError
 
 import logging
 import os
 
-from .models import CustomUser, DoctorProfile, PatientProfile, Appointment
+from .models import CustomUser, DoctorProfile, PatientProfile, Appointment, DoctorAvailability
 from .serializers import (
     UserSerializer,
     PatientRegisterSerializer,
@@ -350,6 +351,144 @@ class DoctorProfileView(APIView):
                 'message': 'Profile retrieved successfully',
                 'data': serializer.data
             })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DoctorAvailabilityView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            logger.info(f"DoctorAvailabilityView accessed by user: {request.user.id}")
+            
+            if request.user.user_type != 'doctor':
+                logger.warning(f"Non-doctor user {request.user.id} attempted to access availability")
+                return Response({
+                    'success': False,
+                    'message': 'Only doctors can access this endpoint'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            # Get query parameters
+            year = int(request.query_params.get('year', datetime.now().year))
+            month = int(request.query_params.get('month', datetime.now().month))
+            
+            logger.info(f"Fetching availability for {year}-{month}")
+
+            # Get doctor's availability for the month
+            availability = DoctorAvailability.objects.filter(
+                doctor=request.user.doctor_profile,
+                date__year=year,
+                date__month=month
+            )
+            
+            logger.info(f"Found {availability.count()} availability slots")
+
+            # Get booked appointments
+            appointments = Appointment.objects.filter(
+                doctor=request.user.doctor_profile,
+                appointment_datetime__year=year,
+                appointment_datetime__month=month
+            )
+            
+            logger.info(f"Found {appointments.count()} booked appointments")
+
+            # Format the response
+            availability_data = {}
+            for slot in availability:
+                date_str = slot.date.isoformat()
+                if date_str not in availability_data:
+                    availability_data[date_str] = []
+
+                # Check if this slot is booked
+                is_booked = appointments.filter(
+                    appointment_datetime__date=slot.date,
+                    appointment_datetime__time=slot.start_time
+                ).exists()
+
+                availability_data[date_str].append({
+                    'id': str(slot.id),
+                    'startTime': slot.start_time.strftime('%H:%M'),
+                    'endTime': slot.end_time.strftime('%H:%M'),
+                    'clinicName': slot.clinic_name,
+                    'isBooked': is_booked
+                })
+
+            logger.info(f"Returning availability data: {availability_data}")
+            return Response({
+                'success': True,
+                'data': availability_data
+            })
+
+        except Exception as e:
+            logger.error(f"Error in DoctorAvailabilityView: {str(e)}")
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            if request.user.user_type != 'doctor':
+                return Response({
+                    'success': False,
+                    'message': 'Only doctors can access this endpoint'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            date = request.data.get('date')
+            start_time = request.data.get('startTime')
+            clinic_name = request.data.get('clinicName')
+
+            if not all([date, start_time, clinic_name]):
+                return Response({
+                    'success': False,
+                    'message': 'Missing required fields'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check if slot already exists
+            existing_slot = DoctorAvailability.objects.filter(
+                doctor=request.user.doctor_profile,
+                date=date,
+                start_time=start_time
+            ).first()
+
+            if existing_slot:
+                return Response({
+                    'success': False,
+                    'message': f'You already have availability set for {date} at {start_time}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Calculate end time (1 hour after start time)
+            start_time_obj = datetime.strptime(start_time, '%H:%M').time()
+            end_time_obj = (datetime.combine(datetime.min, start_time_obj) + timedelta(hours=1)).time()
+
+            # Create availability slot
+            slot = DoctorAvailability.objects.create(
+                doctor=request.user.doctor_profile,
+                date=date,
+                start_time=start_time_obj,
+                end_time=end_time_obj,
+                clinic_name=clinic_name
+            )
+
+            return Response({
+                'success': True,
+                'data': {
+                    'id': str(slot.id),
+                    'startTime': start_time,
+                    'endTime': end_time_obj.strftime('%H:%M'),
+                    'clinicName': clinic_name,
+                    'isBooked': False
+                }
+            })
+
+        except IntegrityError:
+            return Response({
+                'success': False,
+                'message': f'You already have availability set for this time slot'
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({
                 'success': False,

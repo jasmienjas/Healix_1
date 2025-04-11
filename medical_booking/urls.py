@@ -5,3 +5,4 @@ urlpatterns = [
     path('api/accounts/', include('accounts.urls')),
     path('api/doctors/', include('doctors.urls')),
 ]
+
