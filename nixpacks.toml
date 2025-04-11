@@ -10,12 +10,7 @@ cmds = [
 ]
 
 [start]
-cmd = '''
-cd medical_booking && \
-python3 manage.py migrate && \
-python3 manage.py collectstatic --noinput && \
-gunicorn medical_booking.wsgi --bind 0.0.0.0:$PORT
-'''
+cmd = 'cd medical_booking && python3 manage.py migrate && python3 manage.py collectstatic --noinput && gunicorn medical_booking.wsgi --bind 0.0.0.0:$PORT'
 
 [env]
 PYTHONUNBUFFERED = "1"
