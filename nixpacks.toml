@@ -1,11 +1,12 @@
 [phases.setup]
 nixPkgs = ['python312', 'gcc']
-aptPkgs = ['python3-pip', 'python3-dev', 'build-essential']
+aptPkgs = ['python3-pip']
 
 [phases.install]
 cmds = [
-    '/usr/bin/python3 -m ensurepip --upgrade',
-    '/usr/bin/python3 -m pip install --no-cache-dir -r medical_booking/requirements.txt'
+    'apt-get update',
+    'apt-get install -y python3-pip',
+    'pip3 install --no-cache-dir -r medical_booking/requirements.txt'
 ]
 
 [start]
