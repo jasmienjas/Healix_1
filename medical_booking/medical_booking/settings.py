@@ -16,6 +16,8 @@ import os
 from pathlib import Path
 from datetime import timedelta
 import dj_database_url
+import pymysql
+pymysql.install_as_MySQLdb()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -91,8 +93,10 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',
+        default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
+        conn_health_checks=True,
+        engine='django.db.backends.mysql'
     )
 }
 '''DATABASES = {

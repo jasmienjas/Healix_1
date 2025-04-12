@@ -1,6 +1,6 @@
 [phases.setup]
-nixPkgs = ['python312', 'gcc', 'python312Packages.virtualenv']
-aptPkgs = ['python3-pip', 'python3-dev', 'build-essential']
+nixPkgs = ['python312', 'gcc', 'python312Packages.virtualenv', 'mysql80']
+aptPkgs = ['python3-pip', 'python3-dev', 'build-essential', 'default-libmysqlclient-dev']
 
 [phases.install]
 cmds = [
