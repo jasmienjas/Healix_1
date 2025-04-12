@@ -1,17 +1,28 @@
 [phases.setup]
-nixPkgs = ['python312']
+nixPkgs = ['python312', 'gcc', 'python312Packages.virtualenv']
 aptPkgs = ['python3-pip', 'python3-dev', 'build-essential']
 
 [phases.install]
 cmds = [
-    'apt-get update',
-    'apt-get install -y python3-pip',
-    'cd medical_booking && pip3 install -r requirements.txt --no-cache-dir'
+    'python3 -m venv /app/venv',
+    'source /app/venv/bin/activate',
+    '/app/venv/bin/pip install --upgrade pip setuptools wheel',
+    'cd medical_booking && /app/venv/bin/pip install -r requirements.txt --no-cache-dir'
 ]
 
 [start]
-cmd = 'cd medical_booking && python3 manage.py migrate && python3 manage.py collectstatic --noinput && gunicorn medical_booking.wsgi --bind 0.0.0.0:$PORT'
+cmd = '''
+source /app/venv/bin/activate && \
+cd medical_booking && \
+python manage.py migrate && \
+python manage.py collectstatic --noinput && \
+gunicorn medical_booking.wsgi --bind 0.0.0.0:$PORT
+'''
 
 [env]
+PYTHONPATH = "/app/medical_booking"
+DJANGO_SETTINGS_MODULE = "medical_booking.settings"
 PYTHONUNBUFFERED = "1"
 PORT = "8000"
+VIRTUAL_ENV = "/app/venv"
+PATH = "/app/venv/bin:${PATH}"
