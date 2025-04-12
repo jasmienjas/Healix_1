@@ -11,13 +11,7 @@ cmds = [
 ]
 
 [start]
-cmd = '''
-source /app/venv/bin/activate && \
-cd medical_booking && \
-python manage.py migrate && \
-python manage.py collectstatic --noinput && \
-gunicorn medical_booking.wsgi --bind 0.0.0.0:$PORT
-'''
+cmd = 'source /app/venv/bin/activate && cd medical_booking && python manage.py migrate && python manage.py collectstatic --noinput && gunicorn medical_booking.wsgi --bind 0.0.0.0:$PORT'
 
 [env]
 PYTHONPATH = "/app/medical_booking"
