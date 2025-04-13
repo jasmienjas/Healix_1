@@ -12,15 +12,17 @@ services:
         value: false
       - key: DATABASE_URL
         fromDatabase:
-          name: healix_db
+          name: healix-db
           property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.11.0
 
   # Frontend Service
   - type: web
     name: healix-frontend
     env: node
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm start
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://healix-backend.onrender.com # Will be your backend URL
@@ -28,6 +30,7 @@ services:
         value: production
 
 databases:
-  - name: healix_db
+  - name: healix-db
     databaseName: healix
     user: healix
+    plan: free
