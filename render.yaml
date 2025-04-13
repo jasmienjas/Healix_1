@@ -1,0 +1,31 @@
+services:
+  # Backend Service
+  - type: web
+    name: healix-backend
+    env: python
+    buildCommand: cd medical_booking && pip install -r requirements.txt
+    startCommand: cd medical_booking && gunicorn medical_booking.wsgi:application
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: healix_db
+          property: connectionString
+
+  # Frontend Service
+  - type: web
+    name: healix-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://healix-backend.onrender.com # Will be your backend URL
+
+databases:
+  - name: healix_db
+    databaseName: healix
+    user: healix

@@ -15,11 +15,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
-import dj_database_url
 import pymysql
 import logging
 import ssl 
 pymysql.install_as_MySQLdb()
+import dj_database_url
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -34,15 +34,15 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-zdq9o%b3&@1m8(i9^@g^0zemx$(hp=qhwlz4td*f-p&zaxq20x')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-default-secret-key-for-development')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
-    'localhost', 
+    'localhost',
     '127.0.0.1',
-    '.up.railway.app',  # Allow all railway subdomains
+    '.onrender.com',  # Allow all Render domains
 ]
 
 
@@ -97,37 +97,37 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 # Database Configuration
+try:
+    print("dj-database-url imported successfully")
+except ImportError:
+    print("Warning: dj-database-url not found, falling back to direct configuration")
+    dj_database_url = None
+
+# Get database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-if DATABASE_URL and DATABASE_URL.startswith('mysql://'):
-    # Parse the DATABASE_URL manually
-    from urllib.parse import urlparse
-    
-    db_url = urlparse(DATABASE_URL)
-    
+if DATABASE_URL:
+    print(f"Found DATABASE_URL, configuring database...")
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    print("No DATABASE_URL found, using default configuration")
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': db_url.path[1:],  # Remove the leading slash
-            'USER': db_url.username,
-            'PASSWORD': db_url.password,
-            'HOST': db_url.hostname,
-            'PORT': db_url.port or '3306',
-            'OPTIONS': {
-                'charset': 'utf8mb4',
-                'use_unicode': True,
-                'sql_mode': 'STRICT_TRANS_TABLES',
-                'ssl': {'reqs': None},  # Disable SSL verification
-            }
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-    print(f"Database configuration loaded from DATABASE_URL")
-    print(f"Host: {db_url.hostname}")
-    print(f"Database: {db_url.path[1:]}")
-    print(f"Port: {db_url.port or '3306'}")
-else:
-    print("No DATABASE_URL found, check your environment variables!")
-    raise Exception("DATABASE_URL environment variable is not set or is invalid")
+
+# Print database configuration (safely)
+print(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
+print(f"Database NAME: {DATABASES['default']['NAME']}")
+print(f"Database HOST: {DATABASES['default']['HOST']}")
 
 # Log database configuration (safely)
 logger.info(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
@@ -194,14 +194,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://127.0.0.1:8000",
-    "https://healix-frontend.up.railway.app",  # Add your frontend Railway URL
+    "https://healix-frontend.onrender.com",  # Your frontend Render URL
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.up.railway.app",
+    "https://healix-frontend.onrender.com",  # Your frontend Render URL
     "http://localhost:3000",
-    "http://127.0.0.1:8000",
 ]
 
 # Add these additional CORS settings
