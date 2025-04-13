@@ -111,7 +111,9 @@ logger.info(f"MYSQL_DATABASE exists: {bool(MYSQL_DATABASE)}")
 logger.info(f"MYSQL_USER exists: {bool(MYSQL_USER)}")
 logger.info(f"MYSQL_HOST exists: {bool(MYSQL_HOST)}")
 
-# Explicit database configuration
+# Print debug information
+print(f"Database config - DB: {MYSQL_DATABASE}, Host: {MYSQL_HOST}, Port: {MYSQL_PORT}")
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -121,15 +123,32 @@ DATABASES = {
         'HOST': MYSQL_HOST,
         'PORT': MYSQL_PORT,
         'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
-            'auth_plugin': 'mysql_native_password',
+            'use_unicode': True,
+            'init_command': 'SET character_set_connection=utf8mb4;'
+                          'SET character_set_client=utf8mb4;'
+                          'SET character_set_database=utf8mb4;'
+                          'SET character_set_results=utf8mb4;'
+                          'SET character_set_server=utf8mb4;'
+                          'SET collation_connection=utf8mb4_unicode_ci;'
+                          'SET autocommit=1;'
+                          'SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,"ONLY_FULL_GROUP_BY",""));',
             'ssl': {
-                'reqs': ssl.CERT_NONE
+                'ca': None,
+                'cert': None,
+                'key': None,
+                'verify_cert': False,
             }
         }
     }
 }
+
+# Fallback to SQLite for development if MySQL connection fails
+if os.getenv('DEVELOPMENT', 'False') == 'True':
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 # Log database configuration (safely)
 logger.info(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
