@@ -98,57 +98,36 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 
 # Database Configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
-logger.info(f"DATABASE_URL exists: {bool(DATABASE_URL)}")
 
-# Get individual MySQL environment variables
-MYSQL_DATABASE = os.getenv('MYSQLDATABASE')
-MYSQL_USER = os.getenv('MYSQLUSER')
-MYSQL_PASSWORD = os.getenv('MYSQLPASSWORD')
-MYSQL_HOST = os.getenv('MYSQLHOST')
-MYSQL_PORT = os.getenv('MYSQLPORT', '3306')
-
-logger.info(f"MYSQL_DATABASE exists: {bool(MYSQL_DATABASE)}")
-logger.info(f"MYSQL_USER exists: {bool(MYSQL_USER)}")
-logger.info(f"MYSQL_HOST exists: {bool(MYSQL_HOST)}")
-
-# Print debug information
-print(f"Database config - DB: {MYSQL_DATABASE}, Host: {MYSQL_HOST}, Port: {MYSQL_PORT}")
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': MYSQL_DATABASE,
-        'USER': MYSQL_USER,
-        'PASSWORD': MYSQL_PASSWORD,
-        'HOST': MYSQL_HOST,
-        'PORT': MYSQL_PORT,
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'use_unicode': True,
-            'init_command': 'SET character_set_connection=utf8mb4;'
-                          'SET character_set_client=utf8mb4;'
-                          'SET character_set_database=utf8mb4;'
-                          'SET character_set_results=utf8mb4;'
-                          'SET character_set_server=utf8mb4;'
-                          'SET collation_connection=utf8mb4_unicode_ci;'
-                          'SET autocommit=1;'
-                          'SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,"ONLY_FULL_GROUP_BY",""));',
-            'ssl': {
-                'ca': None,
-                'cert': None,
-                'key': None,
-                'verify_cert': False,
+if DATABASE_URL and DATABASE_URL.startswith('mysql://'):
+    # Parse the DATABASE_URL manually
+    from urllib.parse import urlparse
+    
+    db_url = urlparse(DATABASE_URL)
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': db_url.path[1:],  # Remove the leading slash
+            'USER': db_url.username,
+            'PASSWORD': db_url.password,
+            'HOST': db_url.hostname,
+            'PORT': db_url.port or '3306',
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'use_unicode': True,
+                'sql_mode': 'STRICT_TRANS_TABLES',
+                'ssl': {'reqs': None},  # Disable SSL verification
             }
         }
     }
-}
-
-# Fallback to SQLite for development if MySQL connection fails
-if os.getenv('DEVELOPMENT', 'False') == 'True':
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    print(f"Database configuration loaded from DATABASE_URL")
+    print(f"Host: {db_url.hostname}")
+    print(f"Database: {db_url.path[1:]}")
+    print(f"Port: {db_url.port or '3306'}")
+else:
+    print("No DATABASE_URL found, check your environment variables!")
+    raise Exception("DATABASE_URL environment variable is not set or is invalid")
 
 # Log database configuration (safely)
 logger.info(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
