@@ -21,13 +21,20 @@ services:
   - type: web
     name: healix-frontend
     env: node
-    buildCommand: cd frontend && npm install --legacy-peer-deps && npm run build
+    buildCommand: >
+      cd frontend && 
+      npm install -D tailwindcss postcss autoprefixer @tailwindcss/forms @tailwindcss/typography tailwindcss-animate && 
+      npm install @radix-ui/react-dialog @radix-ui/react-select @radix-ui/react-slot class-variance-authority clsx tailwind-merge lucide-react @hookform/resolvers react-hook-form zod @radix-ui/react-label @radix-ui/react-toast && 
+      npm install && 
+      NEXT_FONT_GOOGLE=false npm run build
     startCommand: cd frontend && npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
         value: https://healix-7515.onrender.com/
+      - key: NEXT_FONT_GOOGLE
+        value: false
 
 databases:
   - name: healix-db
