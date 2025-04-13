@@ -18,6 +18,7 @@ from datetime import timedelta
 import dj_database_url
 import pymysql
 import logging
+import ssl 
 pymysql.install_as_MySQLdb()
 
 # Setup logging
@@ -122,6 +123,10 @@ DATABASES = {
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
+            'auth_plugin': 'mysql_native_password',
+            'ssl': {
+                'reqs': ssl.CERT_NONE
+            }
         }
     }
 }
