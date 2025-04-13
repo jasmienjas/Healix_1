@@ -15,10 +15,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
-import pymysql
 import logging
 import ssl 
-pymysql.install_as_MySQLdb()
 import dj_database_url
 
 # Setup logging
@@ -97,13 +95,6 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 # Database Configuration
-try:
-    print("dj-database-url imported successfully")
-except ImportError:
-    print("Warning: dj-database-url not found, falling back to direct configuration")
-    dj_database_url = None
-
-# Get database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
@@ -113,28 +104,31 @@ if DATABASE_URL:
             default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
-            engine='django.db.backends.postgresql'  # Specify PostgreSQL
         )
     }
 else:
-    print("No DATABASE_URL found, using default configuration")
+    print("No DATABASE_URL found, using SQLite configuration")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
+            'HOST': '',  # Add empty host for SQLite
+            'PORT': '',  # Add empty port for SQLite
         }
     }
 
 # Print database configuration (safely)
 print(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
 print(f"Database NAME: {DATABASES['default']['NAME']}")
-print(f"Database HOST: {DATABASES['default']['HOST']}")
+if DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
+    print(f"Database HOST: {DATABASES['default'].get('HOST', 'N/A')}")
+    print(f"Database PORT: {DATABASES['default'].get('PORT', 'N/A')}")
 
 # Log database configuration (safely)
 logger.info(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
 logger.info(f"Database NAME: {DATABASES['default']['NAME']}")
-logger.info(f"Database HOST: {DATABASES['default']['HOST']}")
-logger.info(f"Database PORT: {DATABASES['default']['PORT']}")
+logger.info(f"Database HOST: {DATABASES['default'].get('HOST', 'N/A')}")
+logger.info(f"Database PORT: {DATABASES['default'].get('PORT', 'N/A')}")
 
 # settings.py
 
@@ -195,11 +189,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://healix-frontend.onrender.com",  # Your frontend Render URL
+    "https://healix-frontend.onrender.com",  # Add your frontend Render URL
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://healix-frontend.onrender.com",  # Your frontend Render URL
+    "https://healix-frontend.onrender.com",  # Add your frontend Render URL
     "http://localhost:3000",
 ]
 

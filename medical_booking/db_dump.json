@@ -1,0 +1,955 @@
+[
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2025-03-10T11:57:58.430Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "3",
+    "object_repr": "PatientProfile object (3)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2025-04-06T21:25:18.985Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "1",
+    "object_repr": "Appointment on 2025-04-06 21:25:01+00:00 (confirmed)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "9pc0tarkwakonu4ihwssx6k612dgefgp",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSFAh5dL934DAWaQqoGktCvjv2uTLnR7zzn3xULc1hq2QUuYkZ2ZZKffLcX8oLYDvMd26zz3ti5z4rvCDzr4tSM9L4f7d1DjqN9aQEICnwFztNI4RMxkIFkNnkgVNBOAE8UYlwC0Ujr6yRZFgiYlwbD3B_gUN64:1tjGo0:ot9norEICW6rZd2JrBCKbaGttsxfi_udtSOjJajEEXU",
+    "expire_date": "2025-03-01T11:57:56.103Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "c1cu9l5cln0fixhasbptp9tw2er47lcv",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSFAh5dL934DAWaQqoGktCvjv2uTLnR7zzn3xULc1hq2QUuYkZ2ZZKffLcX8oLYDvMd26zz3ti5z4rvCDzr4tSM9L4f7d1DjqN9aQEICnwFztNI4RMxkIFkNnkgVNBOAE8UYlwC0Ujr6yRZFgiYlwbD3B_gUN64:1u07Hs:OxG5BSPOuXIGp1TkhYywn8nDef4Gb1BPDt2nK-2slAo",
+    "expire_date": "2025-04-16T23:14:24.802Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ooj10bmuqdr7oaxftcu86fm1ur0d3hwx",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSFAh5dL934DAWaQqoGktCvjv2uTLnR7zzn3xULc1hq2QUuYkZ2ZZKffLcX8oLYDvMd26zz3ti5z4rvCDzr4tSM9L4f7d1DjqN9aQEICnwFztNI4RMxkIFkNnkgVNBOAE8UYlwC0Ujr6yRZFgiYlwbD3B_gUN64:1trbiW:1Fs4LAcMIjw2ft23Y76n4KFhIfHS-Mfup3rTOuYjWPw",
+    "expire_date": "2025-03-24T11:54:44.869Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "yv3vs6jsxjv3o4g062943qgs9y01u5yt",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSFAh5dL934DAWaQqoGktCvjv2uTLnR7zzn3xULc1hq2QUuYkZ2ZZKffLcX8oLYDvMd26zz3ti5z4rvCDzr4tSM9L4f7d1DjqN9aQEICnwFztNI4RMxkIFkNnkgVNBOAE8UYlwC0Ujr6yRZFgiYlwbD3B_gUN64:1tk9vo:tYRpmZd_kbof0UXVQ1j9PRAEDb09cRYG_LdZtSEt-pU",
+    "expire_date": "2025-03-03T22:49:40.072Z"
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$dTxHbBNFxwgRPOoaT5WQUm$CZfEKzSJQ3QOj/2z9J6O8W38ssUhj4g21BAeUlXnmx4=",
+    "last_login": "2025-04-02T23:14:24.797Z",
+    "is_superuser": true,
+    "username": "yasmine",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-02-13T19:15:40.561Z",
+    "is_verified": false,
+    "user_type": "admin",
+    "dob": null,
+    "first_name": "",
+    "last_name": "",
+    "email": "yag05@mail.aub.edu",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$Ix22DfBWIsmcuJzp8c6rtM$tjvC90Wb1Fe5Ge90oec1C5OKDdqi8GKRuBeuu1JmRsk=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "karima",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-15T09:02:37.620Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": null,
+    "first_name": "",
+    "last_name": "",
+    "email": "karima@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$vmi3G9FdmeuHURkcggvLf5$a+VXDaFYJtnaaK8A4tTPr2CM8J1myTHVillDYVstClU=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Salima",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-15T09:09:00.252Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": null,
+    "first_name": "",
+    "last_name": "",
+    "email": "Salima@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$w2wtI58ezjM5mf3rvh4sd6$Zh3ZpNCRoSsCM04Lo49JkQIf8pjB4QHypBrt6TSzKns=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Maria",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-15T09:12:00.585Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": null,
+    "first_name": "",
+    "last_name": "",
+    "email": "maria@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$bv3xIxFqmLZGGRdK9b5b7E$Xw6UEy/gs2uGK2xF/6Zsxz6CBMuCDvUdbbsOK2jS5Ns=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Tala",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-15T11:47:41.082Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": null,
+    "first_name": "",
+    "last_name": "",
+    "email": "tala@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$qOjSzVIctQqvgG6wfW2suK$F92h9r3/4YloITZAXIzcENwYZrb+7nZlrHuDyGgIBZw=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "karim",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-17T21:10:59.620Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": null,
+    "first_name": "",
+    "last_name": "",
+    "email": "karim@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 7,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$BtICfzD6chaj5NKKAw1Lpb$jeuEaqfnKvJn51nBEVrhjqz6MbL309Q+j9Fdhw+WTjE=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "salim",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-17T21:25:47.154Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "2000-01-01",
+    "first_name": "",
+    "last_name": "",
+    "email": "salim@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 8,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$pfn9lOA7sX9Nj7TKmk2WTf$AQQvsyngtefsAGy+cM1G41nN0vdAS7vKrU8yAg75y98=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ahmad",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-17T21:28:19.681Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "2005-02-01",
+    "first_name": "",
+    "last_name": "",
+    "email": "ahmad@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 9,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$5DbZvdcMs7yCXHdskmQq22$03AbcYZ1Nbch97MO7wWSMENWE6zDa3KTUU5rM1dF+Zc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "bali",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-17T21:52:09.429Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "2000-02-21",
+    "first_name": "",
+    "last_name": "",
+    "email": "ba@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 10,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$l632mEdDrBssLaFAWTN4yV$M9B14IZsGwANGqmJX2IvMPNIVYNSn72Yn/EzWLK2Yzc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "akasha",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-17T22:16:43.156Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": "2000-02-02",
+    "first_name": "",
+    "last_name": "",
+    "email": "ak@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 11,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$CVseqTWTgqz7Ry3tGa4sFE$Jwrtqi89ZtRDlhVp1QxjoM5Xd7vji1LtIUZGKPpvPgk=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "someone",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-17T22:50:19.252Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": "1980-01-01",
+    "first_name": "",
+    "last_name": "",
+    "email": "so@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 12,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$N44UmyMfA0xbAPTd4ueyzy$+WBdeFKTnkIR35gs81XATQnb1p+IoZ6WGPx6L2sX8Z0=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "salem",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-03T13:30:29.861Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": "1999-02-21",
+    "first_name": "",
+    "last_name": "",
+    "email": "salem@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 13,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$IYbUS6Rwg7h4uCAjrtqaGo$34BRikmGIhI+sNore3XQqToYise5LbLkOReGhq6ifGI=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ghrissyasmine",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-16T17:51:14.895Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": "1988-01-01",
+    "first_name": "",
+    "last_name": "",
+    "email": "ghrissyasmine@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 14,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$K0iJIn4mVMTbfRLufHA8t0$2K/wsyzJj3LgMtmTL04cqQlVeFyHJgFLYMT7O6XfDPc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ghrissy",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-16T17:55:37.235Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": "1999-02-01",
+    "first_name": "",
+    "last_name": "",
+    "email": "ghrissy@vcu.edu",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 15,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$jVhMoPtEzV51ABS0jhkNJQ$Gw9+ckjKESsLW1Aigs8Pj8bspUna4Fz0kZjCdxyAkcc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "asmaa",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-17T18:04:51.360Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": "2000-02-02",
+    "first_name": "",
+    "last_name": "",
+    "email": "asmaa@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 16,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$NGYzBHUrgAhAIDQaL8ezU3$qpO/C8tiliK3I69k7GKDH/H1AXzBTFcEDA9vG3AFjvI=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "amany",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-17T18:30:41.356Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "2000-02-01",
+    "first_name": "Amany",
+    "last_name": "Salem",
+    "email": "amany@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 17,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$s7F3GiKNGLR1mXPlafZMXy$ALDWc5gM+i+SPY9PURLsetDyZHqMcmiCBfaFsS3Ldms=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Alaa",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-17T18:53:04.894Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "1977-02-01",
+    "first_name": "alaa",
+    "last_name": "mohammad",
+    "email": "Alaa@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 18,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$YiL7nnbUZClA0KLBzXxBXu$vk8sWYPWi+3a3Dp3SToF7wRZAK97knNiwyGf1YPZCEU=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "samar",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-17T18:55:26.665Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "1999-02-01",
+    "first_name": "samar",
+    "last_name": "mohammad",
+    "email": "samar@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 19,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$hUz5B3KfPV5sKovdmxzXbq$vlYCJoN8Asw+3bRi6wxKiBZ4v5Sgsl9ZBt+zPI9JLH0=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Karam",
+    "is_staff": false,
+    "is_active": false,
+    "date_joined": "2025-03-17T22:38:06.355Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "2002-02-01",
+    "first_name": "Karam",
+    "last_name": "Joud",
+    "email": "Karam@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 20,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$x8XR9o152AX1G6cWJjmjNd$XgmBy9wkSV2biuLJR26cZg3hyDAeC157Rql0ZYbfPmI=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "hhh",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-18T06:34:11.033Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": "2000-11-01",
+    "first_name": "",
+    "last_name": "",
+    "email": "hhh@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 21,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$lwcMQDzM4uZgt8w1YAt4fh$6cONev6lmiUnu/FsU1g7CyWUQZNFx4fbDZt6cqvMUFA=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "mim33",
+    "is_staff": false,
+    "is_active": false,
+    "date_joined": "2025-03-22T19:45:19.156Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "2006-02-12",
+    "first_name": "Mohamad",
+    "last_name": "Mansour",
+    "email": "mim33@mail.aub.edu",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 22,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$Sjd3KamlLlEDqaGSySw6lj$Jthq3pueWK7tKfgn6bSVN/TrRU8FNZfmf9N+59efEe8=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ma296",
+    "is_staff": false,
+    "is_active": false,
+    "date_joined": "2025-03-31T20:05:18.868Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "2006-02-22",
+    "first_name": "mohamad",
+    "last_name": "mansour",
+    "email": "ma296@aub.edu.lb",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 23,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$OQiadmrVDXAyLNUvnz1eNP$VO9/sEds/igx7i50aa0HTHYneh62ZP9Pkh21MqjuwBQ=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "amal",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-04-02T21:52:43.502Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": "2000-02-12",
+    "first_name": "",
+    "last_name": "",
+    "email": "amal@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 24,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$gEmzChaEi5ddXk29ETbFzE$yZqi50vR9U/ZHozaRPSYc8ZEbfmvPqu4qTilJDiyGNg=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "yasmine_ghriss",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-04-05T11:40:51.836Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "2000-02-01",
+    "first_name": "Yasmine",
+    "last_name": "Ghriss",
+    "email": "yas@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 25,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$TJ7IPXQmazHx33txkEfDaB$sCY4vPNEsxA6KiYiplETTs0hfggBOqaoflqIeCDbZ9U=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "yas_ghriss",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-04-05T11:51:04.151Z",
+    "is_verified": false,
+    "user_type": "patient",
+    "dob": "2000-02-01",
+    "first_name": "Yas",
+    "last_name": "Ghriss",
+    "email": "ya@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "pk": 26,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$uiFNSv4yf0fPpjmx1reKa6$Nvk+T+VzgsxOjzg0mglcOOavykcl/WDUuePyze/W7ZA=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "dr_adam_brody",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-04-05T11:55:35.075Z",
+    "is_verified": false,
+    "user_type": "doctor",
+    "dob": "1980-02-02",
+    "first_name": "adam",
+    "last_name": "brody",
+    "email": "bro@gmail.com",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.doctorprofile",
+  "pk": 1,
+  "fields": {
+    "user": 10,
+    "phone_number": "1111111",
+    "office_number": "11111",
+    "office_address": "2025-04-05 11:39:05.440957+00:00",
+    "specialty": "",
+    "license_number": "",
+    "medical_license": "2025-04-05 11:39:05.434235+00:00",
+    "certificate": "doctor_certificates/Problem4lab1.pdf",
+    "is_approved": false,
+    "created_at": "2025-04-05T11:39:05.410Z",
+    "updated_at": "2025-04-05T11:39:05.470Z"
+  }
+},
+{
+  "model": "accounts.doctorprofile",
+  "pk": 2,
+  "fields": {
+    "user": 11,
+    "phone_number": "1111111",
+    "office_number": "11111",
+    "office_address": "2025-04-05 11:39:05.440957+00:00",
+    "specialty": "",
+    "license_number": "",
+    "medical_license": "2025-04-05 11:39:05.434235+00:00",
+    "certificate": "doctor_certificates/Problem4lab1_F8f5Awx.pdf",
+    "is_approved": false,
+    "created_at": "2025-04-05T11:39:05.410Z",
+    "updated_at": "2025-04-05T11:39:05.470Z"
+  }
+},
+{
+  "model": "accounts.doctorprofile",
+  "pk": 3,
+  "fields": {
+    "user": 12,
+    "phone_number": "1111111",
+    "office_number": "11111",
+    "office_address": "2025-04-05 11:39:05.440957+00:00",
+    "specialty": "",
+    "license_number": "",
+    "medical_license": "2025-04-05 11:39:05.434235+00:00",
+    "certificate": "doctor_certificates/Practice_Exercises_Set_10_-_I.pdf",
+    "is_approved": false,
+    "created_at": "2025-04-05T11:39:05.410Z",
+    "updated_at": "2025-04-05T11:39:05.470Z"
+  }
+},
+{
+  "model": "accounts.doctorprofile",
+  "pk": 4,
+  "fields": {
+    "user": 13,
+    "phone_number": "1111111",
+    "office_number": "11111",
+    "office_address": "2025-04-05 11:39:05.440957+00:00",
+    "specialty": "",
+    "license_number": "",
+    "medical_license": "2025-04-05 11:39:05.434235+00:00",
+    "certificate": "doctor_certificates/istockphoto-1406496671-612x612.jpg",
+    "is_approved": false,
+    "created_at": "2025-04-05T11:39:05.410Z",
+    "updated_at": "2025-04-05T11:39:05.470Z"
+  }
+},
+{
+  "model": "accounts.doctorprofile",
+  "pk": 5,
+  "fields": {
+    "user": 14,
+    "phone_number": "1111111",
+    "office_number": "11111",
+    "office_address": "2025-04-05 11:39:05.440957+00:00",
+    "specialty": "",
+    "license_number": "",
+    "medical_license": "2025-04-05 11:39:05.434235+00:00",
+    "certificate": "doctor_certificates/istockphoto-1406496671-612x612_DmzeLD5.jpg",
+    "is_approved": false,
+    "created_at": "2025-04-05T11:39:05.410Z",
+    "updated_at": "2025-04-05T11:39:05.470Z"
+  }
+},
+{
+  "model": "accounts.doctorprofile",
+  "pk": 6,
+  "fields": {
+    "user": 15,
+    "phone_number": "1111111",
+    "office_number": "11111",
+    "office_address": "2025-04-05 11:39:05.440957+00:00",
+    "specialty": "",
+    "license_number": "",
+    "medical_license": "2025-04-05 11:39:05.434235+00:00",
+    "certificate": "doctor_certificates/istockphoto-1406496671-612x612_IcBJZAU.jpg",
+    "is_approved": false,
+    "created_at": "2025-04-05T11:39:05.410Z",
+    "updated_at": "2025-04-05T11:39:05.470Z"
+  }
+},
+{
+  "model": "accounts.doctorprofile",
+  "pk": 7,
+  "fields": {
+    "user": 20,
+    "phone_number": "1111111",
+    "office_number": "11111",
+    "office_address": "2025-04-05 11:39:05.440957+00:00",
+    "specialty": "",
+    "license_number": "",
+    "medical_license": "2025-04-05 11:39:05.434235+00:00",
+    "certificate": "doctor_certificates/istockphoto-1406496671-612x612_tKkLfLI.jpg",
+    "is_approved": false,
+    "created_at": "2025-04-05T11:39:05.410Z",
+    "updated_at": "2025-04-05T11:39:05.470Z"
+  }
+},
+{
+  "model": "accounts.doctorprofile",
+  "pk": 8,
+  "fields": {
+    "user": 23,
+    "phone_number": "1111111",
+    "office_number": "11111",
+    "office_address": "2025-04-05 11:39:05.440957+00:00",
+    "specialty": "",
+    "license_number": "",
+    "medical_license": "2025-04-05 11:39:05.434235+00:00",
+    "certificate": "doctor_certificates/istockphoto-1406496671-612x612_hFQZgLM.jpg",
+    "is_approved": false,
+    "created_at": "2025-04-05T11:39:05.410Z",
+    "updated_at": "2025-04-05T11:39:05.470Z"
+  }
+},
+{
+  "model": "accounts.doctorprofile",
+  "pk": 9,
+  "fields": {
+    "user": 26,
+    "phone_number": "27495831",
+    "office_number": "27495831",
+    "office_address": "721 W MAIN ST RICHMOND",
+    "specialty": "",
+    "license_number": "",
+    "medical_license": "licenses/dr_adam_brody_s3.jpeg",
+    "certificate": "certificates/dr_adam_brody_s3.jpeg",
+    "is_approved": false,
+    "created_at": "2025-04-05T11:55:35.577Z",
+    "updated_at": "2025-04-05T11:55:35.577Z"
+  }
+},
+{
+  "model": "accounts.patientprofile",
+  "pk": 1,
+  "fields": {
+    "user": 8,
+    "medical_history": null,
+    "created_at": "2025-04-05T11:39:05.480Z",
+    "updated_at": "2025-04-05T11:39:05.488Z",
+    "phone_number": null
+  }
+},
+{
+  "model": "accounts.patientprofile",
+  "pk": 2,
+  "fields": {
+    "user": 9,
+    "medical_history": null,
+    "created_at": "2025-04-05T11:39:05.480Z",
+    "updated_at": "2025-04-05T11:39:05.488Z",
+    "phone_number": null
+  }
+},
+{
+  "model": "accounts.patientprofile",
+  "pk": 3,
+  "fields": {
+    "user": 4,
+    "medical_history": "",
+    "created_at": "2025-04-05T11:39:05.480Z",
+    "updated_at": "2025-04-05T11:39:05.488Z",
+    "phone_number": null
+  }
+},
+{
+  "model": "accounts.patientprofile",
+  "pk": 4,
+  "fields": {
+    "user": 17,
+    "medical_history": null,
+    "created_at": "2025-04-05T11:39:05.480Z",
+    "updated_at": "2025-04-05T11:39:05.488Z",
+    "phone_number": null
+  }
+},
+{
+  "model": "accounts.patientprofile",
+  "pk": 5,
+  "fields": {
+    "user": 18,
+    "medical_history": null,
+    "created_at": "2025-04-05T11:39:05.480Z",
+    "updated_at": "2025-04-05T11:39:05.488Z",
+    "phone_number": null
+  }
+},
+{
+  "model": "accounts.patientprofile",
+  "pk": 6,
+  "fields": {
+    "user": 19,
+    "medical_history": null,
+    "created_at": "2025-04-05T11:39:05.480Z",
+    "updated_at": "2025-04-05T11:39:05.488Z",
+    "phone_number": null
+  }
+},
+{
+  "model": "accounts.patientprofile",
+  "pk": 7,
+  "fields": {
+    "user": 21,
+    "medical_history": null,
+    "created_at": "2025-04-05T11:39:05.480Z",
+    "updated_at": "2025-04-05T11:39:05.488Z",
+    "phone_number": null
+  }
+},
+{
+  "model": "accounts.patientprofile",
+  "pk": 8,
+  "fields": {
+    "user": 22,
+    "medical_history": null,
+    "created_at": "2025-04-05T11:39:05.480Z",
+    "updated_at": "2025-04-05T11:39:05.488Z",
+    "phone_number": null
+  }
+},
+{
+  "model": "accounts.patientprofile",
+  "pk": 9,
+  "fields": {
+    "user": 25,
+    "medical_history": null,
+    "created_at": "2025-04-05T11:51:04.846Z",
+    "updated_at": "2025-04-05T11:51:04.846Z",
+    "phone_number": null
+  }
+},
+{
+  "model": "accounts.appointment",
+  "pk": 1,
+  "fields": {
+    "doctor": 9,
+    "patient": 4,
+    "appointment_datetime": "2025-04-06T21:25:01Z",
+    "status": "confirmed",
+    "reason": "Stomach Ache",
+    "created_at": "2025-04-06T21:24:48Z",
+    "updated_at": "2025-04-06T21:25:18.985Z"
+  }
+},
+{
+  "model": "accounts.doctoravailability",
+  "pk": 1,
+  "fields": {
+    "doctor": 9,
+    "date": "2025-03-31",
+    "start_time": "12:00:00",
+    "end_time": "13:00:00",
+    "clinic_name": "Clinic 2",
+    "is_booked": false,
+    "created_at": "2025-04-06T22:25:23.723Z",
+    "updated_at": "2025-04-06T22:25:23.723Z"
+  }
+},
+{
+  "model": "accounts.doctoravailability",
+  "pk": 2,
+  "fields": {
+    "doctor": 9,
+    "date": "2025-03-31",
+    "start_time": "11:00:00",
+    "end_time": "12:00:00",
+    "clinic_name": "Clinic 2",
+    "is_booked": false,
+    "created_at": "2025-04-06T22:25:31.836Z",
+    "updated_at": "2025-04-06T22:25:31.836Z"
+  }
+},
+{
+  "model": "accounts.doctoravailability",
+  "pk": 3,
+  "fields": {
+    "doctor": 9,
+    "date": "2025-03-31",
+    "start_time": "10:00:00",
+    "end_time": "11:00:00",
+    "clinic_name": "Clinic 2",
+    "is_booked": false,
+    "created_at": "2025-04-06T22:25:55.777Z",
+    "updated_at": "2025-04-06T22:25:55.777Z"
+  }
+},
+{
+  "model": "accounts.doctoravailability",
+  "pk": 4,
+  "fields": {
+    "doctor": 9,
+    "date": "2025-04-07",
+    "start_time": "11:00:00",
+    "end_time": "12:00:00",
+    "clinic_name": "Clinic 2",
+    "is_booked": false,
+    "created_at": "2025-04-06T22:29:20.374Z",
+    "updated_at": "2025-04-06T22:29:20.374Z"
+  }
+},
+{
+  "model": "accounts.doctoravailability",
+  "pk": 5,
+  "fields": {
+    "doctor": 9,
+    "date": "2025-04-08",
+    "start_time": "11:00:00",
+    "end_time": "12:00:00",
+    "clinic_name": "Clinic 2",
+    "is_booked": false,
+    "created_at": "2025-04-06T22:29:31.170Z",
+    "updated_at": "2025-04-06T22:29:31.170Z"
+  }
+},
+{
+  "model": "accounts.doctoravailability",
+  "pk": 6,
+  "fields": {
+    "doctor": 9,
+    "date": "2025-04-07",
+    "start_time": "09:00:00",
+    "end_time": "10:00:00",
+    "clinic_name": "Clinic 2",
+    "is_booked": false,
+    "created_at": "2025-04-06T22:30:37.435Z",
+    "updated_at": "2025-04-06T22:30:37.435Z"
+  }
+}
+]
