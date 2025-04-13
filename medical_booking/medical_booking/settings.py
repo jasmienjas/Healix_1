@@ -17,8 +17,12 @@ from pathlib import Path
 from datetime import timedelta
 import dj_database_url
 import pymysql
+import logging
 pymysql.install_as_MySQLdb()
 
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -91,24 +95,42 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# Database Configuration
+DATABASE_URL = os.getenv('DATABASE_URL')
+logger.info(f"DATABASE_URL exists: {bool(DATABASE_URL)}")
+
+# Get individual MySQL environment variables
+MYSQL_DATABASE = os.getenv('MYSQLDATABASE')
+MYSQL_USER = os.getenv('MYSQLUSER')
+MYSQL_PASSWORD = os.getenv('MYSQLPASSWORD')
+MYSQL_HOST = os.getenv('MYSQLHOST')
+MYSQL_PORT = os.getenv('MYSQLPORT', '3306')
+
+logger.info(f"MYSQL_DATABASE exists: {bool(MYSQL_DATABASE)}")
+logger.info(f"MYSQL_USER exists: {bool(MYSQL_USER)}")
+logger.info(f"MYSQL_HOST exists: {bool(MYSQL_HOST)}")
+
+# Explicit database configuration
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-        engine='django.db.backends.mysql'
-    )
-}
-'''DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME':config('DB_NAME'),
-        'USER':config('DB_USER'),
-        'PASSWORD':config('DB_PASSWORD'),
-        'HOST':config('DB_HOST'),
-        'PORT':config('DB_PORT'),
+        'NAME': MYSQL_DATABASE,
+        'USER': MYSQL_USER,
+        'PASSWORD': MYSQL_PASSWORD,
+        'HOST': MYSQL_HOST,
+        'PORT': MYSQL_PORT,
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        }
+    }
 }
-}'''
+
+# Log database configuration (safely)
+logger.info(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
+logger.info(f"Database NAME: {DATABASES['default']['NAME']}")
+logger.info(f"Database HOST: {DATABASES['default']['HOST']}")
+logger.info(f"Database PORT: {DATABASES['default']['PORT']}")
 
 # settings.py
 
