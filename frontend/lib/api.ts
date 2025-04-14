@@ -1,5 +1,5 @@
 // API configuration
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://localhost:8000';
 
 // Helper function for API calls
 async function apiCall(endpoint: string, options: RequestInit = {}) {
@@ -11,7 +11,12 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
     ...options.headers,
   };
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  // Ensure endpoint starts with a slash and remove any duplicate slashes
+  const cleanEndpoint = `/${endpoint.replace(/^\/+/, '')}`;
+  
+  console.log('Making API call to:', `${API_URL}${cleanEndpoint}`);
+  
+  const response = await fetch(`${API_URL}${cleanEndpoint}`, {
     ...options,
     headers,
     credentials: 'include',
@@ -19,6 +24,7 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
+    console.error('API Error:', error);
     throw new Error(error.detail || error.error || 'API call failed');
   }
 
@@ -27,11 +33,20 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
 
 // Auth API functions
 export const authApi = {
-  login: (email: string, password: string) => 
-    apiCall('/api/accounts/login/', {
+  login: async (email: string, password: string) => {
+    const response = await apiCall('api/accounts/login/', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
-    }),
+    });
+    
+    console.log('Login response:', response);
+    
+    if (!response.access || !response.user) {
+      throw new Error('Invalid response format from server');
+    }
+    
+    return response;
+  },
 
   register: (userData: any) =>
     apiCall('/api/accounts/register/', {
