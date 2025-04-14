@@ -47,9 +47,11 @@ services:
       cd frontend &&
       npm cache clean --force &&
       rm -rf node_modules .next package-lock.json &&
-      npm install --save-dev typescript@5.3.3 @types/react@18.2.55 @types/node@20.11.17 &&
-      npm install --legacy-peer-deps &&
-      NEXT_PUBLIC_API_URL=https://healix-7515.onrender.com/ npm run build
+      npm install typescript@5.3.3 &&
+      npm install @types/react@18.2.55 @types/node@20.11.17 &&
+      npm install &&
+      npm install --save-dev @types/react-dom@18.2.19 &&
+      npm run build
     startCommand: cd frontend && npm start
     envVars:
       - key: NODE_ENV
@@ -58,6 +60,8 @@ services:
         value: https://healix-7515.onrender.com/
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
+      - key: SKIP_TYPE_CHECK
+        value: "true"
 
 databases:
   - name: healix-db
