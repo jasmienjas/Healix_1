@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { auth } from '@/services/auth'
+import { api } from '@/lib/api'
 
 interface User {
   id: number;
@@ -43,36 +43,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       console.log('1. AuthContext: Starting login attempt')
-      const response = await fetch('http://127.0.0.1:8000/api/accounts/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-  
-      console.log('2. Response received:', {
-        status: response.status,
-        ok: response.ok,
-        statusText: response.statusText
-      })
-  
-      const responseText = await response.text()
-      console.log('3. Raw response text:', responseText)
-  
-      const data = JSON.parse(responseText)
-      console.log('4. Parsed response data:', {
-        hasUser: !!data.user,
-        hasAccess: !!data.access,
-        hasRefresh: !!data.refresh,
-        userType: data.user?.user_type
-      })
-  
-      if (!response.ok) {
-        throw new Error(data.detail || data.error || 'Login failed')
-      }
-  
+      const data = await api.auth.login(email, password)
+      
       // Store minimal user data
       const userData = {
         id: data.user.id,
@@ -91,9 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       document.cookie = `user_type=${userData.user_type}; path=/`
       
       setUser(userData)
-      console.log('8. User data stored and state updated')
-  
-      // CHANGED: Always redirect to /dashboard regardless of user type
+      
       setTimeout(() => {
         console.log('9. Redirecting to dashboard')
         router.push('/dashboard')

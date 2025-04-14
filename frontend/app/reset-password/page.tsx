@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
+import { api } from '@/lib/api'
 
 function ResetPasswordContent() {
   const [password, setPassword] = useState("")
@@ -35,23 +36,9 @@ function ResetPasswordContent() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, password }),
-      })
-
-      const data = await response.json()
-      console.log('Reset password response:', data);
-
-      if (response.ok) {
-        toast.success("Password reset successfully")
-        router.push('/login')
-      } else {
-        toast.error(data.error || "Failed to reset password")
-      }
+      await api.auth.resetPassword(token!, password)
+      toast.success("Password reset successfully")
+      router.push('/login')
     } catch (error) {
       console.error('Reset error:', error);
       toast.error("An error occurred. Please try again.")

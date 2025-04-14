@@ -5,6 +5,7 @@ import { getDoctorAppointments, getDoctorProfile } from '@/services/api';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import DoctorAvailability from './DoctorAvailability';
+import { api } from '@/lib/api';
 
 interface User {
   id: number;
@@ -82,7 +83,7 @@ export default function DoctorDashboard() {
     const fetchAppointments = async () => {
       try {
         console.log('Fetching doctor appointments...');
-        const data = await getDoctorAppointments();
+        const data = await api.appointments.getDoctorAppointments();
         console.log('Raw API response:', data);
         
         if (data.length > 0) {

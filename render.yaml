@@ -57,7 +57,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://healix-7515.onrender.com/
+        value: https://healix-7515.onrender.com
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
       - key: SKIP_TYPE_CHECK

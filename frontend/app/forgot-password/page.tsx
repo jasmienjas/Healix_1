@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { X } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { api } from '@/lib/api'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -24,26 +25,9 @@ export default function ForgotPasswordPage() {
     setError("")
     setIsLoading(true)
     try {
-      console.log('Making API request...')
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      })
-      
-      console.log('API Response:', response)
-
-      const data = await response.json()
-      console.log('Response data:', data)
-
-      if (response.ok) {
-        setIsSubmitted(true)
-        toast.success("Reset password link sent to your email")
-      } else {
-        toast.error(data.error || "Failed to send reset link")
-      }
+      await api.auth.forgotPassword(email)
+      setIsSubmitted(true)
+      toast.success("Reset password link sent to your email")
     } catch (error) {
       console.error('Error:', error)
       toast.error("An error occurred. Please try again.")
