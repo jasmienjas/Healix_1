@@ -98,12 +98,12 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
-    print(f"Found DATABASE_URL: {DATABASE_URL[:8]}...") # Print first 8 chars for verification
+    print(f"Found DATABASE_URL, configuring database...")
     DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
+        'default': dj_database_url.parse(
+            DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True,  # Add this for Render
+            ssl_require=True
         )
     }
 else:
