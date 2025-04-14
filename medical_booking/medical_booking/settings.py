@@ -98,12 +98,12 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
-    print(f"Found DATABASE_URL, configuring database...")
+    print(f"Found DATABASE_URL: {DATABASE_URL[:8]}...") # Print first 8 chars for verification
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
-            conn_health_checks=True,
+            ssl_require=True,  # Add this for Render
         )
     }
 else:
@@ -112,8 +112,6 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
-            'HOST': '',  # Add empty host for SQLite
-            'PORT': '',  # Add empty port for SQLite
         }
     }
 
