@@ -16,6 +16,8 @@ services:
           property: connectionString
       - key: PYTHON_VERSION
         value: 3.11.0
+    dependencies:
+      - name: healix-db
 
   # Frontend Service
   - type: web
@@ -23,8 +25,7 @@ services:
     env: node
     buildCommand: >
       cd frontend && 
-      npm install -D tailwindcss postcss autoprefixer @tailwindcss/forms @tailwindcss/typography tailwindcss-animate && 
-      npm install @radix-ui/react-dialog @radix-ui/react-select @radix-ui/react-slot class-variance-authority clsx tailwind-merge lucide-react @hookform/resolvers react-hook-form zod @radix-ui/react-label @radix-ui/react-toast && 
+      npm install -D postcss@latest postcss-import@latest postcss-nesting@latest tailwindcss@latest autoprefixer@latest @tailwindcss/forms@latest @tailwindcss/typography@latest tailwindcss-animate@latest && 
       npm install && 
       npm run build
     startCommand: cd frontend && npm start
@@ -41,3 +42,4 @@ databases:
     databaseName: healix
     user: healix
     plan: free
+    ipAllowList: []
