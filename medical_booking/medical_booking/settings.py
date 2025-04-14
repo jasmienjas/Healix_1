@@ -60,11 +60,11 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',  # Add this for static files
 ]
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this after security middleware
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -211,6 +211,7 @@ CORS_ALLOW_METHODS = [
     'OPTIONS',
     'PATCH',
     'POST',
+    'PUT',
 ]
 CORS_ALLOW_HEADERS = [
     'accept',

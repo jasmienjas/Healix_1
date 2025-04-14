@@ -232,18 +232,24 @@ export async function deleteDoctorAvailability(slotId: string) {
 
     console.log('Attempting to delete slot:', slotId);
 
-    // Use the new dedicated delete endpoint
-    const response = await fetch(`${API_BASE_URL}/api/accounts/doctor/availability/delete/`, {
+    const response = await fetch(`${API_BASE_URL}/api/accounts/doctor/availability/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Origin': 'http://localhost:3000'
       },
+      credentials: 'include',
       body: JSON.stringify({
-        id: slotId
+        id: slotId,
+        action: 'delete'
       })
     });
+
+    if (response.status === 502) {
+      throw new Error('Backend service is temporarily unavailable. Please try again in a moment.');
+    }
 
     const text = await response.text();
     console.log('Server response:', text);
@@ -252,9 +258,14 @@ export async function deleteDoctorAvailability(slotId: string) {
       throw new Error(`Failed to delete availability: ${response.status} ${text}`);
     }
 
-    const result = JSON.parse(text);
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to delete availability');
+    try {
+      const result = JSON.parse(text);
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to delete availability');
+      }
+    } catch (e) {
+      console.error('Error parsing response:', e);
+      throw new Error(`Invalid response from server: ${text}`);
     }
 
     return true;
