@@ -47,8 +47,7 @@ services:
       cd frontend &&
       npm cache clean --force &&
       rm -rf node_modules .next package-lock.json &&
-      npm install -D tailwindcss@3.4.1 postcss@8.4.35 autoprefixer@10.4.17 @tailwindcss/forms@0.5.7 @tailwindcss/typography@0.5.10 tailwindcss-animate@1.0.7 &&
-      npm install &&
+      npm install --legacy-peer-deps &&
       NEXT_PUBLIC_API_URL=https://healix-7515.onrender.com/ npm run build
     startCommand: cd frontend && npm start
     envVars:
@@ -56,8 +55,8 @@ services:
         value: production
       - key: NEXT_PUBLIC_API_URL
         value: https://healix-7515.onrender.com/
-      - key: NEXT_FONT_GOOGLE
-        value: false
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
 
 databases:
   - name: healix-db
