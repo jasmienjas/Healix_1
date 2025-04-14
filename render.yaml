@@ -18,6 +18,7 @@ services:
         value: 3.11.0
     dependencies:
       - name: healix-db
+      - type: postgres
 
   # Frontend Service
   - type: web
