@@ -440,47 +440,52 @@ class DoctorAvailabilityView(APIView):
                     'message': 'Only doctors can access this endpoint'
                 }, status=status.HTTP_403_FORBIDDEN)
 
-            # Check for delete action FIRST
-            if request.data.get('__action') == 'delete':
-                slot_id = request.data.get('id')
-                if not slot_id:
-                    return Response({
-                        'success': False,
-                        'message': 'ID is required for deletion'
-                    }, status=status.HTTP_400_BAD_REQUEST)
+            date = request.data.get('date')
+            start_time = request.data.get('startTime')
+            clinic_name = request.data.get('clinicName')
 
-                try:
-                    availability = DoctorAvailability.objects.get(
-                        id=slot_id,
-                        doctor=request.user.doctor_profile
-                    )
-                    availability.delete()
-                    return Response({
-                        'success': True,
-                        'message': 'Availability deleted successfully'
-                    })
-                except DoctorAvailability.DoesNotExist:
-                    return Response({
-                        'success': False,
-                        'message': 'Availability not found'
-                    }, status=status.HTTP_404_NOT_FOUND)
+            print(f"Processing: date={date}, start_time={start_time}, clinic_name={clinic_name}")  # Debug log
 
-            # Only check required fields if NOT deleting
-            if not request.data.get('__action'):  # If not a delete operation
-                date = request.data.get('date')
-                start_time = request.data.get('startTime')
-                clinic_name = request.data.get('clinicName')
+            if not all([date, start_time, clinic_name]):
+                return Response({
+                    'success': False,
+                    'message': 'Missing required fields'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-                if not all([date, start_time, clinic_name]):
-                    return Response({
-                        'success': False,
-                        'message': 'Missing required fields'
-                    }, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                # Calculate end time (1 hour after start time)
+                start_time_obj = datetime.strptime(start_time, '%H:%M').time()
+                end_time_obj = (datetime.combine(datetime.min, start_time_obj) + timedelta(hours=1)).time()
 
-                # Rest of your creation logic...
+                # Create availability slot
+                slot = DoctorAvailability.objects.create(
+                    doctor=request.user.doctor_profile,
+                    date=date,
+                    start_time=start_time_obj,
+                    end_time=end_time_obj,
+                    clinic_name=clinic_name
+                )
+
+                return Response({
+                    'success': True,
+                    'data': {
+                        'id': str(slot.id),
+                        'startTime': start_time,
+                        'endTime': end_time_obj.strftime('%H:%M'),
+                        'clinicName': clinic_name,
+                        'isBooked': False
+                    }
+                })
+
+            except Exception as e:
+                print(f"Error creating availability: {str(e)}")  # Debug log
+                return Response({
+                    'success': False,
+                    'message': f'Error creating availability: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         except Exception as e:
-            print(f"Error in post method: {str(e)}")
+            print(f"Outer error: {str(e)}")  # Debug log
             return Response({
                 'success': False,
                 'message': str(e)

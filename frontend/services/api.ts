@@ -173,49 +173,48 @@ export async function updateDoctorAvailability(slots: any[]) {
   }
 }
 
-export async function addDoctorAvailability(
-  date: string,
-  startTime: string,
-  endTime: string,
-  clinicName: string
-) {
+export async function addDoctorAvailability(data: { 
+  date: string; 
+  startTime: string; 
+  clinicName: string; 
+}) {
   try {
     const token = getToken();
     if (!token) {
       throw new Error('No authentication token found');
     }
 
-    console.log('Adding availability with data:', { date, startTime, endTime, clinicName });
+    console.log('Adding availability with data:', data);
 
     const response = await fetch(`${API_BASE_URL}/api/accounts/doctor/availability/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        date: date,
-        startTime: startTime,
-        endTime: endTime,
-        clinicName: clinicName,
-        action: 'add'  // Explicitly specify this is an add operation
-      }),
+      body: JSON.stringify(data)
     });
 
-    const responseText = await response.text();
-    console.log('Raw server response:', responseText);
+    const text = await response.text();
+    console.log('Raw server response:', text);
 
-    if (!response.ok) {
-      throw new Error(`Failed to add availability: ${response.status} ${response.statusText}\nResponse: ${responseText}`);
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      console.error('Error parsing response:', text);
+      throw new Error(`Server error: ${text}`);
     }
 
-    const result = JSON.parse(responseText);
+    if (!response.ok) {
+      throw new Error(`Failed to add availability: ${response.status}\nResponse: ${text}`);
+    }
+
     if (!result.success) {
       throw new Error(result.message || 'Failed to add availability');
     }
 
-    console.log('Successfully added availability:', result.data);
     return result.data;
   } catch (error) {
     console.error('Error adding doctor availability:', error);

@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { getDoctorAvailability, addDoctorAvailability, deleteDoctorAvailability } from '@/services/api';
@@ -225,9 +226,12 @@ export default function DoctorAvailability() {
                   <Plus className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="..." aria-describedby="dialog-description">
                 <DialogHeader>
                   <DialogTitle>Add Availability</DialogTitle>
+                  <DialogDescription id="dialog-description">
+                    Select a time slot to add your availability.
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
