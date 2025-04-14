@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,14 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { getDoctorAvailability, addDoctorAvailability } from '@/services/api';
+import { Input } from "@/components/ui/input";
+import { getDoctorAvailability, addDoctorAvailability, deleteDoctorAvailability } from '@/services/api';
 
 interface TimeSlot {
   id: string;
@@ -39,8 +33,10 @@ export default function DoctorAvailability() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAddingSlot, setIsAddingSlot] = useState(false);
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedClinic, setSelectedClinic] = useState<string>('');
+  const [startTime, setStartTime] = useState<string>('');
+  const [endTime, setEndTime] = useState<string>('');
+  const [clinicName, setClinicName] = useState<string>('');
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   const clinics = ['Clinic 1', 'Clinic 2', 'Clinic 3'];
   const timeSlots = [
@@ -58,6 +54,7 @@ export default function DoctorAvailability() {
         currentDate.getFullYear(),
         currentDate.getMonth() + 1
       );
+      console.log('Availability data:', data);
       setAvailability(data);
       setError(null);
     } catch (err) {
@@ -67,24 +64,54 @@ export default function DoctorAvailability() {
     }
   };
 
+  const validateTimeRange = (start: string, end: string): boolean => {
+    const startDate = new Date(`1970-01-01T${start}`);
+    const endDate = new Date(`1970-01-01T${end}`);
+    return startDate < endDate;
+  };
+
   const handleAddTimeSlot = async () => {
-    if (!selectedDate || !selectedTime || !selectedClinic) {
+    if (!selectedDate || !startTime || !endTime || !clinicName.trim()) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (!validateTimeRange(startTime, endTime)) {
+      setError('End time must be after start time');
       return;
     }
 
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
-      await addDoctorAvailability(dateStr, selectedTime, selectedClinic);
-      await fetchAvailability(); // Refresh the calendar
+      
+      // Make sure we're sending the correct data structure
+      await addDoctorAvailability(
+        dateStr,
+        startTime,
+        endTime,
+        clinicName.trim() // This should be the actual clinic name, not a time
+      );
+      
+      await fetchAvailability();
       setIsAddingSlot(false);
-      setSelectedTime('');
-      setSelectedClinic('');
-      // Add a success toast or message here if you want
+      setStartTime('');
+      setEndTime('');
+      setClinicName('');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to add time slot';
       setError(errorMessage);
-      // Keep the dialog open when there's an error
-      setTimeout(() => setError(null), 3000); // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  const handleDeleteSlot = async (slotId: string) => {
+    try {
+      await deleteDoctorAvailability(slotId);
+      await fetchAvailability();
+      setSelectedSlot(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete time slot');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -134,8 +161,13 @@ export default function DoctorAvailability() {
           key={`day-${day}`}
           className={`h-32 border border-gray-100 p-2 relative hover:bg-gray-50 ${
             isPast ? 'bg-gray-50' : ''
-          }`}
-          onClick={() => !isPast && setSelectedDate(date)}
+          } ${formatDate(date) === formatDate(selectedDate || new Date()) ? 'ring-2 ring-blue-200' : ''}`}
+          onClick={() => {
+            if (!isPast) {
+              setSelectedDate(date);  // Set the selected date when clicking a cell
+              setSelectedSlot(null);  // Clear any selected slot
+            }
+          }}
         >
           <div className={`font-semibold mb-2 ${isPast ? 'text-gray-400' : ''}`}>
             {day}
@@ -144,19 +176,45 @@ export default function DoctorAvailability() {
             {daySlots.map((slot) => (
               <div
                 key={slot.id}
-                className={`text-xs px-2 py-1 rounded ${
-                  slot.isBooked
-                    ? 'bg-red-100 text-red-600'
-                    : 'bg-blue-100 text-blue-600'
-                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedSlot(selectedSlot === slot.id ? null : slot.id);
+                }}
+                className={`
+                  bg-blue-50 rounded p-1.5 cursor-pointer
+                  transition-colors duration-200
+                  ${selectedSlot === slot.id ? 'ring-2 ring-blue-500' : ''}
+                  ${slot.isBooked ? 'bg-gray-100' : 'hover:bg-blue-100'}
+                  relative group
+                `}
               >
-                {slot.startTime} - {slot.clinicName}
+                <div className="text-blue-600 text-sm">
+                  {slot.startTime} - {slot.endTime}
+                </div>
+                <div className="text-blue-500 text-xs">
+                  {slot.clinicName}
+                </div>
+                
+                {/* Delete button - only show when slot is selected and not booked */}
+                {selectedSlot === slot.id && !slot.isBooked && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteSlot(slot.id);
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
-          {selectedDate && 
-           formatDate(selectedDate) === dateString && 
-           !isPast && (
+          
+          {/* Add button - show when date is selected and not in past */}
+          {!isPast && formatDate(date) === formatDate(selectedDate || new Date()) && (
             <Dialog open={isAddingSlot} onOpenChange={setIsAddingSlot}>
               <DialogTrigger asChild>
                 <Button
@@ -173,40 +231,37 @@ export default function DoctorAvailability() {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Time</label>
-                    <Select onValueChange={setSelectedTime} value={selectedTime}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeSlots.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <label className="text-sm font-medium">Start Time</label>
+                    <Input
+                      type="time"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      className="w-full"
+                    />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Clinic</label>
-                    <Select onValueChange={setSelectedClinic} value={selectedClinic}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select clinic" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clinics.map((clinic) => (
-                          <SelectItem key={clinic} value={clinic}>
-                            {clinic}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <label className="text-sm font-medium">End Time</label>
+                    <Input
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      className="w-full"
+                    />
                   </div>
-                  <Button 
-                    className="w-full"
-                    onClick={handleAddTimeSlot}
-                    disabled={!selectedTime || !selectedClinic}
-                  >
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Clinic Name</label>
+                    <Input
+                      type="text"
+                      value={clinicName}
+                      onChange={(e) => setClinicName(e.target.value)}
+                      placeholder="Enter clinic name"
+                      className="w-full"
+                    />
+                  </div>
+                  {error && (
+                    <div className="text-red-500 text-sm">{error}</div>
+                  )}
+                  <Button onClick={handleAddTimeSlot} className="w-full">
                     Add Time Slot
                   </Button>
                 </div>

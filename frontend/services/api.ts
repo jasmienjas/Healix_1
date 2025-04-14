@@ -173,14 +173,19 @@ export async function updateDoctorAvailability(slots: any[]) {
   }
 }
 
-export async function addDoctorAvailability(date: string, startTime: string, clinicName: string) {
+export async function addDoctorAvailability(
+  date: string,
+  startTime: string,
+  endTime: string,
+  clinicName: string
+) {
   try {
     const token = getToken();
     if (!token) {
       throw new Error('No authentication token found');
     }
 
-    console.log('Adding availability with data:', { date, startTime, clinicName });
+    console.log('Adding availability with data:', { date, startTime, endTime, clinicName });
 
     const response = await fetch(`${API_BASE_URL}/api/accounts/doctor/availability/`, {
       method: 'POST',
@@ -192,7 +197,9 @@ export async function addDoctorAvailability(date: string, startTime: string, cli
       body: JSON.stringify({
         date: date,
         startTime: startTime,
-        clinicName: clinicName
+        endTime: endTime,
+        clinicName: clinicName,
+        action: 'add'  // Explicitly specify this is an add operation
       }),
     });
 
@@ -214,4 +221,45 @@ export async function addDoctorAvailability(date: string, startTime: string, cli
     console.error('Error adding doctor availability:', error);
     throw error;
   }
-} 
+}
+
+export async function deleteDoctorAvailability(slotId: string) {
+  try {
+    const token = getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    console.log('Attempting to delete slot:', slotId);
+
+    // Use the new dedicated delete endpoint
+    const response = await fetch(`${API_BASE_URL}/api/accounts/doctor/availability/delete/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id: slotId
+      })
+    });
+
+    const text = await response.text();
+    console.log('Server response:', text);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete availability: ${response.status} ${text}`);
+    }
+
+    const result = JSON.parse(text);
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to delete availability');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting doctor availability:', error);
+    throw error;
+  }
+}

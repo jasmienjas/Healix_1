@@ -90,10 +90,21 @@ class DoctorAvailability(models.Model):
     is_booked = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['date', 'start_time']
-        unique_together = ['doctor', 'date', 'start_time']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['doctor', 'date', 'start_time'],
+                condition=models.Q(is_deleted=False),
+                name='unique_active_availability'
+            )
+        ]
 
     def __str__(self):
-        return f"{self.doctor} - {self.date} {self.start_time}-{self.end_time}"    
+        return f"{self.doctor} - {self.date} {self.start_time}-{self.end_time}"
+
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()    

@@ -377,11 +377,12 @@ class DoctorAvailabilityView(APIView):
             
             logger.info(f"Fetching availability for {year}-{month}")
 
-            # Get doctor's availability for the month
+            # Get doctor's availability for the month - ADD is_deleted=False here
             availability = DoctorAvailability.objects.filter(
                 doctor=request.user.doctor_profile,
                 date__year=year,
-                date__month=month
+                date__month=month,
+                is_deleted=False  # Only get non-deleted slots
             )
             
             logger.info(f"Found {availability.count()} availability slots")
@@ -431,66 +432,98 @@ class DoctorAvailabilityView(APIView):
 
     def post(self, request):
         try:
+            print("Received data:", request.data)  # Debug log
+            
             if request.user.user_type != 'doctor':
                 return Response({
                     'success': False,
                     'message': 'Only doctors can access this endpoint'
                 }, status=status.HTTP_403_FORBIDDEN)
 
-            date = request.data.get('date')
-            start_time = request.data.get('startTime')
-            clinic_name = request.data.get('clinicName')
+            # Check for delete action FIRST
+            if request.data.get('__action') == 'delete':
+                slot_id = request.data.get('id')
+                if not slot_id:
+                    return Response({
+                        'success': False,
+                        'message': 'ID is required for deletion'
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
-            if not all([date, start_time, clinic_name]):
-                return Response({
-                    'success': False,
-                    'message': 'Missing required fields'
-                }, status=status.HTTP_400_BAD_REQUEST)
+                try:
+                    availability = DoctorAvailability.objects.get(
+                        id=slot_id,
+                        doctor=request.user.doctor_profile
+                    )
+                    availability.delete()
+                    return Response({
+                        'success': True,
+                        'message': 'Availability deleted successfully'
+                    })
+                except DoctorAvailability.DoesNotExist:
+                    return Response({
+                        'success': False,
+                        'message': 'Availability not found'
+                    }, status=status.HTTP_404_NOT_FOUND)
 
-            # Check if slot already exists
-            existing_slot = DoctorAvailability.objects.filter(
-                doctor=request.user.doctor_profile,
-                date=date,
-                start_time=start_time
-            ).first()
+            # Only check required fields if NOT deleting
+            if not request.data.get('__action'):  # If not a delete operation
+                date = request.data.get('date')
+                start_time = request.data.get('startTime')
+                clinic_name = request.data.get('clinicName')
 
-            if existing_slot:
-                return Response({
-                    'success': False,
-                    'message': f'You already have availability set for {date} at {start_time}'
-                }, status=status.HTTP_400_BAD_REQUEST)
+                if not all([date, start_time, clinic_name]):
+                    return Response({
+                        'success': False,
+                        'message': 'Missing required fields'
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Calculate end time (1 hour after start time)
-            start_time_obj = datetime.strptime(start_time, '%H:%M').time()
-            end_time_obj = (datetime.combine(datetime.min, start_time_obj) + timedelta(hours=1)).time()
+                # Rest of your creation logic...
 
-            # Create availability slot
-            slot = DoctorAvailability.objects.create(
-                doctor=request.user.doctor_profile,
-                date=date,
-                start_time=start_time_obj,
-                end_time=end_time_obj,
-                clinic_name=clinic_name
-            )
-
-            return Response({
-                'success': True,
-                'data': {
-                    'id': str(slot.id),
-                    'startTime': start_time,
-                    'endTime': end_time_obj.strftime('%H:%M'),
-                    'clinicName': clinic_name,
-                    'isBooked': False
-                }
-            })
-
-        except IntegrityError:
-            return Response({
-                'success': False,
-                'message': f'You already have availability set for this time slot'
-            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            print(f"Error in post method: {str(e)}")
             return Response({
                 'success': False,
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DoctorAvailabilityDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            if request.user.user_type != 'doctor':
+                return Response({
+                    'success': False,
+                    'message': 'Only doctors can delete availability'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            slot_id = request.data.get('id')
+            if not slot_id:
+                return Response({
+                    'success': False,
+                    'message': 'Slot ID is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                availability = DoctorAvailability.objects.get(
+                    id=slot_id,
+                    doctor=request.user.doctor_profile
+                )
+                availability.delete()
+                return Response({
+                    'success': True,
+                    'message': 'Availability deleted successfully'
+                })
+            except DoctorAvailability.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'message': 'Availability not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            print(f"Error deleting availability: {str(e)}")
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
