@@ -98,7 +98,7 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 DATABASE_URL = os.getenv('DATABASE_URL')
 print(f"Raw DATABASE_URL value: {DATABASE_URL}")
 
-if DATABASE_URL:
+if DATABASE_URL and DATABASE_URL != "(Render will set this automatically)":
     print(f"Found DATABASE_URL, configuring database...")
     try:
         db_config = dj_database_url.parse(
@@ -106,7 +106,6 @@ if DATABASE_URL:
             conn_max_age=600,
             ssl_require=True
         )
-        print(f"Parsed database config: {db_config}")
         DATABASES = {
             'default': db_config
         }
@@ -114,7 +113,7 @@ if DATABASE_URL:
         print(f"Error parsing DATABASE_URL: {str(e)}")
         raise
 else:
-    print("No DATABASE_URL found, using SQLite configuration")
+    print("No valid DATABASE_URL found, using SQLite configuration")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

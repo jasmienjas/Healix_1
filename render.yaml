@@ -11,7 +11,9 @@ services:
       - key: DJANGO_DEBUG
         value: false
       - key: DATABASE_URL
-        value: "postgresql://healix_db_user:Lmpr65sA3SJyr3BLsk8M81w6cCH48ZiS@dpg-cvu0dnbe5dus73ceh58g-a.oregon-postgres.render.com/healix_db"  # Replace with your actual database URL
+        fromDatabase:
+          name: healix-db
+          property: connectionString
       - key: DATABASE_NAME
         fromDatabase:
           name: healix-db
