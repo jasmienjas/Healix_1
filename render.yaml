@@ -5,6 +5,7 @@ services:
     env: python
     buildCommand: cd medical_booking && pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: cd medical_booking && gunicorn medical_booking.wsgi:application
+    staticPublishPath: ./medical_booking/staticfiles
     envVars:
       - key: DJANGO_SECRET_KEY
         generateValue: true
@@ -53,6 +54,7 @@ services:
       npm install --save-dev @types/react-dom@18.2.19 &&
       npm run build
     startCommand: cd frontend && npm start
+    staticPublishPath: ./frontend/public
     envVars:
       - key: NODE_ENV
         value: production

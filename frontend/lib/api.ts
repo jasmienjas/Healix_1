@@ -76,13 +76,13 @@ export const authApi = {
 // Appointments API functions
 export const appointmentsApi = {
   getDoctorAppointments: () =>
-    apiCall('/api/appointments/doctor/'),
+    apiCall('api/accounts/appointments/doctor-schedule/'),
 
   getPatientAppointments: () =>
-    apiCall('/api/appointments/patient/'),
+    apiCall('api/accounts/appointments/schedule/'),
 
   createAppointment: (appointmentData: any) =>
-    apiCall('/api/appointments/', {
+    apiCall('api/accounts/appointments/', {
       method: 'POST',
       body: JSON.stringify(appointmentData),
     }),

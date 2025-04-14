@@ -14,6 +14,7 @@ const nextConfig = {
         hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com',
       },
     ],
+    domains: ['healix-frontend.onrender.com', 'healix-7515.onrender.com'],
   },
   webpack: (config) => {
     config.resolve.alias = {
@@ -21,6 +22,14 @@ const nextConfig = {
       '@': '.',
     };
     return config;
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/avatars/:path*',
+        destination: '/public/avatars/:path*',
+      },
+    ];
   },
 }
 
