@@ -73,6 +73,30 @@ export const authApi = {
     }),
 };
 
+// Doctor API functions
+export const doctorApi = {
+  getAvailability: () =>
+    apiCall('api/accounts/doctor/availability/'),
+
+  updateAvailability: (availabilityData: any) =>
+    apiCall('api/accounts/doctor/availability/', {
+      method: 'POST',
+      body: JSON.stringify(availabilityData),
+    }),
+
+  getProfile: () =>
+    apiCall('api/accounts/doctor/profile/'),
+
+  updateProfile: (profileData: any) =>
+    apiCall('api/accounts/doctor/profile/', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    }),
+
+  searchDoctors: (query: string) =>
+    apiCall(`api/accounts/doctors/search/?query=${encodeURIComponent(query)}`),
+};
+
 // Appointments API functions
 export const appointmentsApi = {
   getDoctorAppointments: () =>
@@ -86,9 +110,22 @@ export const appointmentsApi = {
       method: 'POST',
       body: JSON.stringify(appointmentData),
     }),
+
+  postponeAppointment: (appointmentId: number, data: any) =>
+    apiCall(`api/accounts/appointments/${appointmentId}/postpone/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  cancelAppointment: (appointmentId: number, data: any) =>
+    apiCall(`api/accounts/appointments/${appointmentId}/cancel/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };
 
 export const api = {
   auth: authApi,
   appointments: appointmentsApi,
+  doctor: doctorApi,
 };
