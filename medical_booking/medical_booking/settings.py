@@ -96,16 +96,23 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 
 # Database Configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
+print(f"Raw DATABASE_URL value: {DATABASE_URL}")
 
 if DATABASE_URL:
     print(f"Found DATABASE_URL, configuring database...")
-    DATABASES = {
-        'default': dj_database_url.parse(
+    try:
+        db_config = dj_database_url.parse(
             DATABASE_URL,
             conn_max_age=600,
             ssl_require=True
         )
-    }
+        print(f"Parsed database config: {db_config}")
+        DATABASES = {
+            'default': db_config
+        }
+    except Exception as e:
+        print(f"Error parsing DATABASE_URL: {str(e)}")
+        raise
 else:
     print("No DATABASE_URL found, using SQLite configuration")
     DATABASES = {

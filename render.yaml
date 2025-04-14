@@ -14,6 +14,26 @@ services:
         fromDatabase:
           name: healix-db
           property: connectionString
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: healix-db
+          property: database
+      - key: DATABASE_USER
+        fromDatabase:
+          name: healix-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: healix-db
+          property: password
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: healix-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: healix-db
+          property: port
       - key: PYTHON_VERSION
         value: 3.11.0
     dependencies:
