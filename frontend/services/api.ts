@@ -235,3 +235,28 @@ export async function deleteDoctorAvailability(slotId: string) {
     throw error;
   }
 }
+
+export async function cancelAppointment(appointmentId: string) {
+  const token = localStorage.getItem(JWT_STORAGE_KEY);
+  if (!token) {
+    throw new Error("No authentication token found");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/accounts/appointments/${appointmentId}/cancel/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to cancel appointment");
+  }
+
+  return response.json();
+}
