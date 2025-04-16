@@ -260,3 +260,37 @@ export async function cancelAppointment(appointmentId: string) {
 
   return response.json();
 }
+
+export async function searchDoctors(params: {
+  searchTerm?: string;
+  location?: string;
+  availability?: string;
+  filter?: string;
+  sortBy?: string;
+}) {
+  const token = localStorage.getItem(JWT_STORAGE_KEY);
+  if (!token) {
+    throw new Error("No authentication token found");
+  }
+
+  const queryParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) queryParams.append(key, value);
+  });
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/accounts/doctors/search?${queryParams}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to search doctors");
+  }
+
+  return response.json();
+}

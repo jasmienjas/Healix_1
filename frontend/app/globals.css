@@ -81,3 +81,13 @@
   display: none;
 }
 
+@layer components {
+  .doctor-card-verified {
+    @apply absolute -bottom-1 -right-1 bg-blue-600 text-white rounded-full p-1;
+  }
+  
+  .search-input-with-icon {
+    @apply pl-10 w-full rounded-md border border-input bg-background;
+  }
+}
+

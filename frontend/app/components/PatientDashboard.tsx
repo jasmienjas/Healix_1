@@ -129,9 +129,9 @@ export default function PatientDashboard() {
         <Card>
           <CardContent className="p-6">
             <h3 className="font-semibold mb-2">Find Doctor</h3>
-            <p className="text-sm text-gray-600">Search for doctors by specialty</p>
+            <p className="text-sm text-gray-600">Search for specialists and book appointments</p>
             <Button className="mt-4" variant="outline" asChild>
-              <a href="/find-doctor">Search</a>
+              <a href="/find-doctor">Find a Doctor</a>
             </Button>
           </CardContent>
         </Card>
