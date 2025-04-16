@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import DoctorAvailability from './DoctorAvailability';
 import { api } from '@/lib/api';
+import { PostponeDialog } from './PostponeDialog';
+import { CancelDialog } from './CancelDialog';
+import { toast } from 'sonner';
 
 interface User {
   id: number;
@@ -71,6 +74,9 @@ export default function DoctorDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [doctorName, setDoctorName] = useState<DoctorInfo | null>(null);
   const router = useRouter();
+  const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
+  const [isPostponeDialogOpen, setIsPostponeDialogOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -111,6 +117,41 @@ export default function DoctorDashboard() {
 
     fetchAppointments();
   }, [router]);
+
+  const handlePostpone = async (datetime: string, reason: string) => {
+    try {
+      if (!selectedAppointment) return;
+      
+      await api.appointments.postponeAppointment(parseInt(selectedAppointment), {
+        appointment_datetime: datetime,
+        postpone_reason: reason
+      });
+      
+      toast.success('Appointment postponed successfully');
+      setIsPostponeDialogOpen(false);
+      fetchAppointments();
+    } catch (error) {
+      console.error('Error postponing appointment:', error);
+      toast.error('Failed to postpone appointment');
+    }
+  };
+
+  const handleCancel = async (reason: string) => {
+    try {
+      if (!selectedAppointment) return;
+      
+      await api.appointments.cancelAppointment(parseInt(selectedAppointment), {
+        cancellation_message: reason
+      });
+      
+      toast.success('Appointment cancelled successfully');
+      setIsCancelDialogOpen(false);
+      fetchAppointments();
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      toast.error('Failed to cancel appointment');
+    }
+  };
 
   if (loading) {
     return (
@@ -222,8 +263,8 @@ export default function DoctorDashboard() {
                                 size="sm"
                                 className="w-24"
                                 onClick={() => {
-                                  console.log('Postpone clicked for appointment:', appointment.id);
-                                  // TODO: Implement postpone
+                                  setSelectedAppointment(appointment.id);
+                                  setIsPostponeDialogOpen(true);
                                 }}
                               >
                                 Postpone
@@ -233,8 +274,8 @@ export default function DoctorDashboard() {
                                 size="sm"
                                 className="w-24 text-red-600 border-red-600 hover:bg-red-50"
                                 onClick={() => {
-                                  console.log('Cancel clicked for appointment:', appointment.id);
-                                  // TODO: Implement cancel
+                                  setSelectedAppointment(appointment.id);
+                                  setIsCancelDialogOpen(true);
                                 }}
                               >
                                 Cancel
@@ -258,6 +299,19 @@ export default function DoctorDashboard() {
           <DoctorAvailability />
         </TabsContent>
       </Tabs>
+
+      <PostponeDialog
+        isOpen={isPostponeDialogOpen}
+        onClose={() => setIsPostponeDialogOpen(false)}
+        onConfirm={handlePostpone}
+        appointmentId={selectedAppointment || ''}
+      />
+      <CancelDialog
+        isOpen={isCancelDialogOpen}
+        onClose={() => setIsCancelDialogOpen(false)}
+        onConfirm={handleCancel}
+        appointmentId={selectedAppointment || ''}
+      />
     </div>
   );
 } 
