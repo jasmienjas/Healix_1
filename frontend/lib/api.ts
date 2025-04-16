@@ -99,8 +99,13 @@ export const doctorApi = {
 
 // Appointments API functions
 export const appointmentsApi = {
-  getDoctorAppointments: () =>
-    apiCall('api/accounts/appointments/doctor-schedule/'),
+  getDoctorAppointments: async () => {
+    const response = await apiCall('api/accounts/appointments/doctor-schedule/');
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to fetch appointments');
+    }
+    return response.data;  // Return just the appointments array
+  },
 
   getPatientAppointments: () =>
     apiCall('api/accounts/appointments/schedule/'),

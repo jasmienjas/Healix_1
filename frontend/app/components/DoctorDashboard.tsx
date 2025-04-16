@@ -86,7 +86,13 @@ export default function DoctorDashboard() {
         const data = await api.appointments.getDoctorAppointments();
         console.log('Raw API response:', data);
         
+        if (!Array.isArray(data)) {
+          console.error('Unexpected response format:', data);
+          throw new Error('Invalid response format');
+        }
+        
         if (data.length > 0) {
+          console.log('First appointment:', data[0]);
           setDoctorName({
             first_name: data[0].doctor.user.first_name,
             last_name: data[0].doctor.user.last_name
