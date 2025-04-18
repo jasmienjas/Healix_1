@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'accounts',
     'whitenoise.runserver_nostatic',  # Add this for static files
+    'storages',  # Add django-storages
 ]
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -285,3 +286,22 @@ FILE_UPLOAD_HANDLERS = [
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = 'private'
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+# Static files configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media files configuration
+DEFAULT_FILE_STORAGE = 'medical_booking.storage_backends.MediaStorage'
+MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'

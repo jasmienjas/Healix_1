@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import CustomUser, DoctorProfile, PatientProfile, Appointment
-#from django.core.files.storage import default_storage, Appointment 
+from django.core.files.storage import default_storage
+import os
+from datetime import datetime
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -102,7 +104,7 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
     officeAddress = serializers.CharField(write_only=True)
     birthDate = serializers.DateField(source='dob')
     medicalLicense = serializers.FileField(write_only=True)
-    phdCertificate = serializers.FileField(source='phd_certificate')
+    phdCertificate = serializers.FileField(write_only=True)
 
     class Meta:
         model = CustomUser
@@ -114,55 +116,62 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate(self, attrs):
-        # Keep original certificate validation
-        if 'phd_certificate' not in attrs:
-            raise serializers.ValidationError({'phdCertificate': 'Certificate is required for doctors.'})
+        if not attrs.get('medicalLicense'):
+            raise serializers.ValidationError({'medicalLicense': 'Medical license is required.'})
+        if not attrs.get('phdCertificate'):
+            raise serializers.ValidationError({'phdCertificate': 'PhD certificate is required.'})
         return attrs
 
     def create(self, validated_data):
-        # Extract frontend fields
-        first_name = validated_data.pop('firstName')
-        last_name = validated_data.pop('lastName')
-        phone_number = validated_data.pop('phoneNumber')
-        office_number = validated_data.pop('officeNumber')
-        office_address = validated_data.pop('officeAddress')
-        medical_license = validated_data.pop('medicalLicense')
-        phd_certificate = validated_data.pop('phd_certificate')  # Note: this comes from source='phd_certificate' mapping
+        try:
+            # Extract frontend fields
+            first_name = validated_data.pop('firstName')
+            last_name = validated_data.pop('lastName')
+            phone_number = validated_data.pop('phoneNumber')
+            office_number = validated_data.pop('officeNumber')
+            office_address = validated_data.pop('officeAddress')
+            medical_license = validated_data.pop('medicalLicense')
+            phd_certificate = validated_data.pop('phdCertificate')
 
-        # Create username
-        username = f"dr_{first_name.lower()}_{last_name.lower()}"
+            # Create username
+            username = f"dr_{first_name.lower()}_{last_name.lower()}"
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-        # Create user
-        user = CustomUser.objects.create_user(
-            username=username,
-            email=validated_data['email'],
-            password=validated_data['password'],
-            user_type='doctor',
-            dob=validated_data['dob'],
-            first_name=first_name,
-            last_name=last_name
-        )
+            # Create user
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=validated_data['email'],
+                password=validated_data['password'],
+                user_type='doctor',
+                dob=validated_data['dob'],
+                first_name=first_name,
+                last_name=last_name
+            )
 
-        # Save files with unique names
-        medical_license_path = f"licenses/{username}_{medical_license.name}"
-        phd_certificate_path = f"certificates/{username}_{phd_certificate.name}"
-        
-        default_storage.save(medical_license_path, medical_license)
-        default_storage.save(phd_certificate_path, phd_certificate)
+            # Generate unique filenames
+            medical_license_name = f"licenses/{username}_{timestamp}_{medical_license.name}"
+            phd_certificate_name = f"certificates/{username}_{timestamp}_{phd_certificate.name}"
 
-        # Create doctor profile
-        DoctorProfile.objects.create(
-            user=user,
-            phone_number=phone_number,
-            office_number=office_number,
-            office_address=office_address,
-            medical_license=medical_license_path,
-            certificate=phd_certificate_path,
-            specialty='',  # Keeping from original functionality
-            license_number=''  # Keeping from original functionality
-        )
+            # Save files to S3
+            medical_license_path = default_storage.save(medical_license_name, medical_license)
+            phd_certificate_path = default_storage.save(phd_certificate_name, phd_certificate)
 
-        return user
+            # Create doctor profile
+            DoctorProfile.objects.create(
+                user=user,
+                phone_number=phone_number,
+                office_number=office_number,
+                office_address=office_address,
+                medical_license=medical_license_path,
+                certificate=phd_certificate_path
+            )
+
+            return user
+        except Exception as e:
+            # If user was created but profile creation failed, delete the user
+            if 'user' in locals():
+                user.delete()
+            raise serializers.ValidationError(str(e))
 
     def to_representation(self, instance):
         return {
