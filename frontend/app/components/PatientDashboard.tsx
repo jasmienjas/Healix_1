@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 import { formatDateTime } from '@/lib/utils';
 import { ConfirmDialog } from './ConfirmDialog';
 import { toast } from 'sonner';
 import { cancelAppointment } from "@/services/api";
+import { searchDoctors } from '@/services/doctor';
 
 interface User {
   id: number;
@@ -37,12 +39,30 @@ interface Appointment {
   updated_at: string;
 }
 
+interface DoctorSearchResult {
+  id: number;
+  user: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+  specialty: string;
+  office_address: string;
+  office_number: string;
+}
+
 export default function PatientDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  
+  // New state for doctor search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<DoctorSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const fetchAppointments = async () => {
     try {
@@ -87,6 +107,31 @@ export default function PatientDashboard() {
     }
   };
 
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError(null);
+
+    try {
+      const results = await searchDoctors({
+        name: searchTerm,
+        specialty: '',
+        location: ''
+      });
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchError('Failed to search doctors');
+      toast.error('Failed to search doctors');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -106,38 +151,14 @@ export default function PatientDashboard() {
 
   return (
     <div className="space-y-6 p-6">
-      {/* Quick Actions Section */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="font-semibold mb-2">Book Appointment</h3>
-            <p className="text-sm text-gray-600">Schedule a new appointment with a doctor</p>
-            <Button className="mt-4" variant="outline" asChild>
-              <a href="/book-appointment">Book Now</a>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="font-semibold mb-2">Medical Records</h3>
-            <p className="text-sm text-gray-600">View your medical history and records</p>
-            <Button className="mt-4" variant="outline" asChild>
-              <a href="/medical-records">View Records</a>
-            </Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="font-semibold mb-2">Find Doctor</h3>
-            <p className="text-sm text-gray-600">Search for specialists and book appointments</p>
-            <Button className="mt-4" variant="outline" asChild>
-              <a href="/find-doctor">Find a Doctor</a>
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Greeting */}
+      <section>
+        <h1 className="text-3xl font-bold mb-2">
+          Hello, {appointments.length > 0 ? appointments[0].patient.user.first_name : 'there'}
+        </h1>
       </section>
 
-      {/* Upcoming Appointments Section */}
+      {/* Appointments Section */}
       <section>
         <h2 className="text-2xl font-bold mb-4">Your Appointments</h2>
         <div className="space-y-4">
@@ -179,7 +200,7 @@ export default function PatientDashboard() {
                           </span>
                         </div>
                         
-                        <div className="text-sm text-gray-600 space-y-1">
+                        <div className="space-y-2">
                           {/* Time */}
                           <p className="flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -210,45 +231,36 @@ export default function PatientDashboard() {
                       </div>
 
                       {/* Right: Action buttons */}
-                      <div className="flex flex-col gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={`/appointments/${appointment.id}`}>View Details</a>
-                        </Button>
-                        
-                        {/* Cancel button - only show for non-cancelled, future appointments */}
-                        {!isPastAppointment && appointment.status !== 'cancelled' && (
+                      {!isPastAppointment && appointment.status !== 'cancelled' && (
+                        <div className="flex flex-col gap-2">
                           <Button
-                            variant="destructive"
-                            size="sm"
+                            variant="outline"
                             onClick={() => {
-                              setSelectedAppointment(String(appointment.id));
+                              setSelectedAppointment(appointment.id.toString());
                               setIsConfirmDialogOpen(true);
                             }}
                           >
                             Cancel
                           </Button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
               );
             })
           ) : (
-            <div className="text-center py-8 bg-gray-50 rounded-lg">
-              <p className="text-gray-500">No upcoming appointments</p>
-            </div>
+            <p className="text-gray-500 text-center py-4">No appointments scheduled</p>
           )}
         </div>
       </section>
 
-      {/* Confirmation Dialog */}
       <ConfirmDialog
         isOpen={isConfirmDialogOpen}
         onClose={() => setIsConfirmDialogOpen(false)}
         onConfirm={handleCancelAppointment}
         title="Cancel Appointment"
-        description="Are you sure you want to cancel this appointment? This action cannot be undone."
+        description="Are you sure you want to cancel this appointment?"
       />
     </div>
   );

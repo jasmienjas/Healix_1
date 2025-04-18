@@ -1,5 +1,5 @@
 // API configuration
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://127.0.0.1:8000';
 
 // Helper function for API calls
 async function apiCall(endpoint: string, options: RequestInit = {}) {
@@ -13,39 +13,81 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
 
   // Ensure endpoint starts with a slash and remove any duplicate slashes
   const cleanEndpoint = `/${endpoint.replace(/^\/+/, '')}`;
+  const fullUrl = `${API_URL}${cleanEndpoint}`;
   
-  console.log('Making API call to:', `${API_URL}${cleanEndpoint}`);
-  
-  const response = await fetch(`${API_URL}${cleanEndpoint}`, {
-    ...options,
-    headers,
-    credentials: 'include',
+  console.log('API Call Details:', {
+    url: fullUrl,
+    method: options.method || 'GET',
+    headers: headers,
+    body: options.body ? JSON.parse(options.body as string) : null
   });
+  
+  try {
+    const response = await fetch(fullUrl, {
+      ...options,
+      headers,
+      credentials: 'include',
+      mode: 'cors',
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    console.error('API Error:', error);
-    throw new Error(error.detail || error.error || 'API call failed');
+    console.log('Response Status:', response.status);
+    console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorText: errorText
+      });
+      
+      let error;
+      try {
+        error = JSON.parse(errorText);
+      } catch (e) {
+        error = { detail: errorText };
+      }
+      
+      throw new Error(error.detail || error.error || 'API call failed');
+    }
+
+    const data = await response.json();
+    console.log('API Response Data:', data);
+    return data;
+  } catch (error) {
+    console.error('Network error:', error);
+    if (error instanceof TypeError) {
+      if (error.message.includes('Failed to fetch')) {
+        throw new Error('Unable to connect to the server. Please check if the server is running and try again.');
+      } else if (error.message.includes('SSL')) {
+        throw new Error('SSL connection error. Please check your connection settings.');
+      }
+    }
+    throw error;
   }
-
-  return response.json();
 }
 
 // Auth API functions
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await apiCall('api/accounts/login/', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    
-    console.log('Login response:', response);
-    
-    if (!response.access || !response.user) {
-      throw new Error('Invalid response format from server');
+    try {
+      console.log('Attempting login with:', { email });
+      const response = await apiCall('api/accounts/login/', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+      
+      console.log('Login response:', response);
+      
+      if (!response.access || !response.user) {
+        throw new Error('Invalid response format from server');
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    
-    return response;
   },
 
   register: (userData: any) =>
