@@ -40,7 +40,7 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'healix-7515.onrender.com',
+    'https://healix-63h5.onrender.com',
     '.onrender.com',  # Allow all Render domains
 ]
 
@@ -194,13 +194,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://healix-frontend.onrender.com",
-    "https://healix-7515.onrender.com"
+    "https://healix-63h5.onrender.com",
+    "https://healix-backend.onrender.com"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://healix-frontend.onrender.com",
-    "https://healix-7515.onrender.com"
+    "https://healix-63h5.onrender.com",
+    "https://healix-backend.onrender.com"
 ]
 
 # Add these additional CORS settings
