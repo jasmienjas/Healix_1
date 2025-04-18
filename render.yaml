@@ -69,5 +69,5 @@ databases:
   - name: healix_db
     databaseName: healix
     user: healix
-    plan: free
+    plan: pro
     ipAllowList: []
