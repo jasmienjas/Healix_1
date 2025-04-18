@@ -10,7 +10,7 @@ interface PatientSignupData {
 }
 
 export async function signupPatient(data: PatientSignupData) {
-    const url = 'http://127.0.0.1:8000/api/accounts/register/patient/';
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/accounts/register/patient/`;
     
     console.log('Making API call to:', url);
 

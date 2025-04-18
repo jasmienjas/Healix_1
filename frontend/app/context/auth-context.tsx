@@ -64,11 +64,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(userData)
       
-      setTimeout(() => {
-        console.log('9. Redirecting to dashboard')
-        router.push('/dashboard')
-      }, 100)
-  
+      // Use window.location for more reliable redirect
+      window.location.href = '/dashboard'
+      
       return true
     } catch (error) {
       console.error('Login error:', error)
