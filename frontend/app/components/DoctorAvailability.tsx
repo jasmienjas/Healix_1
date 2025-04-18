@@ -72,7 +72,7 @@ export default function DoctorAvailability() {
   };
 
   const handleAddTimeSlot = async () => {
-    if (!selectedDate || !startTime || !endTime || !clinicName.trim()) {
+    if (!startTime || !clinicName) {
       setError('Please fill in all fields');
       return;
     }
@@ -86,12 +86,11 @@ export default function DoctorAvailability() {
       const dateStr = selectedDate.toISOString().split('T')[0];
       
       // Make sure we're sending the correct data structure
-      await addDoctorAvailability(
-        dateStr,
-        startTime,
-        endTime,
-        clinicName.trim() // This should be the actual clinic name, not a time
-      );
+      await addDoctorAvailability({
+        date: dateStr,
+        startTime: startTime,
+        clinicName: clinicName.trim()
+      });
       
       await fetchAvailability();
       setIsAddingSlot(false);

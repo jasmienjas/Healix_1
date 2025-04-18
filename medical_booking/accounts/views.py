@@ -22,6 +22,7 @@ from django.db.utils import IntegrityError
 
 import logging
 import os
+import json
 
 from .models import CustomUser, DoctorProfile, PatientProfile, Appointment, DoctorAvailability
 from .serializers import (
@@ -386,12 +387,12 @@ class DoctorAvailabilityView(APIView):
             
             logger.info(f"Fetching availability for {year}-{month}")
 
-            # Get doctor's availability for the month - ADD is_deleted=False here
+            # Get doctor's availability for the month
             availability = DoctorAvailability.objects.filter(
                 doctor=request.user.doctor_profile,
                 date__year=year,
                 date__month=month,
-                is_deleted=False  # Only get non-deleted slots
+                is_deleted=False
             )
             
             logger.info(f"Found {availability.count()} availability slots")
@@ -441,7 +442,7 @@ class DoctorAvailabilityView(APIView):
 
     def post(self, request):
         try:
-            print("Received data:", request.data)  # Debug log
+            logger.info(f"Received availability data: {request.data}")
             
             if request.user.user_type != 'doctor':
                 return Response({
@@ -449,11 +450,39 @@ class DoctorAvailabilityView(APIView):
                     'message': 'Only doctors can access this endpoint'
                 }, status=status.HTTP_403_FORBIDDEN)
 
-            date = request.data.get('date')
-            start_time = request.data.get('startTime')
-            clinic_name = request.data.get('clinicName')
+            # Parse the request data
+            data = request.data
+            if isinstance(data, str):
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError:
+                    return Response({
+                        'success': False,
+                        'message': 'Invalid JSON data'
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
-            print(f"Processing: date={date}, start_time={start_time}, clinic_name={clinic_name}")  # Debug log
+            # Handle delete action
+            if data.get('action') == 'delete':
+                try:
+                    slot = DoctorAvailability.objects.get(
+                        id=data.get('id'),
+                        doctor=request.user.doctor_profile
+                    )
+                    slot.is_deleted = True
+                    slot.save()
+                    return Response({'success': True})
+                except DoctorAvailability.DoesNotExist:
+                    return Response({
+                        'success': False,
+                        'message': 'Availability slot not found'
+                    }, status=status.HTTP_404_NOT_FOUND)
+
+            # Handle add action
+            date = data.get('date')
+            start_time = data.get('startTime')
+            clinic_name = data.get('clinicName')
+
+            logger.info(f"Processing: date={date}, start_time={start_time}, clinic_name={clinic_name}")
 
             if not all([date, start_time, clinic_name]):
                 return Response({
@@ -465,6 +494,21 @@ class DoctorAvailabilityView(APIView):
                 # Calculate end time (1 hour after start time)
                 start_time_obj = datetime.strptime(start_time, '%H:%M').time()
                 end_time_obj = (datetime.combine(datetime.min, start_time_obj) + timedelta(hours=1)).time()
+
+                # Check for overlapping slots
+                existing_slots = DoctorAvailability.objects.filter(
+                    doctor=request.user.doctor_profile,
+                    date=date,
+                    is_deleted=False
+                ).filter(
+                    Q(start_time__lt=end_time_obj) & Q(end_time__gt=start_time_obj)
+                )
+
+                if existing_slots.exists():
+                    return Response({
+                        'success': False,
+                        'message': 'This time slot overlaps with an existing slot'
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
                 # Create availability slot
                 slot = DoctorAvailability.objects.create(
@@ -487,14 +531,14 @@ class DoctorAvailabilityView(APIView):
                 })
 
             except Exception as e:
-                print(f"Error creating availability: {str(e)}")  # Debug log
+                logger.error(f"Error creating availability: {str(e)}")
                 return Response({
                     'success': False,
                     'message': f'Error creating availability: {str(e)}'
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         except Exception as e:
-            print(f"Outer error: {str(e)}")  # Debug log
+            logger.error(f"Outer error in availability creation: {str(e)}")
             return Response({
                 'success': False,
                 'message': str(e)
