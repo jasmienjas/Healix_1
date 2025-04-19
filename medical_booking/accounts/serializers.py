@@ -52,8 +52,11 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
                 region = obj.profile_picture.storage.connection.meta.region_name
                 location = obj.profile_picture.storage.location
                 
-                # Construct the S3 URL
-                s3_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{location}/{obj.profile_picture.name}"
+                # Properly encode the file path
+                encoded_path = obj.profile_picture.name.replace(' ', '%20')
+                
+                # Construct the S3 URL with proper encoding
+                s3_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{location}/{encoded_path}"
                 print(f"Generated S3 URL: {s3_url}")  # Debug log
                 return s3_url
             
