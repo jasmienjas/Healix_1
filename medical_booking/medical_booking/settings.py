@@ -142,22 +142,35 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 DATABASE_URL = os.getenv('DATABASE_URL')
 logger.info(f"Raw DATABASE_URL value: {DATABASE_URL}")
 
-if DATABASE_URL and DATABASE_URL != "(Render will set this automatically)":
+if DATABASE_URL:
     logger.info("Found DATABASE_URL, configuring database...")
     try:
-        db_config = dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True
-        )
         DATABASES = {
-            'default': db_config
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                ssl_require=True,
+                engine='django.db.backends.postgresql'
+            )
         }
+        # Ensure required fields are present
+        if not DATABASES['default'].get('NAME'):
+            DATABASES['default']['NAME'] = 'healix_db'  # Default database name
+        if not DATABASES['default'].get('USER'):
+            DATABASES['default']['USER'] = os.getenv('DB_USER', 'postgres')
+        if not DATABASES['default'].get('PASSWORD'):
+            DATABASES['default']['PASSWORD'] = os.getenv('DB_PASSWORD', '')
+        if not DATABASES['default'].get('HOST'):
+            DATABASES['default']['HOST'] = os.getenv('DB_HOST', 'localhost')
+        if not DATABASES['default'].get('PORT'):
+            DATABASES['default']['PORT'] = os.getenv('DB_PORT', '5432')
+            
+        logger.info("Database configuration completed successfully")
     except Exception as e:
-        logger.error(f"Error parsing DATABASE_URL: {str(e)}", exc_info=True)
+        logger.error(f"Error configuring database: {str(e)}", exc_info=True)
         raise
 else:
-    logger.info("No valid DATABASE_URL found, using SQLite configuration")
+    logger.warning("No DATABASE_URL found, using SQLite configuration")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
