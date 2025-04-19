@@ -375,12 +375,15 @@ class DoctorProfileView(APIView):
             doctor_profile = request.user.doctor_profile
             serializer = DoctorProfileSerializer(doctor_profile, context={'request': request})
             
+            print(f"Profile data: {serializer.data}")  # Debug log
+            
             return Response({
                 'success': True,
                 'message': 'Profile retrieved successfully',
                 'data': serializer.data
             })
         except Exception as e:
+            print(f"Error in get profile: {str(e)}")  # Debug log
             return Response({
                 'success': False,
                 'message': str(e)
@@ -388,6 +391,10 @@ class DoctorProfileView(APIView):
 
     def post(self, request):
         try:
+            print("Received profile update request")  # Debug log
+            print(f"Request data: {request.data}")  # Debug log
+            print(f"Request files: {request.FILES}")  # Debug log
+
             if request.user.user_type != 'doctor':
                 return Response({
                     'success': False,
@@ -399,7 +406,9 @@ class DoctorProfileView(APIView):
 
             # Handle profile picture update
             if 'profile_picture' in request.FILES:
+                print("Updating profile picture")  # Debug log
                 doctor_profile.profile_picture = request.FILES['profile_picture']
+                print(f"New profile picture: {doctor_profile.profile_picture}")  # Debug log
 
             # Update all available fields
             fields_to_update = [
@@ -421,6 +430,7 @@ class DoctorProfileView(APIView):
             for field in fields_to_update:
                 if field in data:
                     value = data[field]
+                    print(f"Updating field {field} with value: {value}")  # Debug log
                     # Only update required fields if a non-empty value is provided
                     if field in required_fields:
                         if value and value.strip():  # Only update if value is non-empty
@@ -432,7 +442,10 @@ class DoctorProfileView(APIView):
                         setattr(doctor_profile, field, value)
 
             doctor_profile.save()
+            print("Profile saved successfully")  # Debug log
+
             serializer = DoctorProfileSerializer(doctor_profile, context={'request': request})
+            print(f"Updated profile data: {serializer.data}")  # Debug log
 
             return Response({
                 'success': True,
@@ -441,6 +454,7 @@ class DoctorProfileView(APIView):
             })
 
         except Exception as e:
+            print(f"Error in update profile: {str(e)}")  # Debug log
             return Response({
                 'success': False,
                 'message': str(e)

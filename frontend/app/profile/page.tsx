@@ -101,78 +101,123 @@ export default function ProfilePage() {
     }
   };
 
-  const handleDoctorProfileUpdate = async () => {
+  const handleDoctorProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      // Validate required fields
-      if (!specialty) {
-        toast.error("Specialty is required");
-        return;
-      }
-      if (!appointmentCost) {
-        toast.error("Appointment cost is required");
-        return;
-      }
-      if (!officeHoursStart || !officeHoursEnd) {
-        toast.error("Office hours are required");
-        return;
-      }
-
-      const updateData = {
-        specialty,
-        bio,
-        appointment_cost: Number(appointmentCost),
-        office_hours_start: officeHoursStart,
-        office_hours_end: officeHoursEnd,
-        phone_number: phoneNumber || '',
-        office_number: officeNumber || '',
-        office_address: officeAddress || '',
-        years_of_experience: yearsOfExperience ? Number(yearsOfExperience) : null,
-        education: education || ''
-      };
-
-      console.log('Sending update data:', updateData);
-
-      const response = await api.doctor.updateProfile(updateData);
-      console.log('Update response:', response);
-      
-      if (response.success && response.data) {
-        setDoctorProfile(response.data);
-        // Update form states with the new data
-        setSpecialty(response.data.specialty || "");
-        setBio(response.data.bio || "");
-        setAppointmentCost(response.data.appointment_cost?.toString() || "");
-        setOfficeHoursStart(response.data.office_hours_start || "");
-        setOfficeHoursEnd(response.data.office_hours_end || "");
-        setPhoneNumber(response.data.phone_number || "");
-        setOfficeNumber(response.data.office_number || "");
-        setOfficeAddress(response.data.office_address || "");
-        setYearsOfExperience(response.data.years_of_experience?.toString() || "");
-        setEducation(response.data.education || "");
+        const requiredFields = ['office_address', 'phone_number', 'office_number'];
+        const missingFields = requiredFields.filter(field => !formData[field]);
         
-        toast.success("Profile updated successfully");
-        setIsEditing(false);
-      } else {
-        throw new Error("Failed to update profile");
-      }
-    } catch (error) {
-      console.error('Profile update error:', {
-        error,
-        requestData: {
-          specialty,
-          bio,
-          appointment_cost: Number(appointmentCost),
-          office_hours_start: officeHoursStart,
-          office_hours_end: officeHoursEnd,
-          phone_number: phoneNumber,
-          office_number: officeNumber,
-          office_address: officeAddress,
-          years_of_experience: yearsOfExperience,
-          education
+        if (missingFields.length > 0) {
+            setError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+            return;
         }
-      });
-      toast.error(error instanceof Error ? error.message : "Failed to update profile");
+
+        const updateData = {
+            ...formData,
+            specialty: selectedSpecialty,
+            office_hours_start: officeHours.start,
+            office_hours_end: officeHours.end,
+            appointment_cost: appointmentCost,
+            bio: bio,
+            years_of_experience: yearsOfExperience,
+            education: education
+        };
+
+        console.log('Updating doctor profile with data:', updateData);
+
+        const formDataToSend = new FormData();
+        Object.entries(updateData).forEach(([key, value]) => {
+            if (value !== null && value !== undefined) {
+                formDataToSend.append(key, value);
+            }
+        });
+
+        if (profilePicture) {
+            formDataToSend.append('profile_picture', profilePicture);
+        }
+
+        const response = await fetch('/api/accounts/doctor/profile/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: formDataToSend
+        });
+
+        const data = await response.json();
+        console.log('Profile update response:', data);
+
+        if (data.success) {
+            setSuccess('Profile updated successfully');
+            setError('');
+            // Update the state with the new data
+            setFormData(prev => ({
+                ...prev,
+                ...data.data
+            }));
+            // Update the profile picture URL if it exists
+            if (data.data.profile_picture) {
+                setProfilePictureUrl(data.data.profile_picture);
+            }
+        } else {
+            setError(data.message || 'Failed to update profile');
+        }
+    } catch (err) {
+        console.error('Error updating profile:', err);
+        setError('An error occurred while updating the profile');
     }
   };
+
+  // Add this useEffect to load the profile data on component mount
+  useEffect(() => {
+    const loadProfile = async () => {
+        try {
+            const response = await fetch('/api/accounts/doctor/profile/', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+            console.log('Loaded profile data:', data);
+
+            if (data.success) {
+                setFormData(prev => ({
+                    ...prev,
+                    ...data.data
+                }));
+                if (data.data.profile_picture) {
+                    setProfilePictureUrl(data.data.profile_picture);
+                }
+                if (data.data.specialty) {
+                    setSelectedSpecialty(data.data.specialty);
+                }
+                if (data.data.office_hours_start && data.data.office_hours_end) {
+                    setOfficeHours({
+                        start: data.data.office_hours_start,
+                        end: data.data.office_hours_end
+                    });
+                }
+                if (data.data.appointment_cost) {
+                    setAppointmentCost(data.data.appointment_cost);
+                }
+                if (data.data.bio) {
+                    setBio(data.data.bio);
+                }
+                if (data.data.years_of_experience) {
+                    setYearsOfExperience(data.data.years_of_experience);
+                }
+                if (data.data.education) {
+                    setEducation(data.data.education);
+                }
+            }
+        } catch (err) {
+            console.error('Error loading profile:', err);
+            setError('Failed to load profile data');
+        }
+    };
+
+    loadProfile();
+  }, []);
 
   // Add useEffect to log state changes
   useEffect(() => {
