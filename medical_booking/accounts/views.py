@@ -76,29 +76,42 @@ class PatientRegisterView(generics.CreateAPIView):
                 'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
         
-class DoctorRegisterView(generics.CreateAPIView):
+class DoctorRegisterView(APIView):
     """
     View for doctor registration.
     """
     serializer_class = DoctorRegisterSerializer
     parser_classes = (MultiPartParser, FormParser)
     
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        
-        return Response({
-            'success': True,
-            'message': 'Registration successful. Please wait for admin approval.',
-            'data': {
-                'id': user.id,
-                'email': user.email,
-                'firstName': user.first_name,
-                'lastName': user.last_name,
-                'user_type': 'doctor'
-            }
-        })
+    def post(self, request, *args, **kwargs):
+        try:
+            print("Received doctor registration request")
+            print(f"Request data: {request.data}")
+            
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                print("Serializer is valid")
+                user = serializer.save()
+                print(f"User created: {user.id}")
+                return Response({
+                    'success': True,
+                    'message': 'Registration successful. Please wait for admin approval.',
+                    'data': serializer.data
+                }, status=status.HTTP_201_CREATED)
+            else:
+                print(f"Serializer errors: {serializer.errors}")
+                return Response({
+                    'success': False,
+                    'message': 'Registration failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"Error in register_doctor: {str(e)}")
+            return Response({
+                'success': False,
+                'message': 'Registration failed',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DoctorListView(APIView):
     def get(self, request):
