@@ -5,8 +5,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://1
 async function apiCall(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem('access_token');
   
+  // Don't set Content-Type for FormData
+  const isFormData = options.body instanceof FormData;
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token && { 'Authorization': `Bearer ${token}` }),
     ...options.headers,
   };
@@ -19,7 +21,11 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
     url: fullUrl,
     method: options.method || 'GET',
     headers: headers,
-    body: options.body ? JSON.parse(options.body as string) : null
+    body: options.body instanceof FormData 
+      ? Object.fromEntries((options.body as FormData).entries())
+      : options.body 
+        ? JSON.parse(options.body as string) 
+        : null
   });
   
   try {
@@ -38,7 +44,15 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
       console.error('API Error Response:', {
         status: response.status,
         statusText: response.statusText,
-        errorText: errorText
+        errorText: errorText,
+        requestDetails: {
+          url: fullUrl,
+          method: options.method || 'GET',
+          headers: headers,
+          body: options.body instanceof FormData 
+            ? Object.fromEntries((options.body as FormData).entries())
+            : options.body
+        }
       });
       
       let error;
@@ -48,7 +62,7 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
         error = { detail: errorText };
       }
       
-      throw new Error(error.detail || error.error || 'API call failed');
+      throw new Error(error.detail || error.message || error.error || 'API call failed');
     }
 
     const data = await response.json();
@@ -129,11 +143,29 @@ export const doctorApi = {
   getProfile: () =>
     apiCall('api/accounts/doctor/profile/'),
 
-  updateProfile: (profileData: any) =>
-    apiCall('api/accounts/doctor/profile/', {
-      method: 'PUT',
-      body: JSON.stringify(profileData),
-    }),
+  updateProfile: (profileData: any) => {
+    // If it's already FormData, use it directly
+    if (profileData instanceof FormData) {
+      return apiCall('api/accounts/doctor/profile/', {
+        method: 'POST',
+        body: profileData,
+      });
+    }
+
+    // Convert regular object to FormData
+    const formData = new FormData();
+    Object.entries(profileData).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        // Convert numbers to strings
+        formData.append(key, value.toString());
+      }
+    });
+
+    return apiCall('api/accounts/doctor/profile/', {
+      method: 'POST',
+      body: formData,
+    });
+  },
 
   searchDoctors: (query: string) =>
     apiCall(`api/accounts/doctors/search/?query=${encodeURIComponent(query)}`),

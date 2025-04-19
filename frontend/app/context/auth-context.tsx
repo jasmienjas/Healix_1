@@ -9,6 +9,8 @@ interface User {
   username: string;
   email: string;
   user_type: string;
+  first_name: string;
+  last_name: string;
 }
 
 interface AuthContextType {
@@ -50,7 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: data.user.id,
         username: data.user.username,
         email: data.user.email,
-        user_type: data.user.user_type
+        user_type: data.user.user_type,
+        first_name: data.user.first_name,
+        last_name: data.user.last_name
       }
   
       // Store data in localStorage

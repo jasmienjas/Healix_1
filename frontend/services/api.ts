@@ -294,3 +294,25 @@ export async function searchDoctors(params: {
 
   return response.json();
 }
+
+export async function updateDoctorProfile(formData: FormData) {
+  const token = getToken();
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/accounts/doctor/profile/`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to update profile');
+  }
+
+  return response.json();
+}

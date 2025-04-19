@@ -15,6 +15,7 @@ class DoctorSerializer(serializers.ModelSerializer):
         fields = ['user', 'specialty', 'license_number', 'certificate']
 class DoctorProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    profile_picture_url = serializers.SerializerMethodField()
 
     class Meta:
         model = DoctorProfile
@@ -24,7 +25,53 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
             'specialty',
             'office_address',
             'office_number',
+            'phone_number',
+            'profile_picture',
+            'profile_picture_url',
+            'appointment_cost',
+            'office_hours_start',
+            'office_hours_end',
+            'bio',
+            'years_of_experience',
+            'education'
         ]
+
+    def get_profile_picture_url(self, obj):
+        if not obj.profile_picture:
+            return None
+            
+        try:
+            # Debug logging
+            print(f"Profile picture name: {obj.profile_picture.name}")
+            print(f"Profile picture storage: {obj.profile_picture.storage}")
+            
+            # If we're using S3 storage, return the S3 URL directly
+            if hasattr(obj.profile_picture.storage, 'bucket_name'):
+                # Get the bucket name and region
+                bucket_name = obj.profile_picture.storage.bucket_name
+                region = obj.profile_picture.storage.connection.meta.region_name
+                location = obj.profile_picture.storage.location
+                
+                # Construct the S3 URL
+                s3_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{location}/{obj.profile_picture.name}"
+                print(f"Generated S3 URL: {s3_url}")  # Debug log
+                return s3_url
+            
+            # For local storage, build the absolute URL
+            request = self.context.get('request')
+            if request:
+                url = request.build_absolute_uri(obj.profile_picture.url)
+                print(f"Generated local URL: {url}")  # Debug log
+                return url
+            url = obj.profile_picture.url
+            print(f"Generated simple URL: {url}")  # Debug log
+            return url
+            
+        except Exception as e:
+            print(f"Error generating profile picture URL: {str(e)}")
+            print(f"Error type: {type(e)}")
+            return None
+
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientProfile

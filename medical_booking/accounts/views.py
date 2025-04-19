@@ -344,6 +344,7 @@ class DoctorSearchView(generics.ListAPIView):
 
 class DoctorProfileView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
 
     def get(self, request):
         try:
@@ -354,7 +355,7 @@ class DoctorProfileView(APIView):
                 }, status=status.HTTP_403_FORBIDDEN)
 
             doctor_profile = request.user.doctor_profile
-            serializer = DoctorProfileSerializer(doctor_profile)
+            serializer = DoctorProfileSerializer(doctor_profile, context={'request': request})
             
             return Response({
                 'success': True,
@@ -366,6 +367,70 @@ class DoctorProfileView(APIView):
                 'success': False,
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            if request.user.user_type != 'doctor':
+                return Response({
+                    'success': False,
+                    'message': 'Only doctors can update their profile'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            doctor_profile = request.user.doctor_profile
+            data = request.data.copy()
+
+            # Handle profile picture update
+            if 'profile_picture' in request.FILES:
+                doctor_profile.profile_picture = request.FILES['profile_picture']
+
+            # Update all available fields
+            fields_to_update = [
+                'specialty',
+                'bio',
+                'appointment_cost',
+                'office_hours_start',
+                'office_hours_end',
+                'phone_number',
+                'office_number',
+                'office_address',
+                'years_of_experience',
+                'education'
+            ]
+
+            # Fields that should not be set to None
+            required_fields = ['office_address', 'phone_number', 'office_number']
+
+            for field in fields_to_update:
+                if field in data:
+                    value = data[field]
+                    # Only update required fields if a non-empty value is provided
+                    if field in required_fields:
+                        if value and value.strip():  # Only update if value is non-empty
+                            setattr(doctor_profile, field, value)
+                    else:
+                        # For optional fields, convert empty strings to None
+                        if value == '':
+                            value = None
+                        setattr(doctor_profile, field, value)
+
+            doctor_profile.save()
+            serializer = DoctorProfileSerializer(doctor_profile, context={'request': request})
+
+            return Response({
+                'success': True,
+                'message': 'Profile updated successfully',
+                'data': serializer.data
+            })
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def patch(self, request):
+        # For backward compatibility, redirect to POST
+        return self.post(request)
 
 class DoctorAvailabilityView(APIView):
     permission_classes = [IsAuthenticated]

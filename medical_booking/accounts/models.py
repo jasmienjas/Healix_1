@@ -22,15 +22,25 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.email})"
 
+def doctor_profile_picture_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/doctor_profile_pictures/user_<id>/<filename>
+    return f'doctor_profile_pictures/user_{instance.user.id}/{filename}'
+
 class DoctorProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='doctor_profile')
-    phone_number = models.CharField(max_length=15)
-    office_number = models.CharField(max_length=15)
-    office_address = models.CharField(max_length=255)
     specialty = models.CharField(max_length=100)
-    license_number = models.CharField(max_length=50)
-    medical_license = models.FileField(upload_to='licenses/')
-    certificate = models.FileField(upload_to='certificates/')
+    office_address = models.CharField(max_length=200)
+    office_number = models.CharField(max_length=20)
+    phone_number = models.CharField(max_length=20)
+    profile_picture = models.ImageField(upload_to=doctor_profile_picture_path, null=True, blank=True)
+    appointment_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    office_hours_start = models.TimeField()
+    office_hours_end = models.TimeField()
+    bio = models.TextField()
+    years_of_experience = models.IntegerField()
+    education = models.TextField()
+    medical_license = models.FileField(upload_to='medical_licenses/', null=True, blank=True)
+    certificate = models.FileField(upload_to='certificates/', null=True, blank=True)
     is_approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
