@@ -139,38 +139,22 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 # Database Configuration
-DATABASE_URL = os.getenv('DATABASE_URL')
-logger.info(f"Raw DATABASE_URL value: {DATABASE_URL}")
-
-if DATABASE_URL:
-    logger.info("Found DATABASE_URL, configuring database...")
-    try:
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=600,
-                ssl_require=True,
-                engine='django.db.backends.postgresql'
-            )
+if 'RENDER' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'healix_db',  # Your database name on Render
+            'USER': 'healix_db_user',  # Your database user on Render
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),  # Will be set by Render
+            'HOST': 'dpg-cnqvvbf109ks73f2aqr0-a',  # Your database host on Render
+            'PORT': '5432',
+            'OPTIONS': {
+                'sslmode': 'require',
+            }
         }
-        # Ensure required fields are present
-        if not DATABASES['default'].get('NAME'):
-            DATABASES['default']['NAME'] = 'healix_db'  # Default database name
-        if not DATABASES['default'].get('USER'):
-            DATABASES['default']['USER'] = os.getenv('DB_USER', 'postgres')
-        if not DATABASES['default'].get('PASSWORD'):
-            DATABASES['default']['PASSWORD'] = os.getenv('DB_PASSWORD', '')
-        if not DATABASES['default'].get('HOST'):
-            DATABASES['default']['HOST'] = os.getenv('DB_HOST', 'localhost')
-        if not DATABASES['default'].get('PORT'):
-            DATABASES['default']['PORT'] = os.getenv('DB_PORT', '5432')
-            
-        logger.info("Database configuration completed successfully")
-    except Exception as e:
-        logger.error(f"Error configuring database: {str(e)}", exc_info=True)
-        raise
+    }
 else:
-    logger.warning("No DATABASE_URL found, using SQLite configuration")
+    # Local development database
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -179,6 +163,7 @@ else:
     }
 
 # Log database configuration (safely)
+logger.info(f"Environment: {'Render' if 'RENDER' in os.environ else 'Local'}")
 logger.info(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
 logger.info(f"Database NAME: {DATABASES['default']['NAME']}")
 if DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
