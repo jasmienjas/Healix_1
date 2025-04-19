@@ -80,7 +80,6 @@ class DoctorRegisterView(APIView):
     """
     View for doctor registration.
     """
-    serializer_class = DoctorRegisterSerializer
     parser_classes = (MultiPartParser, FormParser)
     
     def post(self, request, *args, **kwargs):
@@ -88,7 +87,7 @@ class DoctorRegisterView(APIView):
             print("Received doctor registration request")
             print(f"Request data: {request.data}")
             
-            serializer = self.get_serializer(data=request.data)
+            serializer = DoctorRegisterSerializer(data=request.data)
             if serializer.is_valid():
                 print("Serializer is valid")
                 user = serializer.save()
@@ -96,7 +95,13 @@ class DoctorRegisterView(APIView):
                 return Response({
                     'success': True,
                     'message': 'Registration successful. Please wait for admin approval.',
-                    'data': serializer.data
+                    'data': {
+                        'id': user.id,
+                        'email': user.email,
+                        'firstName': user.first_name,
+                        'lastName': user.last_name,
+                        'user_type': 'doctor'
+                    }
                 }, status=status.HTTP_201_CREATED)
             else:
                 print(f"Serializer errors: {serializer.errors}")

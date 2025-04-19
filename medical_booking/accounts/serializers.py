@@ -129,19 +129,6 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
             }
         }
 
-    def to_representation(self, instance):
-        return {
-            'success': True,
-            'message': 'Registration successful',
-            'data': {
-                'id': instance.id,
-                'email': instance.email,
-                'firstName': instance.first_name,
-                'lastName': instance.last_name,
-                'user_type': 'patient'
-            }
-        }
-
 class DoctorRegisterSerializer(serializers.ModelSerializer):
     # Fields from frontend
     firstName = serializers.CharField(write_only=True)
@@ -171,6 +158,7 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
+            print("Starting doctor registration process")
             # Extract frontend fields
             first_name = validated_data.pop('firstName')
             last_name = validated_data.pop('lastName')
@@ -180,9 +168,13 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
             medical_license = validated_data.pop('medicalLicense')
             phd_certificate = validated_data.pop('phdCertificate')
 
+            print(f"Extracted data: first_name={first_name}, last_name={last_name}, email={validated_data['email']}")
+
             # Create username
             username = f"dr_{first_name.lower()}_{last_name.lower()}"
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+
+            print(f"Creating user with username: {username}")
 
             # Create user
             user = CustomUser.objects.create_user(
@@ -195,13 +187,19 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
                 last_name=last_name
             )
 
+            print(f"User created with ID: {user.id}")
+
             # Generate unique filenames
-            medical_license_name = f"licenses/{username}_{timestamp}_{medical_license.name}"
+            medical_license_name = f"medical_licenses/{username}_{timestamp}_{medical_license.name}"
             phd_certificate_name = f"certificates/{username}_{timestamp}_{phd_certificate.name}"
 
-            # Save files to S3
+            print(f"Saving files: {medical_license_name}, {phd_certificate_name}")
+
+            # Save files to storage
             medical_license_path = default_storage.save(medical_license_name, medical_license)
             phd_certificate_path = default_storage.save(phd_certificate_name, phd_certificate)
+
+            print(f"Files saved: {medical_license_path}, {phd_certificate_path}")
 
             # Create doctor profile
             DoctorProfile.objects.create(
@@ -210,11 +208,22 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
                 office_number=office_number,
                 office_address=office_address,
                 medical_license=medical_license_path,
-                certificate=phd_certificate_path
+                certificate=phd_certificate_path,
+                # Set default values for required fields
+                specialty='General Medicine',  # This will be updated later
+                appointment_cost=0.00,  # This will be updated later
+                office_hours_start='09:00:00',  # This will be updated later
+                office_hours_end='17:00:00',  # This will be updated later
+                bio='',  # This will be updated later
+                years_of_experience=0,  # This will be updated later
+                education=''  # This will be updated later
             )
 
+            print(f"Doctor profile created for user {user.id}")
             return user
+
         except Exception as e:
+            print(f"Error in create method: {str(e)}")
             # If user was created but profile creation failed, delete the user
             if 'user' in locals():
                 user.delete()
