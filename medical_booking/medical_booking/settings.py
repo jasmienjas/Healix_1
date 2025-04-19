@@ -146,13 +146,18 @@ if 'RENDER' in os.environ:
             'NAME': 'healix_db',
             'USER': 'healix_db_user',
             'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-            'HOST': 'dpg-cnqvvbf109ks73f2aqr0-a.oregon-postgres.render.com',  # Updated with full hostname
+            'HOST': 'dpg-cnqvvbf109ks73f2aqr0-a.oregon-postgres.render.com',
             'PORT': '5432',
             'OPTIONS': {
-                'sslmode': 'require',
+                'sslmode': 'verify-full',
+                'sslcert': '/etc/ssl/certs/ca-certificates.crt',
             }
         }
     }
+    
+    # Additional PostgreSQL configurations for Render
+    POSTGRES_CONN_MAX_AGE = 60
+    POSTGRES_TIMEOUT = 30
 else:
     # Local development database
     DATABASES = {
@@ -169,6 +174,7 @@ logger.info(f"Database NAME: {DATABASES['default']['NAME']}")
 if DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
     logger.info(f"Database HOST: {DATABASES['default'].get('HOST', 'N/A')}")
     logger.info(f"Database PORT: {DATABASES['default'].get('PORT', 'N/A')}")
+    logger.info(f"SSL Mode: {DATABASES['default']['OPTIONS'].get('sslmode', 'N/A')}")
 
 # settings.py
 
