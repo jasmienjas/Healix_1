@@ -196,41 +196,22 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'eu-north-1')
 AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL = 'public-read'
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
-AWS_LOCATION = 'media'  # Base folder in S3 bucket
 
-# Debug S3 configuration
-logger.info("=== S3 Configuration Debug ===")
+# Debug logging for S3 configuration
 logger.info(f"AWS_ACCESS_KEY_ID: {'Set' if AWS_ACCESS_KEY_ID else 'Not set'}")
 logger.info(f"AWS_SECRET_ACCESS_KEY: {'Set' if AWS_SECRET_ACCESS_KEY else 'Not set'}")
 logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
 logger.info(f"AWS_S3_REGION_NAME: {AWS_S3_REGION_NAME}")
-logger.info(f"AWS_S3_CUSTOM_DOMAIN: {AWS_S3_CUSTOM_DOMAIN}")
-logger.info(f"AWS_LOCATION: {AWS_LOCATION}")
 
-# Use S3 for media files if AWS credentials are provided
+# Configure S3 as the default storage
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
-    logger.info("Configuring S3 storage...")
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    # Use the S3 custom domain for media URLs
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
-    # Add storages to INSTALLED_APPS if not already there
-    if 'storages' not in INSTALLED_APPS:
-        INSTALLED_APPS.append('storages')
-    logger.info(f"Using S3 storage with MEDIA_URL: {MEDIA_URL}")
-    logger.info(f"DEFAULT_FILE_STORAGE: {DEFAULT_FILE_STORAGE}")
+    DEFAULT_FILE_STORAGE = 'medical_booking.storage_backends.CustomS3Boto3Storage'
+    logger.info("S3 storage configured successfully with custom storage backend")
 else:
-    logger.warning("S3 credentials not found, using local storage")
+    logger.warning("S3 storage not configured, using local storage")
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    MEDIA_URL = '/media/'
-    logger.info(f"Using local storage with MEDIA_URL: {MEDIA_URL}")
-    logger.info(f"DEFAULT_FILE_STORAGE: {DEFAULT_FILE_STORAGE}")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
