@@ -36,6 +36,8 @@ export default function ProfilePage() {
   const [doctorProfile, setDoctorProfile] = useState<DoctorProfile | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   
   // Form states for doctor profile
   const [specialty, setSpecialty] = useState("")
@@ -48,6 +50,8 @@ export default function ProfilePage() {
   const [officeAddress, setOfficeAddress] = useState("")
   const [yearsOfExperience, setYearsOfExperience] = useState("")
   const [education, setEducation] = useState("")
+  const [profilePicture, setProfilePicture] = useState<File | null>(null)
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchDoctorProfile = async () => {
@@ -150,15 +154,48 @@ export default function ProfilePage() {
         if (data.success) {
             setSuccess('Profile updated successfully');
             setError('');
-            // Update the state with the new data
+            
+            // Update all form states with the new data
             setFormData(prev => ({
                 ...prev,
                 ...data.data
             }));
-            // Update the profile picture URL if it exists
+            
+            // Update profile picture URL if it exists
             if (data.data.profile_picture) {
+                console.log('Updating profile picture URL:', data.data.profile_picture);
                 setProfilePictureUrl(data.data.profile_picture);
             }
+            
+            // Update other form states
+            if (data.data.specialty) {
+                setSelectedSpecialty(data.data.specialty);
+            }
+            if (data.data.office_hours_start && data.data.office_hours_end) {
+                setOfficeHours({
+                    start: data.data.office_hours_start,
+                    end: data.data.office_hours_end
+                });
+            }
+            if (data.data.appointment_cost) {
+                setAppointmentCost(data.data.appointment_cost);
+            }
+            if (data.data.bio) {
+                setBio(data.data.bio);
+            }
+            if (data.data.years_of_experience) {
+                setYearsOfExperience(data.data.years_of_experience);
+            }
+            if (data.data.education) {
+                setEducation(data.data.education);
+            }
+            
+            // Reset the profile picture file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            setProfilePicture(null);
+            
         } else {
             setError(data.message || 'Failed to update profile');
         }
@@ -177,6 +214,18 @@ export default function ProfilePage() {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Profile load error response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorData
+                });
+                setError(`Failed to load profile: ${errorData.message || response.statusText}`);
+                return;
+            }
+
             const data = await response.json();
             console.log('Loaded profile data:', data);
 
@@ -209,10 +258,17 @@ export default function ProfilePage() {
                 if (data.data.education) {
                     setEducation(data.data.education);
                 }
+            } else {
+                console.error('Profile load failed:', data);
+                setError(data.message || 'Failed to load profile data');
             }
         } catch (err) {
-            console.error('Error loading profile:', err);
-            setError('Failed to load profile data');
+            console.error('Error loading profile:', {
+                error: err,
+                message: err instanceof Error ? err.message : 'Unknown error',
+                stack: err instanceof Error ? err.stack : undefined
+            });
+            setError('Failed to load profile data. Please try again later.');
         }
     };
 

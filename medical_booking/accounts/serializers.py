@@ -45,20 +45,22 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
             print(f"Profile picture name: {obj.profile_picture.name}")
             print(f"Profile picture storage: {obj.profile_picture.storage}")
             
-            # If we're using S3 storage, return the S3 URL directly
-            if hasattr(obj.profile_picture.storage, 'bucket_name'):
-                # Get the bucket name and region
-                bucket_name = obj.profile_picture.storage.bucket_name
-                region = obj.profile_picture.storage.connection.meta.region_name
-                location = obj.profile_picture.storage.location
-                
-                # Properly encode the file path
-                encoded_path = obj.profile_picture.name.replace(' ', '%20')
-                
-                # Construct the S3 URL with proper encoding
-                s3_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{location}/{encoded_path}"
-                print(f"Generated S3 URL: {s3_url}")  # Debug log
-                return s3_url
+            # If we're using S3 storage, use the storage's url method
+            if hasattr(obj.profile_picture.storage, 'url'):
+                try:
+                    # Get the URL directly from the storage backend
+                    url = obj.profile_picture.storage.url(obj.profile_picture.name)
+                    print(f"Generated S3 URL: {url}")  # Debug log
+                    return url
+                except Exception as e:
+                    print(f"Error getting URL from storage: {str(e)}")
+                    # Fallback to manual URL construction
+                    bucket_name = obj.profile_picture.storage.bucket_name
+                    region = obj.profile_picture.storage.connection.meta.region_name
+                    # Use the standard AWS S3 URL format
+                    s3_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{obj.profile_picture.name}"
+                    print(f"Fallback S3 URL: {s3_url}")  # Debug log
+                    return s3_url
             
             # For local storage, build the absolute URL
             request = self.context.get('request')
