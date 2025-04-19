@@ -143,10 +143,10 @@ if 'RENDER' in os.environ:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'healix_db',  # Your database name on Render
-            'USER': 'healix_db_user',  # Your database user on Render
-            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),  # Will be set by Render
-            'HOST': 'dpg-cnqvvbf109ks73f2aqr0-a',  # Your database host on Render
+            'NAME': 'healix_db',
+            'USER': 'healix_db_user',
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+            'HOST': 'dpg-cnqvvbf109ks73f2aqr0-a.oregon-postgres.render.com',  # Updated with full hostname
             'PORT': '5432',
             'OPTIONS': {
                 'sslmode': 'require',
