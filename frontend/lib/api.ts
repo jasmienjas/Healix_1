@@ -1,5 +1,10 @@
 // API configuration
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://127.0.0.1:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+
+console.log('Environment Variables:', {
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  API_URL,
+});
 
 // Helper function for API calls
 async function apiCall(endpoint: string, options: RequestInit = {}) {
@@ -93,82 +98,97 @@ export const authApi = {
       
       console.log('Login response:', response);
       
-      if (!response.access || !response.user) {
-        throw new Error('Invalid response format from server');
+      if (response.access_token) {
+        localStorage.setItem('access_token', response.access_token);
+        return response;
+      } else {
+        throw new Error('No access token received');
       }
-      
-      return response;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
     }
   },
-
-  register: (userData: any) =>
-    apiCall('/api/accounts/register/', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    }),
-
-  verifyEmail: (token: string) =>
-    apiCall('/api/accounts/verify-email/', {
-      method: 'POST',
-      body: JSON.stringify({ token }),
-    }),
-
-  forgotPassword: (email: string) =>
-    apiCall('/api/accounts/forgot-password/', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    }),
-
-  resetPassword: (token: string, password: string) =>
-    apiCall('/api/accounts/reset-password/', {
-      method: 'POST',
-      body: JSON.stringify({ token, password }),
-    }),
+  
+  register: async (userData: any) => {
+    try {
+      console.log('Attempting registration with:', userData);
+      const response = await apiCall('api/accounts/register/', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      });
+      
+      console.log('Registration response:', response);
+      return response;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  },
+  
+  logout: () => {
+    localStorage.removeItem('access_token');
+  },
 };
 
 // Doctor API functions
 export const doctorApi = {
-  getAvailability: () =>
-    apiCall('api/accounts/doctor/availability/'),
-
-  updateAvailability: (availabilityData: any) =>
-    apiCall('api/accounts/doctor/availability/', {
-      method: 'POST',
-      body: JSON.stringify(availabilityData),
-    }),
-
-  getProfile: () =>
-    apiCall('api/accounts/doctor/profile/'),
-
-  updateProfile: (profileData: any) => {
-    // If it's already FormData, use it directly
-    if (profileData instanceof FormData) {
-      return apiCall('api/accounts/doctor/profile/', {
-        method: 'POST',
-        body: profileData,
-      });
+  getProfile: async () => {
+    try {
+      console.log('Fetching doctor profile...');
+      const response = await apiCall('api/accounts/doctor/profile/');
+      console.log('Doctor profile response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching doctor profile:', error);
+      throw error;
     }
-
-    // Convert regular object to FormData
-    const formData = new FormData();
-    Object.entries(profileData).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        // Convert numbers to strings
-        formData.append(key, value.toString());
-      }
-    });
-
-    return apiCall('api/accounts/doctor/profile/', {
-      method: 'POST',
-      body: formData,
-    });
   },
+  
+  updateProfile: async (data: FormData | any) => {
+    try {
+      console.log('Updating doctor profile with:', data);
+      const response = await apiCall('api/accounts/doctor/profile/', {
+        method: 'POST',
+        body: data instanceof FormData ? data : JSON.stringify(data),
+      });
+      console.log('Profile update response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error updating doctor profile:', error);
+      throw error;
+    }
+  },
+};
 
-  searchDoctors: (query: string) =>
-    apiCall(`api/accounts/doctors/search/?query=${encodeURIComponent(query)}`),
+// Patient API functions
+export const patientApi = {
+  getProfile: async () => {
+    try {
+      console.log('Fetching patient profile...');
+      const response = await apiCall('api/accounts/patient/profile/');
+      console.log('Patient profile response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching patient profile:', error);
+      throw error;
+    }
+  },
+  
+  updateProfile: async (data: any) => {
+    try {
+      console.log('Updating patient profile with:', data);
+      const response = await apiCall('api/accounts/patient/profile/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      console.log('Profile update response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error updating patient profile:', error);
+      throw error;
+    }
+  },
 };
 
 // Appointments API functions
@@ -203,8 +223,10 @@ export const appointmentsApi = {
     }),
 };
 
+// Export the API object
 export const api = {
   auth: authApi,
   appointments: appointmentsApi,
   doctor: doctorApi,
+  patient: patientApi,
 };

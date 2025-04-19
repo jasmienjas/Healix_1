@@ -34,7 +34,7 @@ from .serializers import (
 )
 from .token_serializers import CustomTokenObtainPairSerializer
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('accounts')
 
 class LoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -375,7 +375,7 @@ class DoctorProfileView(APIView):
             doctor_profile = request.user.doctor_profile
             serializer = DoctorProfileSerializer(doctor_profile, context={'request': request})
             
-            print(f"Profile data: {serializer.data}")  # Debug log
+            logger.info(f"Profile data: {serializer.data}")
             
             return Response({
                 'success': True,
@@ -383,7 +383,7 @@ class DoctorProfileView(APIView):
                 'data': serializer.data
             })
         except Exception as e:
-            print(f"Error in get profile: {str(e)}")  # Debug log
+            logger.error(f"Error in get profile: {str(e)}", exc_info=True)
             return Response({
                 'success': False,
                 'message': str(e)
@@ -391,9 +391,13 @@ class DoctorProfileView(APIView):
 
     def post(self, request):
         try:
-            print("Received profile update request")  # Debug log
-            print(f"Request data: {request.data}")  # Debug log
-            print(f"Request files: {request.FILES}")  # Debug log
+            # Test logging
+            logger.info("=== START OF PROFILE UPDATE REQUEST ===")
+            logger.info("Test log message to verify logging is working")
+            
+            logger.info("Received profile update request")
+            logger.info(f"Request data: {request.data}")
+            logger.info(f"Request files: {request.FILES}")
 
             if request.user.user_type != 'doctor':
                 return Response({
@@ -406,9 +410,19 @@ class DoctorProfileView(APIView):
 
             # Handle profile picture update
             if 'profile_picture' in request.FILES:
-                print("Updating profile picture")  # Debug log
-                doctor_profile.profile_picture = request.FILES['profile_picture']
-                print(f"New profile picture: {doctor_profile.profile_picture}")  # Debug log
+                logger.info("Updating profile picture")
+                profile_picture = request.FILES['profile_picture']
+                logger.info(f"Profile picture name: {profile_picture.name}")
+                logger.info(f"Profile picture size: {profile_picture.size}")
+                logger.info(f"Profile picture content type: {profile_picture.content_type}")
+                
+                # Save the profile picture
+                doctor_profile.profile_picture = profile_picture
+                logger.info(f"Profile picture saved to: {doctor_profile.profile_picture.name}")
+                logger.info(f"Profile picture URL: {doctor_profile.profile_picture.url}")
+                logger.info(f"Profile picture storage: {doctor_profile.profile_picture.storage}")
+                logger.info(f"Profile picture storage class: {doctor_profile.profile_picture.storage.__class__.__name__}")
+                logger.info(f"Profile picture storage bucket: {getattr(doctor_profile.profile_picture.storage, 'bucket_name', 'No bucket')}")
 
             # Update all available fields
             fields_to_update = [
@@ -430,7 +444,7 @@ class DoctorProfileView(APIView):
             for field in fields_to_update:
                 if field in data:
                     value = data[field]
-                    print(f"Updating field {field} with value: {value}")  # Debug log
+                    logger.info(f"Updating field {field} with value: {value}")
                     # Only update required fields if a non-empty value is provided
                     if field in required_fields:
                         if value and value.strip():  # Only update if value is non-empty
@@ -442,10 +456,12 @@ class DoctorProfileView(APIView):
                         setattr(doctor_profile, field, value)
 
             doctor_profile.save()
-            print("Profile saved successfully")  # Debug log
+            logger.info("Profile saved successfully")
+            logger.info(f"Profile picture after save: {doctor_profile.profile_picture}")
+            logger.info(f"Profile picture URL after save: {doctor_profile.profile_picture.url if doctor_profile.profile_picture else None}")
 
             serializer = DoctorProfileSerializer(doctor_profile, context={'request': request})
-            print(f"Updated profile data: {serializer.data}")  # Debug log
+            logger.info(f"Updated profile data: {serializer.data}")
 
             return Response({
                 'success': True,
@@ -454,7 +470,7 @@ class DoctorProfileView(APIView):
             })
 
         except Exception as e:
-            print(f"Error in update profile: {str(e)}")  # Debug log
+            logger.error(f"Error in update profile: {str(e)}", exc_info=True)
             return Response({
                 'success': False,
                 'message': str(e)

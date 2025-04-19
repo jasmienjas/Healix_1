@@ -1,0 +1,28 @@
+INFO 2025-04-20 00:25:10,979 autoreload 25288 14488 Watching for file changes with StatReloader
+INFO 2025-04-20 00:30:12,546 autoreload 25288 14488 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
+INFO 2025-04-20 00:30:13,535 autoreload 18784 19776 Watching for file changes with StatReloader
+INFO 2025-04-20 00:30:21,680 autoreload 18784 19776 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\serializers.py changed, reloading.
+INFO 2025-04-20 00:30:22,630 autoreload 11412 19120 Watching for file changes with StatReloader
+INFO 2025-04-20 00:30:25,353 autoreload 11412 19120 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\serializers.py changed, reloading.
+INFO 2025-04-20 00:30:26,194 autoreload 18076 18828 Watching for file changes with StatReloader
+INFO 2025-04-20 00:30:28,876 autoreload 18076 18828 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
+INFO 2025-04-20 00:30:29,616 autoreload 17520 18496 Watching for file changes with StatReloader
+INFO 2025-04-20 00:33:46,534 autoreload 17520 18496 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\serializers.py changed, reloading.
+INFO 2025-04-20 00:33:47,327 autoreload 17956 17604 Watching for file changes with StatReloader
+INFO 2025-04-20 00:33:53,283 autoreload 17956 17604 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\serializers.py changed, reloading.
+INFO 2025-04-20 00:33:54,221 autoreload 1484 21428 Watching for file changes with StatReloader
+INFO 2025-04-20 00:33:58,089 autoreload 1484 21428 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\serializers.py changed, reloading.
+INFO 2025-04-20 00:33:59,050 autoreload 19608 20196 Watching for file changes with StatReloader
+INFO 2025-04-20 00:37:55,738 autoreload 19608 20196 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\serializers.py changed, reloading.
+INFO 2025-04-20 00:37:56,542 autoreload 2188 18288 Watching for file changes with StatReloader
+INFO 2025-04-20 00:39:15,819 autoreload 2188 18288 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\serializers.py changed, reloading.
+INFO 2025-04-20 00:39:16,663 autoreload 16748 24244 Watching for file changes with StatReloader
+INFO 2025-04-20 00:50:24,018 autoreload 11268 25976 Watching for file changes with StatReloader
+WARNING 2025-04-20 01:00:52,278 log 11268 24316 Unauthorized: /api/accounts/doctor/profile/
+WARNING 2025-04-20 01:00:52,280 basehttp 11268 24316 "GET /api/accounts/doctor/profile/ HTTP/1.1" 401 58
+INFO 2025-04-20 01:01:11,521 autoreload 12080 16288 Watching for file changes with StatReloader
+INFO 2025-04-20 01:02:13,737 autoreload 24028 20344 Watching for file changes with StatReloader
+INFO 2025-04-20 01:04:07,070 autoreload 11268 25976 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\medical_booking\settings.py changed, reloading.
+INFO 2025-04-20 01:04:08,022 autoreload 23956 24248 Watching for file changes with StatReloader
+INFO 2025-04-20 01:05:37,486 autoreload 23776 26524 Watching for file changes with StatReloader
+INFO 2025-04-20 01:07:11,046 autoreload 25392 5124 Watching for file changes with StatReloader

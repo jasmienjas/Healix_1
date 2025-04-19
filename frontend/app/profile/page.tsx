@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
-import { DefaultAvatar } from "../components/DefaultAvatar"
+import { DefaultAvatar } from "@/components/DefaultAvatar"
 
 interface DoctorProfile {
   specialty: string;
@@ -29,6 +29,22 @@ interface DoctorProfile {
   education?: string | null;
 }
 
+interface FormData {
+  username: string;
+  first_name: string;
+  last_name: string;
+  office_address: string;
+  phone_number: string;
+  office_number: string;
+  specialty: string;
+  bio: string;
+  appointment_cost: string;
+  office_hours_start: string;
+  office_hours_end: string;
+  years_of_experience: string;
+  education: string;
+}
+
 export default function ProfilePage() {
   const { user } = useAuth()
   const [notifications, setNotifications] = useState(true)
@@ -38,40 +54,68 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  
-  // Form states for doctor profile
-  const [specialty, setSpecialty] = useState("")
-  const [bio, setBio] = useState("")
-  const [appointmentCost, setAppointmentCost] = useState("")
-  const [officeHoursStart, setOfficeHoursStart] = useState("")
-  const [officeHoursEnd, setOfficeHoursEnd] = useState("")
-  const [phoneNumber, setPhoneNumber] = useState("")
-  const [officeNumber, setOfficeNumber] = useState("")
-  const [officeAddress, setOfficeAddress] = useState("")
-  const [yearsOfExperience, setYearsOfExperience] = useState("")
-  const [education, setEducation] = useState("")
   const [profilePicture, setProfilePicture] = useState<File | null>(null)
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null)
+  
+  // Initialize form data
+  const [formData, setFormData] = useState<FormData>(() => ({
+    username: "",
+    first_name: "",
+    last_name: "",
+    office_address: "",
+    phone_number: "",
+    office_number: "",
+    specialty: "",
+    bio: "",
+    appointment_cost: "",
+    office_hours_start: "",
+    office_hours_end: "",
+    years_of_experience: "",
+    education: ""
+  }));
 
   useEffect(() => {
-    const fetchDoctorProfile = async () => {
+    const fetchUserProfile = async () => {
       try {
-        const profile = await api.doctor.getProfile();
-        setIsDoctor(true);
-        setDoctorProfile(profile);
-        // Set form states
-        setSpecialty(profile.specialty || "");
-        setBio(profile.bio || "");
-        setAppointmentCost(profile.appointment_cost?.toString() || "");
-        setOfficeHoursStart(profile.office_hours_start || "");
-        setOfficeHoursEnd(profile.office_hours_end || "");
-        setPhoneNumber(profile.phone_number || "");
-        setOfficeNumber(profile.office_number || "");
-        setOfficeAddress(profile.office_address || "");
-        setYearsOfExperience(profile.years_of_experience?.toString() || "");
-        setEducation(profile.education || "");
+        if (!user) return;
+
+        let response;
+        if (user.user_type === 'doctor') {
+          response = await api.doctor.getProfile();
+        } else if (user.user_type === 'patient') {
+          response = await api.patient.getProfile();
+        }
+
+        console.log('Profile response:', response);
+        
+        if (response?.success && response?.data) {
+          const profileData = response.data;
+          setFormData(prevData => ({
+            ...prevData,
+            username: profileData.user?.username || "",
+            first_name: profileData.user?.first_name || "",
+            last_name: profileData.user?.last_name || "",
+            office_address: profileData.office_address || "",
+            phone_number: profileData.phone_number || "",
+            office_number: profileData.office_number || "",
+            specialty: profileData.specialty || "",
+            bio: profileData.bio || "",
+            appointment_cost: profileData.appointment_cost?.toString() || "",
+            office_hours_start: profileData.office_hours_start || "",
+            office_hours_end: profileData.office_hours_end || "",
+            years_of_experience: profileData.years_of_experience?.toString() || "",
+            education: profileData.education || ""
+          }));
+
+          if (user.user_type === 'doctor') {
+            setIsDoctor(true);
+            setDoctorProfile(profileData);
+          }
+          
+          setProfilePictureUrl(profileData.profile_picture);
+        }
       } catch (error) {
-        // If 404, user is not a doctor
+        console.error('Error fetching profile:', error);
         if ((error as any).message?.includes("404")) {
           setIsDoctor(false);
         } else {
@@ -80,303 +124,205 @@ export default function ProfilePage() {
       }
     };
 
-    fetchDoctorProfile();
-  }, []);
+    fetchUserProfile();
+  }, [user]);
 
   const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setProfilePicture(file);
     const formData = new FormData();
     formData.append("profile_picture", file);
 
     try {
+      console.log('Uploading profile picture...');
       const response = await api.doctor.updateProfile(formData);
+      console.log('Profile picture upload response:', response);
       
       if (response.success && response.data) {
-        setDoctorProfile(response.data);
+        setProfilePictureUrl(response.data.profile_picture);
         toast.success("Profile picture updated successfully");
       } else {
-        throw new Error("Failed to upload profile picture");
+        throw new Error(response.message || "Failed to update profile picture");
       }
     } catch (error) {
-      console.error('Profile picture upload error:', error);
-      toast.error("Failed to upload profile picture");
+      console.error('Error uploading profile picture:', error);
+      toast.error("Failed to update profile picture");
     }
   };
 
   const handleDoctorProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-        const requiredFields = ['office_address', 'phone_number', 'office_number'];
-        const missingFields = requiredFields.filter(field => !formData[field]);
+      const requiredFields = ['office_address', 'phone_number', 'office_number'];
+      const missingFields = requiredFields.filter(field => !formData[field as keyof FormData]);
+      
+      if (missingFields.length > 0) {
+        setError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+
+      const updateData = {
+        ...formData,
+        appointment_cost: formData.appointment_cost ? parseFloat(formData.appointment_cost) : null,
+        years_of_experience: formData.years_of_experience ? parseInt(formData.years_of_experience) : null
+      };
+
+      console.log('Updating doctor profile with data:', updateData);
+
+      const formDataToSend = new FormData();
+      Object.entries(updateData).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formDataToSend.append(key, value.toString());
+        }
+      });
+
+      if (profilePicture) {
+        formDataToSend.append('profile_picture', profilePicture);
+      }
+
+      const response = await api.doctor.updateProfile(formDataToSend);
+      console.log('Profile update response:', response);
+
+      if (response.success) {
+        setSuccess('Profile updated successfully');
+        setError(null);
+        setIsEditing(false);
         
-        if (missingFields.length > 0) {
-            setError(`Please fill in all required fields: ${missingFields.join(', ')}`);
-            return;
+        // Update profile data
+        if (response.data) {
+          setDoctorProfile(response.data);
+          setProfilePictureUrl(response.data.profile_picture);
         }
-
-        const updateData = {
-            ...formData,
-            specialty: selectedSpecialty,
-            office_hours_start: officeHours.start,
-            office_hours_end: officeHours.end,
-            appointment_cost: appointmentCost,
-            bio: bio,
-            years_of_experience: yearsOfExperience,
-            education: education
-        };
-
-        console.log('Updating doctor profile with data:', updateData);
-
-        const formDataToSend = new FormData();
-        Object.entries(updateData).forEach(([key, value]) => {
-            if (value !== null && value !== undefined) {
-                formDataToSend.append(key, value);
-            }
-        });
-
-        if (profilePicture) {
-            formDataToSend.append('profile_picture', profilePicture);
-        }
-
-        const response = await fetch('/api/accounts/doctor/profile/', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: formDataToSend
-        });
-
-        const data = await response.json();
-        console.log('Profile update response:', data);
-
-        if (data.success) {
-            setSuccess('Profile updated successfully');
-            setError('');
-            
-            // Update all form states with the new data
-            setFormData(prev => ({
-                ...prev,
-                ...data.data
-            }));
-            
-            // Update profile picture URL if it exists
-            if (data.data.profile_picture) {
-                console.log('Updating profile picture URL:', data.data.profile_picture);
-                setProfilePictureUrl(data.data.profile_picture);
-            }
-            
-            // Update other form states
-            if (data.data.specialty) {
-                setSelectedSpecialty(data.data.specialty);
-            }
-            if (data.data.office_hours_start && data.data.office_hours_end) {
-                setOfficeHours({
-                    start: data.data.office_hours_start,
-                    end: data.data.office_hours_end
-                });
-            }
-            if (data.data.appointment_cost) {
-                setAppointmentCost(data.data.appointment_cost);
-            }
-            if (data.data.bio) {
-                setBio(data.data.bio);
-            }
-            if (data.data.years_of_experience) {
-                setYearsOfExperience(data.data.years_of_experience);
-            }
-            if (data.data.education) {
-                setEducation(data.data.education);
-            }
-            
-            // Reset the profile picture file input
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-            setProfilePicture(null);
-            
-        } else {
-            setError(data.message || 'Failed to update profile');
-        }
-    } catch (err) {
-        console.error('Error updating profile:', err);
-        setError('An error occurred while updating the profile');
+        
+        toast.success("Profile updated successfully");
+      } else {
+        throw new Error(response.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError('Failed to update profile');
+      toast.error("Failed to update profile");
     }
   };
 
-  // Add this useEffect to load the profile data on component mount
-  useEffect(() => {
-    const loadProfile = async () => {
-        try {
-            const response = await fetch('/api/accounts/doctor/profile/', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Profile load error response:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    errorData
-                });
-                setError(`Failed to load profile: ${errorData.message || response.statusText}`);
-                return;
-            }
-
-            const data = await response.json();
-            console.log('Loaded profile data:', data);
-
-            if (data.success) {
-                setFormData(prev => ({
-                    ...prev,
-                    ...data.data
-                }));
-                if (data.data.profile_picture) {
-                    setProfilePictureUrl(data.data.profile_picture);
-                }
-                if (data.data.specialty) {
-                    setSelectedSpecialty(data.data.specialty);
-                }
-                if (data.data.office_hours_start && data.data.office_hours_end) {
-                    setOfficeHours({
-                        start: data.data.office_hours_start,
-                        end: data.data.office_hours_end
-                    });
-                }
-                if (data.data.appointment_cost) {
-                    setAppointmentCost(data.data.appointment_cost);
-                }
-                if (data.data.bio) {
-                    setBio(data.data.bio);
-                }
-                if (data.data.years_of_experience) {
-                    setYearsOfExperience(data.data.years_of_experience);
-                }
-                if (data.data.education) {
-                    setEducation(data.data.education);
-                }
-            } else {
-                console.error('Profile load failed:', data);
-                setError(data.message || 'Failed to load profile data');
-            }
-        } catch (err) {
-            console.error('Error loading profile:', {
-                error: err,
-                message: err instanceof Error ? err.message : 'Unknown error',
-                stack: err instanceof Error ? err.stack : undefined
-            });
-            setError('Failed to load profile data. Please try again later.');
-        }
-    };
-
-    loadProfile();
-  }, []);
-
-  // Add useEffect to log state changes
-  useEffect(() => {
-    console.log('Current doctor profile state:', doctorProfile);
-  }, [doctorProfile]);
-
-  const getProfilePictureUrl = (profilePicture: string | null) => {
-    if (!profilePicture) return null;
-    
-    // If the URL contains 'None', it's an invalid URL
-    if (profilePicture.includes('None')) {
-      return null;
-    }
+  const getProfilePictureUrl = (profilePicture: string | null | undefined): string | undefined => {
+    if (!profilePicture) return undefined;
     
     // If it's already a full URL, return it
     if (profilePicture.startsWith('http')) {
       return profilePicture;
     }
     
-    // For local development, prepend the API URL
-    return `${process.env.NEXT_PUBLIC_API_URL}${profilePicture}`;
+    // Otherwise, construct the full URL using the API URL
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    return `${API_URL}${profilePicture}`;
   };
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold">Profile</h1>
-        </div>
+      <div className="container mx-auto px-4 py-8">
+        <Card className="mb-8">
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-24 w-24">
+                <AvatarImage 
+                  src={getProfilePictureUrl(profilePictureUrl)} 
+                  alt="Profile picture"
+                />
+                <AvatarFallback>
+                  <DefaultAvatar />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl font-bold">
+                  {formData.username || user?.email}
+                </h1>
+                <p className="text-gray-500">{user?.email}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="general" className="mb-8">
           <TabsList>
             <TabsTrigger value="general">General</TabsTrigger>
-            {isDoctor && (
-              <TabsTrigger value="doctor">Doctor Info</TabsTrigger>
-            )}
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            {isDoctor && <TabsTrigger value="doctor">Doctor Info</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="general">
-            {/* Profile Info Card */}
-            <Card className="mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage 
-                          src={getProfilePictureUrl(doctorProfile?.profile_picture)} 
-                          alt={user?.first_name}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="text-2xl font-semibold">General Information</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="text-gray-600 hover:text-gray-900"
+                  >
+                    {isEditing ? "Cancel" : "Edit"}
+                  </Button>
+                </div>
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-base font-medium text-gray-600 mb-3">Name</h3>
+                    {isEditing ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <Input
+                          placeholder="First Name"
+                          value={formData.first_name}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            first_name: e.target.value
+                          }))}
                         />
-                        <AvatarFallback>
-                          <DefaultAvatar
-                            firstName={user?.first_name}
-                            lastName={user?.last_name}
-                            className="h-full w-full"
-                          />
-                        </AvatarFallback>
-                      </Avatar>
-                      {isDoctor && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="absolute -bottom-2 -right-2 rounded-full p-1"
-                          onClick={() => fileInputRef.current?.click()}
-                        >
-                          <Upload className="h-4 w-4" />
-                        </Button>
-                      )}
+                        <Input
+                          placeholder="Last Name"
+                          value={formData.last_name}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            last_name: e.target.value
+                          }))}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-lg">
+                        {formData.username || "Not set"}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-medium text-gray-600 mb-3">Email</h3>
+                    <p className="text-lg">{user?.email}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-medium text-gray-600 mb-3">Profile Picture</h3>
+                    <div className="flex items-center space-x-4">
                       <input
                         type="file"
-                        ref={fileInputRef}
-                        className="hidden"
                         accept="image/*"
                         onChange={handleProfilePictureUpload}
+                        className="hidden"
+                        ref={fileInputRef}
                       />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center space-x-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        <span>Change Picture</span>
+                      </Button>
                     </div>
-                    <div>
-                      <h2 className="text-xl font-semibold">{user?.first_name} {user?.last_name}</h2>
-                      <p className="text-gray-500">Beirut, Lebanon</p>
+                  </div>
+                  {isEditing && (
+                    <div className="flex justify-end pt-4">
+                      <Button onClick={handleDoctorProfileUpdate}>Save Changes</Button>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Personal Information */}
-            <Card className="mb-6">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-sm text-gray-500">Name</label>
-                    <p className="text-base">
-                      {user?.first_name && user?.last_name 
-                        ? `${user.first_name} ${user.last_name}`
-                        : user?.username || "Not available"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Email Address</label>
-                    <p className="text-base">{user?.email || "Not available"}</p>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -384,212 +330,163 @@ export default function ProfilePage() {
 
           {isDoctor && (
             <TabsContent value="doctor">
-              <Card className="mb-6">
-                <CardContent className="p-6">
+              <Card>
+                <CardContent className="pt-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-semibold">Doctor Information</h3>
+                    <h2 className="text-xl font-bold">Doctor Information</h2>
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={() => setIsEditing(!isEditing)}
                     >
-                      <Edit2 className="h-4 w-4 mr-2" />
                       {isEditing ? "Cancel" : "Edit"}
                     </Button>
                   </div>
 
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-sm text-gray-500 block mb-2">Specialty</label>
-                      {isEditing ? (
-                        <Input
-                          value={specialty}
-                          onChange={(e) => setSpecialty(e.target.value)}
-                          placeholder="Enter your specialty"
-                        />
-                      ) : (
-                        <p className="text-base">{specialty || "Not specified"}</p>
-                      )}
-                    </div>
+                  <form onSubmit={handleDoctorProfileUpdate} className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Specialty</label>
+                        {isEditing ? (
+                          <Input
+                            value={formData.specialty}
+                            onChange={(e) => setFormData({...formData, specialty: e.target.value})}
+                          />
+                        ) : (
+                          <p className="text-lg">{formData.specialty || "Not specified"}</p>
+                        )}
+                      </div>
 
-                    <div>
-                      <label className="text-sm text-gray-500 block mb-2">Bio</label>
-                      {isEditing ? (
-                        <Textarea
-                          value={bio}
-                          onChange={(e) => setBio(e.target.value)}
-                          placeholder="Write a short bio about yourself"
-                          rows={4}
-                        />
-                      ) : (
-                        <p className="text-base">{bio || "No bio provided"}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-500 block mb-2">Appointment Cost</label>
-                      {isEditing ? (
-                        <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <div>
+                        <label className="text-sm font-medium">Appointment Cost</label>
+                        {isEditing ? (
                           <Input
                             type="number"
-                            value={appointmentCost}
-                            onChange={(e) => setAppointmentCost(e.target.value)}
-                            className="pl-10"
-                            placeholder="Enter appointment cost"
+                            value={formData.appointment_cost}
+                            onChange={(e) => setFormData({...formData, appointment_cost: e.target.value})}
                           />
-                        </div>
-                      ) : (
-                        <p className="text-base">${appointmentCost || "Not specified"}</p>
-                      )}
+                        ) : (
+                          <p className="text-lg">${formData.appointment_cost || "Not specified"}</p>
+                        )}
+                      </div>
                     </div>
 
                     <div>
-                      <label className="text-sm text-gray-500 block mb-2">Office Hours</label>
+                      <label className="text-sm font-medium">Bio</label>
                       {isEditing ? (
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-xs text-gray-500 block mb-1">Start Time</label>
-                            <Input
-                              type="time"
-                              value={officeHoursStart}
-                              onChange={(e) => setOfficeHoursStart(e.target.value)}
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 block mb-1">End Time</label>
-                            <Input
-                              type="time"
-                              value={officeHoursEnd}
-                              onChange={(e) => setOfficeHoursEnd(e.target.value)}
-                            />
-                          </div>
-                        </div>
+                        <Textarea
+                          value={formData.bio}
+                          onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                        />
                       ) : (
-                        <p className="text-base">
-                          {officeHoursStart && officeHoursEnd ? (
-                            `${officeHoursStart} - ${officeHoursEnd}`
-                          ) : (
-                            "Not specified"
-                          )}
-                        </p>
+                        <p className="text-lg">{formData.bio || "No bio provided"}</p>
                       )}
                     </div>
 
-                    <div>
-                      <label className="text-sm text-gray-500 block mb-2">Contact Information</label>
-                      {isEditing ? (
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-xs text-gray-500 block mb-1">Phone Number</label>
-                            <Input
-                              value={phoneNumber}
-                              onChange={(e) => setPhoneNumber(e.target.value)}
-                              placeholder="Enter your phone number"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 block mb-1">Office Number</label>
-                            <Input
-                              value={officeNumber}
-                              onChange={(e) => setOfficeNumber(e.target.value)}
-                              placeholder="Enter your office number"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 block mb-1">Office Address</label>
-                            <Input
-                              value={officeAddress}
-                              onChange={(e) => setOfficeAddress(e.target.value)}
-                              placeholder="Enter your office address"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <p className="text-base">
-                            <span className="font-medium">Phone:</span> {phoneNumber || "Not specified"}
-                          </p>
-                          <p className="text-base">
-                            <span className="font-medium">Office:</span> {officeNumber || "Not specified"}
-                          </p>
-                          <p className="text-base">
-                            <span className="font-medium">Address:</span> {officeAddress || "Not specified"}
-                          </p>
-                        </div>
-                      )}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Office Hours Start</label>
+                        {isEditing ? (
+                          <Input
+                            type="time"
+                            value={formData.office_hours_start}
+                            onChange={(e) => setFormData({...formData, office_hours_start: e.target.value})}
+                          />
+                        ) : (
+                          <p className="text-lg">{formData.office_hours_start || "Not specified"}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Office Hours End</label>
+                        {isEditing ? (
+                          <Input
+                            type="time"
+                            value={formData.office_hours_end}
+                            onChange={(e) => setFormData({...formData, office_hours_end: e.target.value})}
+                          />
+                        ) : (
+                          <p className="text-lg">{formData.office_hours_end || "Not specified"}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Phone Number</label>
+                        {isEditing ? (
+                          <Input
+                            value={formData.phone_number}
+                            onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
+                          />
+                        ) : (
+                          <p className="text-lg">{formData.phone_number || "Not specified"}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Office Number</label>
+                        {isEditing ? (
+                          <Input
+                            value={formData.office_number}
+                            onChange={(e) => setFormData({...formData, office_number: e.target.value})}
+                          />
+                        ) : (
+                          <p className="text-lg">{formData.office_number || "Not specified"}</p>
+                        )}
+                      </div>
                     </div>
 
                     <div>
-                      <label className="text-sm text-gray-500 block mb-2">Additional Information</label>
+                      <label className="text-sm font-medium">Office Address</label>
                       {isEditing ? (
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-xs text-gray-500 block mb-1">Years of Experience</label>
-                            <Input
-                              type="number"
-                              value={yearsOfExperience}
-                              onChange={(e) => setYearsOfExperience(e.target.value)}
-                              placeholder="Enter years of experience"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 block mb-1">Education</label>
-                            <Textarea
-                              value={education}
-                              onChange={(e) => setEducation(e.target.value)}
-                              placeholder="Enter your education details"
-                              rows={3}
-                            />
-                          </div>
-                        </div>
+                        <Input
+                          value={formData.office_address}
+                          onChange={(e) => setFormData({...formData, office_address: e.target.value})}
+                        />
                       ) : (
-                        <div className="space-y-2">
-                          <p className="text-base">
-                            <span className="font-medium">Experience:</span> {yearsOfExperience ? `${yearsOfExperience} years` : "Not specified"}
-                          </p>
-                          <p className="text-base">
-                            <span className="font-medium">Education:</span> {education || "Not specified"}
-                          </p>
-                        </div>
+                        <p className="text-lg">{formData.office_address || "Not specified"}</p>
                       )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Years of Experience</label>
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            value={formData.years_of_experience}
+                            onChange={(e) => setFormData({...formData, years_of_experience: e.target.value})}
+                          />
+                        ) : (
+                          <p className="text-lg">{formData.years_of_experience || "Not specified"}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Education</label>
+                        {isEditing ? (
+                          <Input
+                            value={formData.education}
+                            onChange={(e) => setFormData({...formData, education: e.target.value})}
+                          />
+                        ) : (
+                          <p className="text-lg">{formData.education || "Not specified"}</p>
+                        )}
+                      </div>
                     </div>
 
                     {isEditing && (
-                      <Button onClick={handleDoctorProfileUpdate} className="w-full">
-                        Save Changes
-                      </Button>
+                      <div className="flex justify-end">
+                        <Button type="submit">Save Changes</Button>
+                      </div>
                     )}
-                  </div>
+                  </form>
                 </CardContent>
               </Card>
             </TabsContent>
           )}
-
-          <TabsContent value="settings">
-            <Card>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">General</h3>
-                    <Button variant="outline">Change Password</Button>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Notifications</h3>
-                    <div className="flex items-center justify-between">
-                      <span>Enable Notifications</span>
-                      <Switch
-                        checked={notifications}
-                        onCheckedChange={setNotifications}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
     </Layout>
-  )
+  );
 } 

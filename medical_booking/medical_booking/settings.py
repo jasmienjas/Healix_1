@@ -18,10 +18,52 @@ from datetime import timedelta
 import logging
 import ssl 
 import dj_database_url
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'accounts': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+# Initialize logger after logging configuration
+logger = logging.getLogger('accounts')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -98,10 +140,10 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 
 # Database Configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
-print(f"Raw DATABASE_URL value: {DATABASE_URL}")
+logger.info(f"Raw DATABASE_URL value: {DATABASE_URL}")
 
 if DATABASE_URL and DATABASE_URL != "(Render will set this automatically)":
-    print(f"Found DATABASE_URL, configuring database...")
+    logger.info("Found DATABASE_URL, configuring database...")
     try:
         db_config = dj_database_url.parse(
             DATABASE_URL,
@@ -112,10 +154,10 @@ if DATABASE_URL and DATABASE_URL != "(Render will set this automatically)":
             'default': db_config
         }
     except Exception as e:
-        print(f"Error parsing DATABASE_URL: {str(e)}")
+        logger.error(f"Error parsing DATABASE_URL: {str(e)}", exc_info=True)
         raise
 else:
-    print("No valid DATABASE_URL found, using SQLite configuration")
+    logger.info("No valid DATABASE_URL found, using SQLite configuration")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -123,18 +165,12 @@ else:
         }
     }
 
-# Print database configuration (safely)
-print(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
-print(f"Database NAME: {DATABASES['default']['NAME']}")
-if DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
-    print(f"Database HOST: {DATABASES['default'].get('HOST', 'N/A')}")
-    print(f"Database PORT: {DATABASES['default'].get('PORT', 'N/A')}")
-
 # Log database configuration (safely)
 logger.info(f"Database ENGINE: {DATABASES['default']['ENGINE']}")
 logger.info(f"Database NAME: {DATABASES['default']['NAME']}")
-logger.info(f"Database HOST: {DATABASES['default'].get('HOST', 'N/A')}")
-logger.info(f"Database PORT: {DATABASES['default'].get('PORT', 'N/A')}")
+if DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
+    logger.info(f"Database HOST: {DATABASES['default'].get('HOST', 'N/A')}")
+    logger.info(f"Database PORT: {DATABASES['default'].get('PORT', 'N/A')}")
 
 # settings.py
 

@@ -3,6 +3,9 @@ from .models import CustomUser, DoctorProfile, PatientProfile, Appointment
 from django.core.files.storage import default_storage
 import os
 from datetime import datetime
+import logging
+
+logger = logging.getLogger('accounts')
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +16,7 @@ class DoctorSerializer(serializers.ModelSerializer):
     class Meta:
         model = DoctorProfile
         fields = ['user', 'specialty', 'license_number', 'certificate']
+
 class DoctorProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     profile_picture_url = serializers.SerializerMethodField()
@@ -38,36 +42,52 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
 
     def get_profile_picture_url(self, obj):
         if not obj.profile_picture:
+            logger.info("No profile picture found")
             return None
             
         try:
             # Debug logging
-            print(f"Profile picture name: {obj.profile_picture.name}")
-            print(f"Profile picture storage: {obj.profile_picture.storage}")
+            logger.info(f"Profile picture name: {obj.profile_picture.name}")
+            logger.info(f"Profile picture storage: {obj.profile_picture.storage}")
+            logger.info(f"Storage class: {obj.profile_picture.storage.__class__.__name__}")
             
             # If we're using S3 storage, construct the URL directly
             if hasattr(obj.profile_picture.storage, 'bucket_name'):
                 # Get the bucket name
                 bucket_name = obj.profile_picture.storage.bucket_name
+                logger.info(f"Bucket name: {bucket_name}")
                 
-                # Construct the URL with the correct region
-                s3_url = f"https://{bucket_name}.s3.eu-north-1.amazonaws.com/{obj.profile_picture.name}"
-                print(f"Generated S3 URL: {s3_url}")  # Debug log
+                # Ensure the file name is properly encoded
+                file_name = obj.profile_picture.name.replace(' ', '%20')
+                logger.info(f"Encoded file name: {file_name}")
+                
+                # Always generate a new URL with the correct region
+                s3_url = f"https://{bucket_name}.s3.eu-north-1.amazonaws.com/{file_name}"
+                logger.info(f"Generated new S3 URL: {s3_url}")
+                
+                # Double check the URL format
+                if 'europe' in s3_url or 'stockholm' in s3_url:
+                    logger.warning(f"Invalid region format detected in URL: {s3_url}")
+                    # Force the correct format
+                    s3_url = s3_url.replace('europe (stockholm)', 'eu-north-1')
+                    s3_url = s3_url.replace('europe%20(stockholm)', 'eu-north-1')
+                    s3_url = s3_url.replace('europe%20%28stockholm%29', 'eu-north-1')
+                    logger.info(f"Corrected S3 URL: {s3_url}")
+                
                 return s3_url
             
             # For local storage, build the absolute URL
             request = self.context.get('request')
             if request:
                 url = request.build_absolute_uri(obj.profile_picture.url)
-                print(f"Generated local URL: {url}")  # Debug log
+                logger.info(f"Generated local URL: {url}")
                 return url
             url = obj.profile_picture.url
-            print(f"Generated simple URL: {url}")  # Debug log
+            logger.info(f"Generated simple URL: {url}")
             return url
             
         except Exception as e:
-            print(f"Error generating profile picture URL: {str(e)}")
-            print(f"Error type: {type(e)}")
+            logger.error(f"Error generating profile picture URL: {str(e)}", exc_info=True)
             return None
 
 class PatientSerializer(serializers.ModelSerializer):
