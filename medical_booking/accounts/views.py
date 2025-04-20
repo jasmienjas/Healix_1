@@ -701,16 +701,53 @@ class DoctorAvailabilityDeleteView(APIView):
 class AdminRegisterView(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            data = request.data
-            user = CustomUser.objects.create_user(
-                email=data.get('email'),
-                password=data.get('password'),
-                first_name=data.get('first_name'),
-                last_name=data.get('last_name'),
-                user_type='admin',
-                is_staff=True,
-                is_superuser=True
-            )
+            logger.info(f"Received admin registration request with data: {request.data}")
+            
+            # Validate required fields
+            required_fields = ['email', 'password', 'first_name', 'last_name']
+            for field in required_fields:
+                if field not in request.data:
+                    logger.error(f"Missing required field: {field}")
+                    return Response({
+                        'success': False,
+                        'message': f'Missing required field: {field}'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Validate email format
+            if not '@' in request.data['email']:
+                logger.error(f"Invalid email format: {request.data['email']}")
+                return Response({
+                    'success': False,
+                    'message': 'Invalid email format'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check if user already exists
+            if CustomUser.objects.filter(email=request.data['email']).exists():
+                logger.error(f"User with email {request.data['email']} already exists")
+                return Response({
+                    'success': False,
+                    'message': 'User with this email already exists'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Create the user
+            try:
+                user = CustomUser.objects.create_user(
+                    username=request.data['email'],  # Use email as username
+                    email=request.data['email'],
+                    password=request.data['password'],
+                    first_name=request.data['first_name'],
+                    last_name=request.data['last_name'],
+                    user_type='admin',
+                    is_staff=True,
+                    is_superuser=True
+                )
+                logger.info(f"Admin user created successfully: {user.email}")
+            except Exception as e:
+                logger.error(f"Error creating user: {str(e)}")
+                return Response({
+                    'success': False,
+                    'message': f'Error creating user: {str(e)}'
+                }, status=status.HTTP_400_BAD_REQUEST)
             
             return Response({
                 'success': True,
@@ -725,8 +762,9 @@ class AdminRegisterView(APIView):
             }, status=status.HTTP_201_CREATED)
             
         except Exception as e:
+            logger.error(f"Unexpected error in admin registration: {str(e)}")
             return Response({
                 'success': False,
-                'message': str(e)
+                'message': f'Unexpected error: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
         
