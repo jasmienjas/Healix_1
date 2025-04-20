@@ -149,7 +149,7 @@ if 'RENDER' in os.environ:
             'HOST': 'dpg-cnqvvbf109ks73f2aqr0-a.oregon-postgres.render.com',
             'PORT': '5432',
             'OPTIONS': {
-                'sslmode': 'verify-full',
+                'sslmode': 'require',
                 'sslcert': '/etc/ssl/certs/ca-certificates.crt',
             }
         }

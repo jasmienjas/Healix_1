@@ -98,9 +98,12 @@ export const authApi = {
       
       console.log('Login response:', response);
       
-      if (response.access_token) {
-        localStorage.setItem('access_token', response.access_token);
-        return response;
+      if (response.access) {
+        localStorage.setItem('access_token', response.access);
+        return {
+          ...response,
+          access_token: response.access
+        };
       } else {
         throw new Error('No access token received');
       }
