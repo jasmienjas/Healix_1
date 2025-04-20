@@ -40,12 +40,13 @@ export default function FindDoctorPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await searchDoctors({
+      const doctors = await searchDoctors({
         name: searchTerm,
         location: location,
         specialty: searchTerm // Using searchTerm for specialty as well
       });
-      setDoctors(response.data || []);
+      console.log('Search results:', doctors);
+      setDoctors(doctors || []);
     } catch (err) {
       setError('Failed to fetch doctors. Please try again.');
       console.error('Error fetching doctors:', err);
@@ -69,7 +70,7 @@ export default function FindDoctorPage() {
         </section>
 
         {/* Search Section */}
-        <section>
+        <section className="max-w-7xl mx-auto">
           <Card>
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row gap-4">
@@ -91,7 +92,11 @@ export default function FindDoctorPage() {
                     className="pl-10"
                   />
                 </div>
-                <Button onClick={handleSearch} disabled={loading}>
+                <Button 
+                  onClick={handleSearch} 
+                  disabled={loading}
+                  className="bg-[#002B5B] hover:bg-[#002B5B]/90 text-white"
+                >
                   {loading ? 'Searching...' : 'Search'}
                 </Button>
               </div>
@@ -101,12 +106,12 @@ export default function FindDoctorPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="text-red-500 text-center">{error}</div>
+          <div className="text-red-500 text-center max-w-7xl mx-auto">{error}</div>
         )}
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-8">
+          <div className="text-center py-8 max-w-7xl mx-auto">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
             <p className="mt-2 text-gray-600">Loading doctors...</p>
           </div>
@@ -114,14 +119,14 @@ export default function FindDoctorPage() {
 
         {/* No Results Message */}
         {!loading && doctors.length === 0 && !error && (
-          <div className="text-center py-8">
+          <div className="text-center py-8 max-w-7xl mx-auto">
             <p className="text-gray-600">No doctors found. Try adjusting your search criteria.</p>
           </div>
         )}
 
         {/* Doctors Grid */}
         {!loading && doctors.length > 0 && (
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <section className="grid grid-cols-1 gap-6 max-w-7xl mx-auto">
             {doctors.map((doctor) => (
               <DoctorCard key={doctor.id} doctor={doctor} />
             ))}
@@ -133,46 +138,53 @@ export default function FindDoctorPage() {
 }
 
 function DoctorCard({ doctor }: { doctor: Doctor }) {
+  const initials = `${doctor.user?.first_name?.[0] || ''}${doctor.user?.last_name?.[0] || ''}`;
+  const fullName = `${doctor.user?.first_name || ''} ${doctor.user?.last_name || ''}`.trim();
+  
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardContent className="p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden">
+        <div className="flex items-start gap-6">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden flex-shrink-0 border-2 border-blue-100">
             {doctor.profile_picture_url ? (
               <img
                 src={doctor.profile_picture_url}
-                alt={`${doctor.user.first_name} ${doctor.user.last_name}`}
+                alt={fullName}
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                <span className="text-gray-400 text-2xl">
-                  {doctor.user.first_name[0]}{doctor.user.last_name[0]}
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-3xl font-semibold text-blue-500">
+                  {initials}
                 </span>
               </div>
             )}
           </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold">
-              Dr. {doctor.user.first_name} {doctor.user.last_name}
+          <div className="flex-1 min-w-0">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">
+              {fullName ? `Dr. ${fullName}` : 'Doctor'}
             </h3>
-            <p className="text-gray-600">{doctor.specialty}</p>
-            <p className="text-sm text-gray-500 mt-1">
-              {doctor.years_of_experience} years of experience
-            </p>
-            <p className="text-sm text-gray-500">
-              {doctor.office_address}
-            </p>
-            <p className="text-sm text-gray-500">
-              Office Hours: {doctor.office_hours_start} - {doctor.office_hours_end}
-            </p>
-            <p className="text-sm font-medium mt-2">
-              Consultation Fee: ${doctor.appointment_cost}
-            </p>
+            <p className="text-blue-600 font-medium mb-2">{doctor.specialty}</p>
+            <div className="space-y-2">
+              <p className="text-gray-600">
+                {doctor.years_of_experience} years of experience
+              </p>
+              <p className="text-gray-600">
+                {doctor.office_address}
+              </p>
+              <p className="text-gray-600">
+                Office Hours: {doctor.office_hours_start} - {doctor.office_hours_end}
+              </p>
+              <p className="text-lg font-semibold text-gray-900">
+                Consultation Fee: ${doctor.appointment_cost}
+              </p>
+            </div>
           </div>
         </div>
         <div className="mt-4">
-          <Button className="w-full">Book Appointment</Button>
+          <Button className="w-full bg-[#002B5B] hover:bg-[#002B5B]/90 text-white">
+            Book Appointment
+          </Button>
         </div>
       </CardContent>
     </Card>
