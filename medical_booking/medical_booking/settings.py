@@ -143,10 +143,21 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 if 'RENDER' in os.environ:
     DATABASE_URL = os.getenv('DATABASE_URL')
     if DATABASE_URL:
+        logger.info(f"Parsing DATABASE_URL: {DATABASE_URL}")
         db_config = dj_database_url.parse(DATABASE_URL)
+        logger.info(f"Parsed database configuration: {db_config}")
+        
+        # Ensure required parameters are set
+        if not db_config.get('NAME'):
+            raise ImproperlyConfigured("Database NAME is not set in DATABASE_URL")
+            
         db_config['OPTIONS'] = {
             'sslmode': 'require'
         }
+        
+        # Log final configuration
+        logger.info(f"Final database configuration: {db_config}")
+        
         DATABASES = {
             'default': db_config
         }
