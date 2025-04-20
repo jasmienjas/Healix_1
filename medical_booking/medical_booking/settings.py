@@ -20,6 +20,7 @@ import ssl
 import dj_database_url
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
+from urllib.parse import urlparse
 
 # Load environment variables from .env file
 load_dotenv()
@@ -143,24 +144,30 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 if 'RENDER' in os.environ:
     DATABASE_URL = os.getenv('DATABASE_URL')
     if DATABASE_URL:
-        logger.info(f"Parsing DATABASE_URL: {DATABASE_URL}")
-        db_config = dj_database_url.parse(DATABASE_URL)
-        logger.info(f"Parsed database configuration: {db_config}")
+        logger.info(f"Using DATABASE_URL: {DATABASE_URL}")
         
-        # Ensure required parameters are set
-        if not db_config.get('NAME'):
-            raise ImproperlyConfigured("Database NAME is not set in DATABASE_URL")
+        # Parse the URL to get components
+        parsed_url = urlparse(DATABASE_URL)
+        db_name = parsed_url.path[1:]  # Remove leading slash
+        
+        if not db_name:
+            db_name = 'healix_db'  # Default database name if not specified
             
-        db_config['OPTIONS'] = {
-            'sslmode': 'require'
-        }
-        
-        # Log final configuration
-        logger.info(f"Final database configuration: {db_config}")
-        
         DATABASES = {
-            'default': db_config
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': db_name,
+                'USER': parsed_url.username,
+                'PASSWORD': parsed_url.password,
+                'HOST': parsed_url.hostname,
+                'PORT': parsed_url.port or '5432',
+                'OPTIONS': {
+                    'sslmode': 'require'
+                }
+            }
         }
+        
+        logger.info(f"Database configuration: {DATABASES['default']}")
     else:
         raise ImproperlyConfigured("DATABASE_URL environment variable is not set")
 else:
