@@ -19,6 +19,7 @@ import logging
 import ssl 
 import dj_database_url
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 # Load environment variables from .env file
 load_dotenv()
@@ -140,23 +141,18 @@ WSGI_APPLICATION = 'medical_booking.wsgi.application'
 
 # Database Configuration
 if 'RENDER' in os.environ:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'healix_db',
-            'USER': 'healix_db_user',
-            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-            'HOST': 'dpg-cnqvvbf109ks73f2aqr0-a.oregon-postgres.render.com',
-            'PORT': '5432',
-            'OPTIONS': {
-                'sslmode': 'prefer',
-            }
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    if DATABASE_URL:
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=60,
+                conn_health_checks=True,
+                ssl_require=True
+            )
         }
-    }
-    
-    # Additional PostgreSQL configurations for Render
-    POSTGRES_CONN_MAX_AGE = 60
-    POSTGRES_TIMEOUT = 30
+    else:
+        raise ImproperlyConfigured("DATABASE_URL environment variable is not set")
 else:
     # Local development database
     DATABASES = {
