@@ -84,14 +84,26 @@ class DoctorRegisterView(APIView):
     
     def post(self, request, *args, **kwargs):
         try:
-            print("Received doctor registration request")
-            print(f"Request data: {request.data}")
+            logger.info("Received doctor registration request")
+            logger.info(f"Request data: {request.data}")
+            
+            # Validate required fields
+            required_fields = ['firstName', 'lastName', 'email', 'password', 'phoneNumber', 
+                             'officeNumber', 'officeAddress', 'birthDate', 'licenseNumber']
+            missing_fields = [field for field in required_fields if field not in request.data]
+            if missing_fields:
+                logger.error(f"Missing required fields: {missing_fields}")
+                return Response({
+                    'success': False,
+                    'message': 'Missing required fields',
+                    'errors': {field: 'This field is required' for field in missing_fields}
+                }, status=status.HTTP_400_BAD_REQUEST)
             
             serializer = DoctorRegisterSerializer(data=request.data)
             if serializer.is_valid():
-                print("Serializer is valid")
+                logger.info("Serializer is valid")
                 user = serializer.save()
-                print(f"User created: {user.id}")
+                logger.info(f"User created: {user.id}")
                 return Response({
                     'success': True,
                     'message': 'Registration successful. Please wait for admin approval.',
@@ -104,14 +116,14 @@ class DoctorRegisterView(APIView):
                     }
                 }, status=status.HTTP_201_CREATED)
             else:
-                print(f"Serializer errors: {serializer.errors}")
+                logger.error(f"Serializer errors: {serializer.errors}")
                 return Response({
                     'success': False,
                     'message': 'Registration failed',
                     'errors': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(f"Error in register_doctor: {str(e)}")
+            logger.error(f"Error in register_doctor: {str(e)}")
             return Response({
                 'success': False,
                 'message': 'Registration failed',
@@ -352,13 +364,23 @@ class DoctorSearchView(generics.ListAPIView):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({
-            'success': True,
-            'message': 'Doctors retrieved successfully',
-            'data': serializer.data
-        })
+        try:
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(queryset, many=True)
+            
+            logger.info(f"Found {queryset.count()} doctors matching search criteria")
+            
+            return Response({
+                'success': True,
+                'message': 'Doctors retrieved successfully',
+                'data': serializer.data
+            })
+        except Exception as e:
+            logger.error(f"Error in doctor search: {str(e)}")
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DoctorProfileView(APIView):
     permission_classes = [IsAuthenticated]

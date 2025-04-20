@@ -34,12 +34,6 @@ export async function signupDoctor(data: DoctorSignupData) {
         formData.append('birthDate', data.birthDate);
         formData.append('licenseNumber', data.licenseNumber);
 
-        // Debug: Log all form data entries
-        console.log('FormData contents:');
-        for (const [key, value] of formData.entries()) {
-            console.log(`${key}:`, value);
-        }
-
         // Add files if they exist
         if (data.medicalLicense) {
             formData.append('medicalLicense', data.medicalLicense);
@@ -53,12 +47,16 @@ export async function signupDoctor(data: DoctorSignupData) {
             password: '***',
             medicalLicense: data.medicalLicense ? `File: ${data.medicalLicense.name}` : null,
             phdCertificate: data.phdCertificate ? `File: ${data.phdCertificate.name}` : null,
-            licenseNumber: data.licenseNumber // Explicitly log license number
+            licenseNumber: data.licenseNumber
         });
 
         const response = await fetch(url, {
             method: 'POST',
-            body: formData
+            body: formData,
+            // Don't set Content-Type header, let the browser set it with the boundary
+            headers: {
+                'Accept': 'application/json',
+            },
         });
 
         console.log('Response status:', response.status);
@@ -126,22 +124,28 @@ export async function searchDoctors(params: SearchDoctorParams) {
     if (params.location) queryParams.append('location', params.location);
     if (params.name) queryParams.append('name', params.name);
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/accounts/doctors/search/?${queryParams.toString()}`,
-      {
-        headers: {
-          'Accept': 'application/json',
-        },
-      }
-    );
+    const url = `${API_BASE_URL}/api/accounts/doctors/search/?${queryParams.toString()}`;
+    console.log('Searching doctors with URL:', url);
+
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
 
     if (!response.ok) {
       const text = await response.text();
       console.error('Server response:', text);
-      throw new Error('Failed to search doctors');
+      throw new Error(`Failed to search doctors: ${response.status} ${response.statusText}`);
     }
 
     const result = await response.json();
+    console.log('Search results:', result);
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to search doctors');
+    }
+
     return result.data || [];
   } catch (error) {
     console.error('Error searching doctors:', error);
