@@ -697,4 +697,36 @@ class DoctorAvailabilityDeleteView(APIView):
                 'success': False,
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AdminRegisterView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            user = CustomUser.objects.create_user(
+                email=data.get('email'),
+                password=data.get('password'),
+                first_name=data.get('first_name'),
+                last_name=data.get('last_name'),
+                user_type='admin',
+                is_staff=True,
+                is_superuser=True
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Admin user created successfully',
+                'data': {
+                    'id': user.id,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'user_type': user.user_type
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
         

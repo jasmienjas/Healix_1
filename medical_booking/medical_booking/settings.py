@@ -271,10 +271,11 @@ else:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Security settings
-SECURE_SSL_REDIRECT = False  # Set to True in production
+SECURE_SSL_REDIRECT = True  # Enable SSL redirect in production
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = False  # Set to True in production
-CSRF_COOKIE_SECURE = False  # Set to True in production
+SESSION_COOKIE_SECURE = True  # Enable secure cookies in production
+CSRF_COOKIE_SECURE = True  # Enable secure CSRF cookies in production
+CSRF_COOKIE_SAMESITE = 'Lax'  # Set SameSite attribute for CSRF cookies
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [

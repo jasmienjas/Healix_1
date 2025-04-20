@@ -60,3 +60,24 @@ INFO 2025-04-20 13:42:20,496 autoreload 23604 4004 C:\Users\AUB\OneDrive - Ameri
 INFO 2025-04-20 13:42:21,383 autoreload 23000 8816 Watching for file changes with StatReloader
 INFO 2025-04-20 13:42:39,508 autoreload 23000 8816 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\medical_booking\settings.py changed, reloading.
 INFO 2025-04-20 13:42:40,282 autoreload 21460 8908 Watching for file changes with StatReloader
+INFO 2025-04-20 13:53:55,370 autoreload 21460 8908 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\medical_booking\settings.py changed, reloading.
+INFO 2025-04-20 13:53:56,247 autoreload 11800 13852 Watching for file changes with StatReloader
+INFO 2025-04-20 13:54:35,544 autoreload 11800 13852 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\medical_booking\settings.py changed, reloading.
+INFO 2025-04-20 13:54:36,431 autoreload 21500 20604 Watching for file changes with StatReloader
+INFO 2025-04-20 13:58:40,177 basehttp 21500 22996 "GET /admin HTTP/1.1" 301 0
+INFO 2025-04-20 13:58:40,191 basehttp 21500 16472 code 400, message Bad request version ("+\x83\x02&å\x84w{\x7fZ³\x02¦!\x00J6»`Ét:øE×\x8c{â%¨\x8d<2U¹ÇÕw±ºvNd'L±¤*H")
+ERROR 2025-04-20 13:58:40,194 basehttp 21500 16472 You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-04-20 13:58:40,196 basehttp 21500 4724 code 400, message Bad request version ('\x03,¼¬O\x13ðg+\x04\x9a§ö')
+ERROR 2025-04-20 13:58:40,197 basehttp 21500 4724 You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-04-20 13:58:41,798 basehttp 21500 23824 code 400, message Bad request version ('Ðg\x8aì(o\x05»[\x86uô:\x7f\x8c')
+INFO 2025-04-20 13:58:41,799 basehttp 21500 11904 code 400, message Bad request version ('\x8a')
+ERROR 2025-04-20 13:58:41,800 basehttp 21500 23824 You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2025-04-20 13:58:41,800 basehttp 21500 11904 You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-04-20 13:58:41,803 basehttp 21500 13188 code 400, message Bad request version ('**\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06SZZ\x00\x00\x00-\x00\x02\x01\x01\x00')
+INFO 2025-04-20 13:58:41,804 basehttp 21500 24916 code 400, message Bad request version ('\x00ú\x00\x00\x01\x00\x01a\x00')
+ERROR 2025-04-20 13:58:41,804 basehttp 21500 13188 You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2025-04-20 13:58:41,805 basehttp 21500 24916 You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-04-20 14:14:57,388 autoreload 21500 20604 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
+INFO 2025-04-20 14:14:58,313 autoreload 25604 13196 Watching for file changes with StatReloader
+INFO 2025-04-20 14:15:08,873 autoreload 25604 13196 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\urls.py changed, reloading.
+INFO 2025-04-20 14:15:09,644 autoreload 19364 18196 Watching for file changes with StatReloader

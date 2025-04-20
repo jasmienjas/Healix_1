@@ -13,13 +13,15 @@ from .views import (
     DoctorSearchView,
     DoctorProfileView,
     DoctorAvailabilityView,
-    DoctorAvailabilityDeleteView
+    DoctorAvailabilityDeleteView,
+    AdminRegisterView
 )
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('register/patient/', PatientRegisterView.as_view(), name='patient-register'),
     path('register/doctor/', DoctorRegisterView.as_view(), name='doctor-register'),
+    path('register/admin/', AdminRegisterView.as_view(), name='admin-register'),
     path('appointments/<int:pk>/postpone/', PostponeAppointmentView.as_view(), name='postpone-appointment'),
     path('appointments/<int:pk>/cancel/', CancelAppointmentView.as_view(), name='cancel-appointment'),
     path('appointments/schedule/', PatientScheduleView.as_view(), name='patient-schedule'),
