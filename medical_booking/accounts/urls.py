@@ -14,7 +14,9 @@ from .views import (
     DoctorProfileView,
     DoctorAvailabilityView,
     DoctorAvailabilityDeleteView,
-    AdminRegisterView
+    AdminRegisterView,
+    get_doctor_details,
+    get_doctor_availability
 )
 
 urlpatterns = [
@@ -32,6 +34,8 @@ urlpatterns = [
     path('doctor/availability/', DoctorAvailabilityView.as_view(), name='doctor-availability'),
     path('doctor/availability/<str:availability_id>/', DoctorAvailabilityView.as_view(), name='doctor-availability-detail'),
     path('doctor/availability/delete/', DoctorAvailabilityDeleteView.as_view(), name='doctor-availability-delete'),
+    path('doctors/<int:doctor_id>/', get_doctor_details, name='doctor-details'),
+    path('appointments/availability/<int:doctor_id>/<str:date>/', get_doctor_availability, name='doctor-availability'),
 ]
 
 if settings.DEBUG:

@@ -120,3 +120,12 @@ INFO 2025-04-20 20:06:32,454 basehttp 16216 25404 code 400, message Bad request 
 ERROR 2025-04-20 20:06:32,455 basehttp 16216 25404 You're accessing the development server over HTTPS, but it only supports HTTP.
 INFO 2025-04-20 20:09:09,861 autoreload 16216 2568 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
 INFO 2025-04-20 20:09:10,744 autoreload 15332 8828 Watching for file changes with StatReloader
+INFO 2025-04-20 20:46:34,772 autoreload 15332 8828 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
+INFO 2025-04-20 20:46:35,642 autoreload 4392 20760 Watching for file changes with StatReloader
+INFO 2025-04-20 20:46:47,419 autoreload 4392 20760 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\urls.py changed, reloading.
+INFO 2025-04-20 20:46:48,284 autoreload 2520 20304 Watching for file changes with StatReloader
+INFO 2025-04-20 20:46:59,789 autoreload 2520 20304 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\models.py changed, reloading.
+INFO 2025-04-20 20:47:00,655 autoreload 18340 18964 Watching for file changes with StatReloader
+INFO 2025-04-20 20:47:51,742 autoreload 18340 18964 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\admin.py changed, reloading.
+INFO 2025-04-20 20:47:52,525 autoreload 24992 12672 Watching for file changes with StatReloader
+INFO 2025-04-20 20:49:33,391 autoreload 20864 15336 Watching for file changes with StatReloader

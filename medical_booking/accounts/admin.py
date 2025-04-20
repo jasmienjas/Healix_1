@@ -15,6 +15,6 @@ admin.site.register(PatientProfile)
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'doctor', 'patient', 'appointment_datetime', 'status', 'created_at')
-    list_filter = ('status', 'appointment_datetime')
-    search_fields = ('doctor__user__username', 'patient__user__username', 'reason')
+    list_display = ('id', 'doctor', 'patient', 'appointment_date', 'start_time', 'status', 'created_at')
+    list_filter = ('status', 'appointment_date')
+    search_fields = ('doctor__user__username', 'patient__username', 'notes')

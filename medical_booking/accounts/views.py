@@ -19,6 +19,8 @@ from django.urls import reverse
 from datetime import datetime, timedelta
 from django.db.models import Q
 from django.db.utils import IntegrityError
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 
 import logging
 import os
@@ -789,4 +791,66 @@ class AdminRegisterView(APIView):
                 'success': False,
                 'message': f'Unexpected error: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_doctor_details(request, doctor_id):
+    try:
+        doctor = get_object_or_404(DoctorProfile, id=doctor_id)
+        serializer = DoctorProfileSerializer(doctor)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_doctor_availability(request, doctor_id, date):
+    try:
+        # Get the doctor
+        doctor = get_object_or_404(DoctorProfile, id=doctor_id)
+        
+        # Parse the date
+        selected_date = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Get office hours
+        start_time = datetime.strptime(doctor.office_hours_start, '%H:%M:%S').time()
+        end_time = datetime.strptime(doctor.office_hours_end, '%H:%M:%S').time()
+        
+        # Generate 1-hour slots
+        slots = []
+        current_time = datetime.combine(selected_date, start_time)
+        end_datetime = datetime.combine(selected_date, end_time)
+        
+        while current_time < end_datetime:
+            slot_end = current_time + timedelta(hours=1)
+            if slot_end > end_datetime:
+                break
+                
+            # Check if slot is already booked
+            is_available = not Appointment.objects.filter(
+                doctor=doctor,
+                appointment_date=selected_date,
+                start_time=current_time.time(),
+                end_time=slot_end.time()
+            ).exists()
+            
+            slots.append({
+                'id': len(slots) + 1,
+                'start_time': current_time.strftime('%H:%M'),
+                'end_time': slot_end.strftime('%H:%M'),
+                'is_available': is_available
+            })
+            
+            current_time = slot_end
+        
+        return Response({'slots': slots})
+        
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
         

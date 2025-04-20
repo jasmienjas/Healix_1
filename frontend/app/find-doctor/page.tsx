@@ -7,21 +7,23 @@ import { Search, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import Layout from '../components/layout';
 import { searchDoctors } from '@/services/doctor';
+import { useRouter } from 'next/navigation';
 
 interface Doctor {
   id: number;
   user: {
     id: number;
-    first_name: string;
-    last_name: string;
+    username: string;
     email: string;
+    user_type: string;
   };
   specialty: string;
   office_address: string;
   office_number: string;
   phone_number: string;
+  profile_picture: string | null;
   profile_picture_url: string | null;
-  appointment_cost: number;
+  appointment_cost: string | number;
   office_hours_start: string;
   office_hours_end: string;
   bio: string;
@@ -138,19 +140,26 @@ export default function FindDoctorPage() {
 }
 
 function DoctorCard({ doctor }: { doctor: Doctor }) {
-  const initials = `${doctor.user?.first_name?.[0] || ''}${doctor.user?.last_name?.[0] || ''}`;
-  const fullName = `${doctor.user?.first_name || ''} ${doctor.user?.last_name || ''}`.trim();
+  const router = useRouter();
+  console.log('Doctor data received:', doctor);
+  
+  // Extract name from username (e.g., 'dr_rami_khouri' -> 'Rami Khouri')
+  const nameParts = doctor.user.username.replace('dr_', '').split('_')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1));
+  const fullName = nameParts.join(' ');
+  const initials = nameParts.map(part => part[0]).join('');
   
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardContent className="p-6">
         <div className="flex items-start gap-6">
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden flex-shrink-0 border-2 border-blue-100">
-            {doctor.profile_picture_url ? (
+            {doctor.profile_picture ? (
               <img
-                src={doctor.profile_picture_url}
-                alt={fullName}
+                src={doctor.profile_picture}
+                alt={`Dr. ${fullName}`}
                 className="w-full h-full object-cover"
+                crossOrigin="anonymous"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -162,7 +171,7 @@ function DoctorCard({ doctor }: { doctor: Doctor }) {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-xl font-bold text-gray-900 mb-1">
-              {fullName ? `Dr. ${fullName}` : 'Doctor'}
+              Dr. {fullName}
             </h3>
             <p className="text-blue-600 font-medium mb-2">{doctor.specialty}</p>
             <div className="space-y-2">
@@ -182,7 +191,10 @@ function DoctorCard({ doctor }: { doctor: Doctor }) {
           </div>
         </div>
         <div className="mt-4">
-          <Button className="w-full bg-[#002B5B] hover:bg-[#002B5B]/90 text-white">
+          <Button 
+            className="w-full bg-[#002B5B] hover:bg-[#002B5B]/90 text-white"
+            onClick={() => router.push(`/doctor/${doctor.id}`)}
+          >
             Book Appointment
           </Button>
         </div>
