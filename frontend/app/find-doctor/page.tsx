@@ -1,32 +1,64 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import Layout from '../components/layout';
+import { searchDoctors } from '@/services/doctor';
 
 interface Doctor {
   id: number;
-  name: string;
-  specialty: string;
-  yearsExperience: number;
-  location: string;
-  hospital: string;
-  availability: {
-    days: string;
-    hours: string;
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
   };
-  price: number;
-  rating: number;
-  patientStories: number;
-  imageUrl: string;
+  specialty: string;
+  office_address: string;
+  office_number: string;
+  phone_number: string;
+  profile_picture_url: string | null;
+  appointment_cost: number;
+  office_hours_start: string;
+  office_hours_end: string;
+  bio: string;
+  years_of_experience: number;
+  education: string;
 }
 
 export default function FindDoctorPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [location, setLocation] = useState('');
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSearch = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await searchDoctors({
+        name: searchTerm,
+        location: location,
+        specialty: searchTerm // Using searchTerm for specialty as well
+      });
+      setDoctors(response.data || []);
+    } catch (err) {
+      setError('Failed to fetch doctors. Please try again.');
+      console.error('Error fetching doctors:', err);
+      setDoctors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Initial load of doctors
+    handleSearch();
+  }, []);
 
   return (
     <Layout>
@@ -42,6 +74,15 @@ export default function FindDoctorPage() {
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Input
+                    placeholder="Search by name or specialty"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="relative flex-1">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <Input
                     placeholder="Set your location"
@@ -50,47 +91,42 @@ export default function FindDoctorPage() {
                     className="pl-10"
                   />
                 </div>
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <Input
-                    placeholder="Ex: Doctor, Hospital"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Button className="w-full md:w-24 bg-[#003B6E] hover:bg-[#002D54]">
-                  Search
+                <Button onClick={handleSearch} disabled={loading}>
+                  {loading ? 'Searching...' : 'Search'}
                 </Button>
               </div>
             </CardContent>
           </Card>
         </section>
 
-        {/* Results Section */}
-        <section>
-          <div className="space-y-4">
-            <DoctorCard
-              doctor={{
-                id: 1,
-                name: "Dr. Karim Mansour",
-                specialty: "Psychiatrist",
-                yearsExperience: 16,
-                location: "Beirut",
-                hospital: "AUBMC",
-                availability: {
-                  days: "Tue, Thu",
-                  hours: "10:00 AM-01:00 PM"
-                },
-                price: 35,
-                rating: 99,
-                patientStories: 93,
-                imageUrl: "/doctors/karim-mansour.jpg"
-              }}
-            />
-            {/* Add more doctor cards as needed */}
+        {/* Error Message */}
+        {error && (
+          <div className="text-red-500 text-center">{error}</div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
+            <p className="mt-2 text-gray-600">Loading doctors...</p>
           </div>
-        </section>
+        )}
+
+        {/* No Results Message */}
+        {!loading && doctors.length === 0 && !error && (
+          <div className="text-center py-8">
+            <p className="text-gray-600">No doctors found. Try adjusting your search criteria.</p>
+          </div>
+        )}
+
+        {/* Doctors Grid */}
+        {!loading && doctors.length > 0 && (
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {doctors.map((doctor) => (
+              <DoctorCard key={doctor.id} doctor={doctor} />
+            ))}
+          </section>
+        )}
       </div>
     </Layout>
   );
@@ -98,65 +134,45 @@ export default function FindDoctorPage() {
 
 function DoctorCard({ doctor }: { doctor: Doctor }) {
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200">
+    <Card className="hover:shadow-lg transition-shadow">
       <CardContent className="p-6">
-        <div className="flex items-center gap-6">
-          {/* Doctor Info */}
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <h4 className="text-lg font-semibold">
-                {doctor.name}
-              </h4>
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                {doctor.specialty}
-              </span>
-            </div>
-            
-            <div className="space-y-2">
-              {/* Experience */}
-              <p className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {doctor.yearsExperience} years experience
-              </p>
-              
-              {/* Location */}
-              <p className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {doctor.location} • {doctor.hospital}
-              </p>
-
-              {/* Availability */}
-              <p className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {doctor.availability.days} • {doctor.availability.hours}
-              </p>
-
-              {/* Price */}
-              <p className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                ${doctor.price} Starting
-              </p>
-            </div>
+        <div className="flex items-start gap-4">
+          <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden">
+            {doctor.profile_picture_url ? (
+              <img
+                src={doctor.profile_picture_url}
+                alt={`${doctor.user.first_name} ${doctor.user.last_name}`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <span className="text-gray-400 text-2xl">
+                  {doctor.user.first_name[0]}{doctor.user.last_name[0]}
+                </span>
+              </div>
+            )}
           </div>
-
-          {/* Right: Action buttons */}
-          <div className="flex flex-col gap-2">
-            <Button variant="outline" className="w-32">
-              View Profile
-            </Button>
-            <Button className="w-32 bg-[#003B6E] hover:bg-[#002D54]">
-              Book Now
-            </Button>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">
+              Dr. {doctor.user.first_name} {doctor.user.last_name}
+            </h3>
+            <p className="text-gray-600">{doctor.specialty}</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {doctor.years_of_experience} years of experience
+            </p>
+            <p className="text-sm text-gray-500">
+              {doctor.office_address}
+            </p>
+            <p className="text-sm text-gray-500">
+              Office Hours: {doctor.office_hours_start} - {doctor.office_hours_end}
+            </p>
+            <p className="text-sm font-medium mt-2">
+              Consultation Fee: ${doctor.appointment_cost}
+            </p>
           </div>
+        </div>
+        <div className="mt-4">
+          <Button className="w-full">Book Appointment</Button>
         </div>
       </CardContent>
     </Card>

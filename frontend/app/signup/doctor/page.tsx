@@ -20,6 +20,7 @@ export default function DoctorSignupPage() {
   const [officeNumber, setOfficeNumber] = useState("")
   const [officeAddress, setOfficeAddress] = useState("")
   const [birthDate, setBirthDate] = useState("")
+  const [licenseNumber, setLicenseNumber] = useState("")
   const [medicalLicense, setMedicalLicense] = useState<File | null>(null)
   const [phdCertificate, setPhdCertificate] = useState<File | null>(null)
   const [error, setError] = useState("")
@@ -41,6 +42,13 @@ export default function DoctorSignupPage() {
     setIsLoading(true);
     setError('');
 
+    // Validate required fields
+    if (!licenseNumber.trim()) {
+        setError('Medical license number is required');
+        setIsLoading(false);
+        return;
+    }
+
     try {
       const signupData = {
         firstName,
@@ -51,14 +59,21 @@ export default function DoctorSignupPage() {
         officeNumber,
         officeAddress,
         birthDate,
+        licenseNumber: licenseNumber.trim(), // Ensure we send trimmed value
         medicalLicense,
         phdCertificate
       };
 
+      console.log('Submitting data:', {
+        ...signupData,
+        password: '***',
+        medicalLicense: medicalLicense ? `File: ${medicalLicense.name}` : null,
+        phdCertificate: phdCertificate ? `File: ${phdCertificate.name}` : null
+      });
+
       await signupDoctor(signupData);
       setIsSubmitted(true);
       setRegisteredEmail(email);
-      // Clear form or redirect as needed
     } catch (error) {
       console.error('Signup error:', error);
       setError(error instanceof Error ? error.message : 'An error occurred during signup');
@@ -249,6 +264,20 @@ export default function DoctorSignupPage() {
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                        Medical License Number
+                      </label>
+                      <input
+                        id="licenseNumber"
+                        type="text"
+                        value={licenseNumber}
+                        onChange={(e) => setLicenseNumber(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
                     </div>
                   </div>
 

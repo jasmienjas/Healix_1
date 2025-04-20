@@ -157,26 +157,33 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
     birthDate = serializers.DateField(source='dob')
     medicalLicense = serializers.FileField(write_only=True)
     phdCertificate = serializers.FileField(write_only=True)
+    licenseNumber = serializers.CharField(write_only=True)
 
     class Meta:
         model = CustomUser
         fields = [
             'id', 'firstName', 'lastName', 'email', 'password',
             'phoneNumber', 'officeNumber', 'officeAddress',
-            'birthDate', 'medicalLicense', 'phdCertificate'
+            'birthDate', 'medicalLicense', 'phdCertificate', 'licenseNumber'
         ]
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate(self, attrs):
+        print("Validating data:", attrs)
         if not attrs.get('medicalLicense'):
             raise serializers.ValidationError({'medicalLicense': 'Medical license is required.'})
         if not attrs.get('phdCertificate'):
             raise serializers.ValidationError({'phdCertificate': 'PhD certificate is required.'})
+        if not attrs.get('licenseNumber'):
+            raise serializers.ValidationError({'licenseNumber': 'Medical license number is required.'})
+        print("License number in validation:", attrs.get('licenseNumber'))
         return attrs
 
     def create(self, validated_data):
         try:
             print("Starting doctor registration process")
+            print("Validated data:", validated_data)
+            
             # Extract frontend fields
             first_name = validated_data.pop('firstName')
             last_name = validated_data.pop('lastName')
@@ -185,8 +192,9 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
             office_address = validated_data.pop('officeAddress')
             medical_license = validated_data.pop('medicalLicense')
             phd_certificate = validated_data.pop('phdCertificate')
+            license_number = validated_data.pop('licenseNumber')
 
-            print(f"Extracted data: first_name={first_name}, last_name={last_name}, email={validated_data['email']}")
+            print(f"Extracted data: first_name={first_name}, last_name={last_name}, email={validated_data['email']}, license_number={license_number}")
 
             # Create username
             username = f"dr_{first_name.lower()}_{last_name.lower()}"
@@ -220,26 +228,34 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
             print(f"Files saved: {medical_license_path}, {phd_certificate_path}")
 
             # Create doctor profile
-            DoctorProfile.objects.create(
-                user=user,
-                phone_number=phone_number,
-                office_number=office_number,
-                office_address=office_address,
-                medical_license=medical_license_path,
-                certificate=phd_certificate_path,
-                # Set default values for required fields
-                specialty='General Medicine',  # This will be updated later
-                appointment_cost=0.00,  # This will be updated later
-                office_hours_start='09:00:00',  # This will be updated later
-                office_hours_end='17:00:00',  # This will be updated later
-                bio='',  # This will be updated later
-                years_of_experience=0,  # This will be updated later
-                education=''  # This will be updated later
-            )
+            print(f"Creating doctor profile with license_number: {license_number}")
+            try:
+                doctor_profile_data = {
+                    'user': user,
+                    'phone_number': phone_number,
+                    'office_number': office_number,
+                    'office_address': office_address,
+                    'medical_license': medical_license_path,
+                    'certificate': phd_certificate_path,
+                    'license_number': license_number,
+                    'specialty': 'General Medicine',
+                    'appointment_cost': 0.00,
+                    'office_hours_start': '09:00:00',
+                    'office_hours_end': '17:00:00',
+                    'bio': '',
+                    'years_of_experience': 0,
+                    'education': ''
+                }
+                print("Doctor profile data:", doctor_profile_data)
+                doctor_profile = DoctorProfile.objects.create(**doctor_profile_data)
+                print(f"Doctor profile created: {doctor_profile}")
+            except Exception as e:
+                print(f"Error creating doctor profile: {str(e)}")
+                # If profile creation fails, delete the user
+                user.delete()
+                raise e
 
-            print(f"Doctor profile created for user {user.id}")
             return user
-
         except Exception as e:
             print(f"Error in create method: {str(e)}")
             # If user was created but profile creation failed, delete the user

@@ -9,6 +9,7 @@ interface DoctorSignupData {
     officeNumber: string;
     officeAddress: string;
     birthDate: string;
+    licenseNumber: string;
     medicalLicense: File | null;
     phdCertificate: File | null;
 }
@@ -31,6 +32,13 @@ export async function signupDoctor(data: DoctorSignupData) {
         formData.append('officeNumber', data.officeNumber);
         formData.append('officeAddress', data.officeAddress);
         formData.append('birthDate', data.birthDate);
+        formData.append('licenseNumber', data.licenseNumber);
+
+        // Debug: Log all form data entries
+        console.log('FormData contents:');
+        for (const [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+        }
 
         // Add files if they exist
         if (data.medicalLicense) {
@@ -44,7 +52,8 @@ export async function signupDoctor(data: DoctorSignupData) {
             ...data,
             password: '***',
             medicalLicense: data.medicalLicense ? `File: ${data.medicalLicense.name}` : null,
-            phdCertificate: data.phdCertificate ? `File: ${data.phdCertificate.name}` : null
+            phdCertificate: data.phdCertificate ? `File: ${data.phdCertificate.name}` : null,
+            licenseNumber: data.licenseNumber // Explicitly log license number
         });
 
         const response = await fetch(url, {
