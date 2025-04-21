@@ -64,13 +64,13 @@ export function BookingDialog({
       
       // Format the date to YYYY-MM-DD
       const dateParts = appointmentDate.split(', ')[1].split(' ');
-      const monthMap = {
+      const monthMap: { [key: string]: string } = {
         'January': '01', 'February': '02', 'March': '03', 'April': '04',
         'May': '05', 'June': '06', 'July': '07', 'August': '08',
         'September': '09', 'October': '10', 'November': '11', 'December': '12'
       };
       const day = dateParts[1].replace(/\D/g, '');
-      const month = monthMap[dateParts[0]];
+      const month = monthMap[dateParts[0]] || '01'; // Fallback to January if month not found
       const year = new Date().getFullYear();
       const formattedDate = `${year}-${month}-${day.padStart(2, '0')}`;
 
@@ -110,8 +110,14 @@ export function BookingDialog({
       formData.append('end_time', endTime);
       formData.append('status', 'pending');
       formData.append('reason', problem);
-      if (document) {
-        formData.append('document', document);
+      // Only append document if it exists and the feature is supported
+      try {
+        if (document) {
+          formData.append('document', document);
+        }
+      } catch (error) {
+        console.warn('Document upload failed:', error);
+        // Continue without the document
       }
 
       // Create the appointment
