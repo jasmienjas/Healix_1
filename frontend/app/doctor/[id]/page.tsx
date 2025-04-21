@@ -150,9 +150,15 @@ export default function DoctorProfilePage() {
                     height={192}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Fallback to initials if image fails to load
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.parentElement?.querySelector('.fallback-initials')?.style.display = 'flex';
+                      const imgElement = e.currentTarget;
+                      const parentElement = imgElement.parentElement;
+                      if (parentElement) {
+                        imgElement.style.display = 'none';
+                        const fallbackElement = parentElement.querySelector('.fallback-initials');
+                        if (fallbackElement instanceof HTMLElement) {
+                          fallbackElement.style.display = 'flex';
+                        }
+                      }
                     }}
                   />
                 ) : (
