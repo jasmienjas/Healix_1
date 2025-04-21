@@ -575,8 +575,8 @@ class DoctorAvailabilityView(APIView):
             # Get booked appointments
             appointments = Appointment.objects.filter(
                 doctor=request.user.doctor_profile,
-                appointment_datetime__year=year,
-                appointment_datetime__month=month
+                appointment_date__year=year,
+                appointment_date__month=month
             )
             
             logger.info(f"Found {appointments.count()} booked appointments")
@@ -590,8 +590,8 @@ class DoctorAvailabilityView(APIView):
 
                 # Check if this slot is booked
                 is_booked = appointments.filter(
-                    appointment_datetime__date=slot.date,
-                    appointment_datetime__time=slot.start_time
+                    appointment_date=slot.date,
+                    start_time=slot.start_time
                 ).exists()
 
                 availability_data[date_str].append({

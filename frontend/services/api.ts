@@ -328,3 +328,32 @@ export async function updateDoctorProfile(formData: FormData) {
 
   return response.json();
 }
+
+export async function getDoctorAppointments() {
+  try {
+    const token = getToken()
+    if (!token) {
+      throw new Error('No authentication token found')
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/appointments/doctor-schedule/`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch appointments')
+    }
+    
+    const data = await response.json()
+    console.log('Doctor appointments:', data)
+    
+    // Return the appointments array directly
+    return data.data || []
+  } catch (error) {
+    console.error('Error fetching doctor appointments:', error)
+    throw error
+  }
+}

@@ -33,8 +33,12 @@ interface DoctorProfile {
 
 interface Appointment {
   id: string;
-  patient: PatientProfile;
-  doctor: DoctorProfile;
+  patient: number;
+  patient_name: string;
+  patient_email: string;
+  doctor: number;
+  doctor_name: string;
+  doctor_email: string;
   appointment_date: string;
   start_time: string;
   end_time: string;
@@ -104,23 +108,24 @@ export default function DoctorDashboard() {
     const fetchAppointments = async () => {
       try {
         console.log('Fetching doctor appointments...');
-        const data = await api.appointments.getDoctorAppointments();
-        console.log('Raw API response:', data);
+        const response = await api.appointments.getDoctorAppointments();
+        console.log('Raw API response:', response);
         
-        if (!Array.isArray(data)) {
-          console.error('Unexpected response format:', data);
+        if (!Array.isArray(response)) {
+          console.error('Unexpected response format:', response);
           throw new Error('Invalid response format');
         }
         
-        if (data.length > 0) {
-          console.log('First appointment:', data[0]);
+        if (response.length > 0) {
+          console.log('First appointment:', response[0]);
+          const [firstName, lastName] = response[0].doctor_name.split(' ');
           setDoctorName({
-            first_name: data[0].doctor.user.first_name,
-            last_name: data[0].doctor.user.last_name
+            first_name: firstName,
+            last_name: lastName
           });
         }
         
-        setAppointments(data);
+        setAppointments(response);
         setError(null);
       } catch (error) {
         console.error('Error fetching appointments:', error);
@@ -137,14 +142,24 @@ export default function DoctorDashboard() {
     try {
       if (!selectedAppointment) return;
       
+      const [date, time] = datetime.split('T');
+      // Add 30 minutes to the start time for end_time
+      const startTime = new Date(`2000-01-01T${time}`);
+      const endTime = new Date(startTime.getTime() + 30 * 60000);
+      const formattedEndTime = endTime.toTimeString().slice(0, 5);
+      
       await api.appointments.postponeAppointment(parseInt(selectedAppointment), {
-        appointment_datetime: datetime,
+        appointment_date: date,
+        start_time: time,
+        end_time: formattedEndTime,
         postpone_reason: reason
       });
       
       toast.success('Appointment postponed successfully');
       setIsPostponeDialogOpen(false);
-      fetchAppointments();
+      // Refresh appointments
+      const newAppointments = await api.appointments.getDoctorAppointments();
+      setAppointments(newAppointments);
     } catch (error) {
       console.error('Error postponing appointment:', error);
       toast.error('Failed to postpone appointment');
@@ -161,7 +176,9 @@ export default function DoctorDashboard() {
       
       toast.success('Appointment cancelled successfully');
       setIsCancelDialogOpen(false);
-      fetchAppointments();
+      // Refresh appointments
+      const newAppointments = await api.appointments.getDoctorAppointments();
+      setAppointments(newAppointments);
     } catch (error) {
       console.error('Error cancelling appointment:', error);
       toast.error('Failed to cancel appointment');
@@ -236,7 +253,7 @@ export default function DoctorDashboard() {
                             <div className="flex-1 space-y-2">
                               <div className="flex items-center gap-2">
                                 <h4 className="text-lg font-semibold">
-                                  Patient: {appointment.patient.user.first_name} {appointment.patient.user.last_name}
+                                  Patient: {appointment.patient_name}
                                 </h4>
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                   appointment.status === 'confirmed' ? 'bg-green-100 text-green-700' :
@@ -253,7 +270,7 @@ export default function DoctorDashboard() {
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                   </svg>
-                                  {appointment.patient.user.email}
+                                  {appointment.patient_email}
                                 </p>
                                 <p className="flex items-center gap-2">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
