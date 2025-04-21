@@ -9,6 +9,7 @@ import Layout from '@/app/components/layout';
 import { format } from 'date-fns';
 import { MapPin, Clock, Phone, Mail, Calendar as CalendarIcon } from 'lucide-react';
 import Image from 'next/image';
+import { BookingDialog } from '@/app/components/BookingDialog';
 
 interface TimeSlot {
   id: number;
@@ -47,6 +48,8 @@ export default function DoctorProfilePage() {
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
   // Extract name from username
   const getDoctorName = (username: string) => {
@@ -260,7 +263,8 @@ export default function DoctorProfilePage() {
                             variant={slot.is_available ? "outline" : "ghost"}
                             disabled={!slot.is_available}
                             onClick={() => {
-                              router.push(`/book-appointment/${doctor.id}/${format(selectedDate, 'yyyy-MM-dd')}/${slot.id}`);
+                              setSelectedSlot(slot);
+                              setIsBookingDialogOpen(true);
                             }}
                             className="w-full"
                           >
@@ -282,6 +286,23 @@ export default function DoctorProfilePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Booking Dialog */}
+        {doctor && selectedSlot && (
+          <BookingDialog
+            isOpen={isBookingDialogOpen}
+            onClose={() => {
+              setIsBookingDialogOpen(false);
+              setSelectedSlot(null);
+            }}
+            doctorName={getDoctorName(doctor.user.username)}
+            location={doctor.office_address}
+            appointmentTime={`${selectedSlot.start_time} - ${selectedSlot.end_time}`}
+            appointmentDate={selectedDate ? format(selectedDate, 'EEEE, MMMM do') : ''}
+            duration="30 mins"
+            fee={doctor.appointment_cost}
+          />
+        )}
       </div>
     </Layout>
   );
