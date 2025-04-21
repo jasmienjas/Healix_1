@@ -10,7 +10,7 @@ logger = logging.getLogger('accounts')
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'user_type']
+        fields = ['id', 'username', 'email', 'user_type', 'first_name', 'last_name']
 
 class DoctorSerializer(serializers.ModelSerializer):
     class Meta:

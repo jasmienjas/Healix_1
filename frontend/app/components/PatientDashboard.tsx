@@ -19,7 +19,11 @@ interface User {
 
 interface Doctor {
   id: number;
-  user: User;
+  user: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
   specialty: string;
   office_address: string;
 }
@@ -75,6 +79,7 @@ export default function PatientDashboard() {
       if (!response.success) {
         throw new Error(response.message);
       }
+      console.log('Appointments data:', JSON.stringify(response.data, null, 2));
       setAppointments(response.data);
       setLoading(false);
     } catch (error) {
@@ -172,6 +177,7 @@ export default function PatientDashboard() {
         <div className="space-y-4">
           {appointments.length > 0 ? (
             appointments.map((appointment) => {
+              console.log('Individual appointment data:', JSON.stringify(appointment, null, 2));
               const { date, time } = formatAppointmentDateTime(appointment.appointment_date, appointment.start_time);
               const isPastAppointment = new Date(`${appointment.appointment_date}T${appointment.end_time}`) < new Date();
 
