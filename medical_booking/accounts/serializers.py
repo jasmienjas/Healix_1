@@ -278,43 +278,38 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
 
 class AppointmentSerializer(serializers.ModelSerializer):
     patient_name = serializers.SerializerMethodField()
-    doctor_name = serializers.SerializerMethodField()
     patient_email = serializers.SerializerMethodField()
+    doctor_name = serializers.SerializerMethodField()
     doctor_email = serializers.SerializerMethodField()
+    document_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
         fields = [
-            'id',
-            'patient',
-            'patient_name',
-            'patient_email',
-            'doctor',
-            'doctor_name',
-            'doctor_email',
-            'appointment_date',
-            'start_time',
-            'end_time',
-            'status',
-            'reason',
-            'created_at',
-            'updated_at'
+            'id', 'patient', 'patient_name', 'patient_email',
+            'doctor', 'doctor_name', 'doctor_email',
+            'appointment_date', 'start_time', 'end_time',
+            'status', 'reason', 'notes', 'document', 'document_url',
+            'created_at', 'updated_at'
         ]
+        read_only_fields = ['patient', 'doctor', 'created_at', 'updated_at']
 
     def get_patient_name(self, obj):
         return f"{obj.patient.first_name} {obj.patient.last_name}"
 
-    def get_doctor_name(self, obj):
-        return f"{obj.doctor.user.first_name} {obj.doctor.user.last_name}"
-
     def get_patient_email(self, obj):
         return obj.patient.email
+
+    def get_doctor_name(self, obj):
+        return f"{obj.doctor.user.first_name} {obj.doctor.user.last_name}"
 
     def get_doctor_email(self, obj):
         return obj.doctor.user.email
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        if hasattr(instance, 'notes'):
-            data['notes'] = instance.notes
-        return data
+    def get_document_url(self, obj):
+        if obj.document:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.url)
+            return obj.document.url
+        return None

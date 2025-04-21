@@ -46,6 +46,7 @@ interface Appointment {
   reason: string;
   created_at: string;
   updated_at: string;
+  doctor_name: string;
 }
 
 interface DoctorSearchResult {
@@ -203,7 +204,7 @@ export default function PatientDashboard() {
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2">
                           <h4 className="text-lg font-semibold">
-                            Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name}
+                            Dr. {appointment.doctor_name}
                           </h4>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                             appointment.status === 'confirmed' ? 'bg-green-100 text-green-700' :
