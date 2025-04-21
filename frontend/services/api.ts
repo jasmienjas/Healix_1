@@ -25,10 +25,20 @@ export async function getPatientAppointments() {
     
     const data = await response.json()
     console.log('Patient appointments:', data)
-    return data
+    
+    // Ensure the response has the expected structure
+    return {
+      success: true,
+      data: Array.isArray(data) ? data : [],
+      message: 'Appointments fetched successfully'
+    }
   } catch (error) {
     console.error('Error fetching patient appointments:', error)
-    throw error
+    return {
+      success: false,
+      data: [],
+      message: error instanceof Error ? error.message : 'Failed to fetch appointments'
+    }
   }
 }
 

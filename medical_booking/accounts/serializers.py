@@ -277,6 +277,9 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         }
 
 class AppointmentSerializer(serializers.ModelSerializer):
+    patient = UserSerializer(read_only=True)
+    doctor = DoctorProfileSerializer(read_only=True)
+
     class Meta:
         model = Appointment
         fields = [
@@ -291,7 +294,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at'
         ]
-        depth = 2  # This will include nested serialization of patient and doctor
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

@@ -26,7 +26,9 @@ interface Doctor {
 
 interface Patient {
   id: number;
-  user: User;
+  first_name: string;
+  last_name: string;
+  email: string;
 }
 
 interface Appointment {
@@ -69,20 +71,15 @@ export default function PatientDashboard() {
 
   const fetchAppointments = async () => {
     try {
-      console.log('Fetching patient appointments...');
       const response = await api.appointments.getPatientAppointments();
-      console.log('Raw API response:', response);
-      
       if (!response.success) {
-        throw new Error(response.message || 'Failed to fetch appointments');
+        throw new Error(response.message);
       }
-      
-      setAppointments(response.data || []);
-      setError(null);
+      setAppointments(response.data);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load appointments');
-    } finally {
+      setError(error instanceof Error ? error.message : 'Failed to fetch appointments');
       setLoading(false);
     }
   };
@@ -165,7 +162,7 @@ export default function PatientDashboard() {
       {/* Greeting */}
       <section>
         <h1 className="text-3xl font-bold mb-2">
-          Hello, {appointments.length > 0 ? appointments[0].patient.user.first_name : 'there'}
+          Hello, {appointments.length > 0 ? appointments[0].patient.first_name : 'there'}
         </h1>
       </section>
 
