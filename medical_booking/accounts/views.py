@@ -856,20 +856,52 @@ def get_doctor_details(request, doctor_id):
 @permission_classes([AllowAny])
 def get_doctor_availability(request, doctor_id, date):
     try:
+        logger.info(f"Fetching availability for doctor {doctor_id} on date {date}")
+        
         # Get the doctor
-        doctor = get_object_or_404(DoctorProfile, id=doctor_id)
+        try:
+            doctor = DoctorProfile.objects.get(id=doctor_id)
+        except DoctorProfile.DoesNotExist:
+            logger.warning(f"Doctor with ID {doctor_id} not found")
+            return Response(
+                {
+                    'success': False,
+                    'error': 'Doctor not found',
+                    'message': f'No doctor found with ID {doctor_id}'
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         # Parse the date
-        selected_date = datetime.strptime(date, '%Y-%m-%d').date()
+        try:
+            selected_date = datetime.strptime(date, '%Y-%m-%d').date()
+        except ValueError:
+            logger.error(f"Invalid date format: {date}")
+            return Response(
+                {
+                    'success': False,
+                    'error': 'Invalid date',
+                    'message': 'Date must be in YYYY-MM-DD format'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
-        # Get office hours
-        start_time = datetime.strptime(doctor.office_hours_start, '%H:%M:%S').time()
-        end_time = datetime.strptime(doctor.office_hours_end, '%H:%M:%S').time()
+        # Check if office hours are set
+        if not doctor.office_hours_start or not doctor.office_hours_end:
+            logger.warning(f"Doctor {doctor_id} has no office hours set")
+            return Response(
+                {
+                    'success': False,
+                    'error': 'No office hours',
+                    'message': 'Doctor has not set their office hours'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         # Generate 1-hour slots
         slots = []
-        current_time = datetime.combine(selected_date, start_time)
-        end_datetime = datetime.combine(selected_date, end_time)
+        current_time = datetime.combine(selected_date, doctor.office_hours_start)
+        end_datetime = datetime.combine(selected_date, doctor.office_hours_end)
         
         while current_time < end_datetime:
             slot_end = current_time + timedelta(hours=1)
@@ -893,11 +925,20 @@ def get_doctor_availability(request, doctor_id, date):
             
             current_time = slot_end
         
-        return Response({'slots': slots})
+        logger.info(f"Generated {len(slots)} slots for doctor {doctor_id} on {date}")
+        return Response({
+            'success': True,
+            'slots': slots
+        })
         
     except Exception as e:
+        logger.error(f"Error generating availability for doctor {doctor_id} on {date}: {str(e)}", exc_info=True)
         return Response(
-            {'error': str(e)},
+            {
+                'success': False,
+                'error': 'Failed to get availability',
+                'message': str(e)
+            },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
         

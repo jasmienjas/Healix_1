@@ -6,8 +6,10 @@ export async function GET(
   { params }: { params: { id: string; date: string } }
 ) {
   try {
+    console.log(`Fetching availability for doctor ${params.id} on date ${params.date}`);
+    
     const response = await fetch(
-      `${API_BASE_URL}/api/appointments/availability/${params.id}/${params.date}/`,
+      `${API_BASE_URL}/api/accounts/appointments/availability/${params.id}/${params.date}/`,
       {
         headers: {
           'Accept': 'application/json',
@@ -16,24 +18,23 @@ export async function GET(
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch availability: ${response.status}`);
+      const errorData = await response.json();
+      console.error('Error response:', errorData);
+      throw new Error(errorData.message || `Failed to fetch availability: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('Availability data:', data);
 
-    // Transform the data into time slots
-    const timeSlots = data.slots.map((slot: any) => ({
-      id: slot.id,
-      start_time: slot.start_time,
-      end_time: slot.end_time,
-      is_available: slot.is_available
-    }));
-
-    return NextResponse.json(timeSlots);
+    return NextResponse.json(data.slots || []);
   } catch (error) {
     console.error('Error fetching availability:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch availability' },
+      { 
+        success: false,
+        error: 'Failed to fetch availability',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

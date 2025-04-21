@@ -92,10 +92,17 @@ export default function DoctorProfilePage() {
     const fetchAvailability = async () => {
       try {
         const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+        console.log(`Fetching availability for date: ${formattedDate}`);
+        
         const response = await fetch(`/api/doctors/${doctor.id}/availability/${formattedDate}`);
-        if (!response.ok) throw new Error('Failed to fetch availability');
         const data = await response.json();
-        setAvailableSlots(data);
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch availability');
+        }
+
+        console.log('Received availability data:', data);
+        setAvailableSlots(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Error fetching availability:', err);
         setAvailableSlots([]);
@@ -244,26 +251,30 @@ export default function DoctorProfilePage() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Available Time Slots</h3>
                 {selectedDate ? (
-                  availableSlots.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      {availableSlots.map((slot) => (
-                        <Button
-                          key={slot.id}
-                          variant={slot.is_available ? "outline" : "ghost"}
-                          disabled={!slot.is_available}
-                          onClick={() => {
-                            // Handle booking
-                            router.push(`/book-appointment/${doctor.id}/${format(selectedDate, 'yyyy-MM-dd')}/${slot.id}`);
-                          }}
-                          className="w-full"
-                        >
-                          {slot.start_time}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No available slots for this date</p>
-                  )
+                  <>
+                    {availableSlots.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {availableSlots.map((slot) => (
+                          <Button
+                            key={slot.id}
+                            variant={slot.is_available ? "outline" : "ghost"}
+                            disabled={!slot.is_available}
+                            onClick={() => {
+                              router.push(`/book-appointment/${doctor.id}/${format(selectedDate, 'yyyy-MM-dd')}/${slot.id}`);
+                            }}
+                            className="w-full"
+                          >
+                            {slot.start_time} - {slot.end_time}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-500">No available slots for this date</p>
+                        <p className="text-sm text-gray-400 mt-2">Please try selecting a different date</p>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <p className="text-gray-500">Please select a date to view available slots</p>
                 )}
