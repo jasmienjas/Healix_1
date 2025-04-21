@@ -97,7 +97,7 @@ export default function PatientDashboard() {
     if (!selectedAppointment) return;
 
     try {
-      await cancelAppointment(selectedAppointment);
+      await cancelAppointment(selectedAppointment, "Cancelled by patient");
       
       setAppointments(appointments.map(appointment => 
         appointment.id === Number(selectedAppointment)
@@ -105,6 +105,7 @@ export default function PatientDashboard() {
           : appointment
       ));
 
+      setIsConfirmDialogOpen(false);
       toast.success("Appointment cancelled successfully");
     } catch (error) {
       console.error("Error cancelling appointment:", error);

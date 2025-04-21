@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '@/config';
 import { sendVerificationEmail } from '@/lib/verify';
+import { JWT_STORAGE_KEY, REFRESH_TOKEN_KEY, USER_STORAGE_KEY } from '@/lib/constants';
 import crypto from 'crypto';
 
 interface LoginResponse {
@@ -40,9 +41,9 @@ export const auth = {
       }
 
       // Store auth data
-      localStorage.setItem('access_token', data.access);
-      localStorage.setItem('refresh_token', data.refresh);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem(JWT_STORAGE_KEY, data.access);
+      localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
       
       console.log('Stored user data:', data.user);
       console.log('User type:', data.user.user_type);
@@ -62,17 +63,17 @@ export const auth = {
   },
 
   logout: () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    localStorage.removeItem(JWT_STORAGE_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(USER_STORAGE_KEY);
   },
 
   getUser: () => {
-    const userStr = localStorage.getItem('user');
+    const userStr = localStorage.getItem(USER_STORAGE_KEY);
     if (userStr) {
       return JSON.parse(userStr);
     }
-    return userStr ? JSON.parse(userStr) : null;
+    return null;
   },
 
   isEmailVerified: (email: string): boolean => {

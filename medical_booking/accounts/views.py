@@ -225,10 +225,14 @@ class CancelAppointmentView(APIView):
     def patch(self, request, pk):
         appointment = get_object_or_404(Appointment, pk=pk)
         
-        if request.user.user_type != 'doctor':
+        # Check if the user is either the doctor or the patient of the appointment
+        is_doctor = request.user.user_type == 'doctor' and appointment.doctor.user == request.user
+        is_patient = request.user == appointment.patient
+        
+        if not (is_doctor or is_patient):
             return Response({
                 'success': False,
-                'message': 'Only doctors can cancel appointments.'
+                'message': 'You can only cancel your own appointments.'
             }, status=status.HTTP_403_FORBIDDEN)
         
         cancellation_message = request.data.get('cancellation_message')
@@ -244,19 +248,34 @@ class CancelAppointmentView(APIView):
         
         # Send email notification
         try:
-            subject = "Appointment Cancellation Notice"
-            message = (
-                f"Dear {appointment.patient.first_name},\n\n"
-                f"Your appointment scheduled on {appointment.appointment_date} at {appointment.start_time} "
-                f"has been cancelled by Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name}.\n\n"
-                f"Message from doctor: {cancellation_message}\n\n"
-                f"Best regards,\nHealix Team"
-            )
+            if is_doctor:
+                # Doctor cancelled the appointment
+                subject = "Appointment Cancellation Notice"
+                message = (
+                    f"Dear {appointment.patient.first_name},\n\n"
+                    f"Your appointment scheduled on {appointment.appointment_date} at {appointment.start_time} "
+                    f"has been cancelled by Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name}.\n\n"
+                    f"Message: {cancellation_message}\n\n"
+                    f"Best regards,\nHealix Team"
+                )
+                recipient = appointment.patient.email
+            else:
+                # Patient cancelled the appointment
+                subject = "Appointment Cancellation Notice"
+                message = (
+                    f"Dear Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name},\n\n"
+                    f"The appointment scheduled on {appointment.appointment_date} at {appointment.start_time} "
+                    f"has been cancelled by the patient {appointment.patient.first_name} {appointment.patient.last_name}.\n\n"
+                    f"Message: {cancellation_message}\n\n"
+                    f"Best regards,\nHealix Team"
+                )
+                recipient = appointment.doctor.user.email
+
             send_mail(
                 subject,
                 message,
                 settings.DEFAULT_FROM_EMAIL,
-                [appointment.patient.email]
+                [recipient]
             )
         except Exception as e:
             logger.error(f"Failed to send cancellation email: {e}")
