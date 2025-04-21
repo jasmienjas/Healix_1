@@ -276,9 +276,9 @@ class PatientScheduleView(generics.ListAPIView):
         try:
             logger.info(f"Fetching appointments for patient: {self.request.user.id}")
             return Appointment.objects.filter(
-                patient__user=self.request.user
+                patient=self.request.user
             ).select_related(
-                'patient__user',
+                'patient',
                 'doctor__user'
             )
         except Exception as e:
