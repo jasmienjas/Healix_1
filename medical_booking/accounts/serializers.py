@@ -277,15 +277,21 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         }
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    patient = UserSerializer(read_only=True)
-    doctor = DoctorProfileSerializer(read_only=True)
+    patient_name = serializers.SerializerMethodField()
+    doctor_name = serializers.SerializerMethodField()
+    patient_email = serializers.SerializerMethodField()
+    doctor_email = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
         fields = [
             'id',
             'patient',
+            'patient_name',
+            'patient_email',
             'doctor',
+            'doctor_name',
+            'doctor_email',
             'appointment_date',
             'start_time',
             'end_time',
@@ -295,9 +301,20 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'updated_at'
         ]
 
+    def get_patient_name(self, obj):
+        return f"{obj.patient.first_name} {obj.patient.last_name}"
+
+    def get_doctor_name(self, obj):
+        return f"{obj.doctor.user.first_name} {obj.doctor.user.last_name}"
+
+    def get_patient_email(self, obj):
+        return obj.patient.email
+
+    def get_doctor_email(self, obj):
+        return obj.doctor.user.email
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        # Add notes field if it exists in the model
         if hasattr(instance, 'notes'):
             data['notes'] = instance.notes
         return data

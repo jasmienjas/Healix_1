@@ -350,21 +350,21 @@ class DoctorScheduleView(APIView):
                     'message': 'Only doctors can access this endpoint'
                 }, status=status.HTTP_403_FORBIDDEN)
 
-            print(f"Fetching appointments for doctor: {request.user.id}")  # Debug log
+            logger.info(f"Fetching appointments for doctor: {request.user.id}")
             
             doctor_profile = request.user.doctor_profile
             appointments = Appointment.objects.filter(
                 doctor=doctor_profile
             ).select_related(
-                'patient__user',
-                'doctor__user'
+                'patient',
+                'doctor'
             )
             
-            print(f"Found {appointments.count()} appointments")  # Debug log
+            logger.info(f"Found {appointments.count()} appointments")
             
             serializer = AppointmentSerializer(appointments, many=True)
             serialized_data = serializer.data
-            print(f"Serialized data: {serialized_data}")  # Debug log
+            logger.info(f"Serialized data: {serialized_data}")
             
             return Response({
                 'success': True,
@@ -372,7 +372,7 @@ class DoctorScheduleView(APIView):
                 'data': serialized_data
             })
         except Exception as e:
-            print(f"Error in DoctorScheduleView: {str(e)}")  # Debug log
+            logger.error(f"Error in DoctorScheduleView: {str(e)}")
             return Response({
                 'success': False,
                 'message': str(e)
