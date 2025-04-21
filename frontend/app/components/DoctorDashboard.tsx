@@ -10,6 +10,7 @@ import { PostponeDialog } from './PostponeDialog';
 import { CancelDialog } from './CancelDialog';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { format } from 'date-fns';
 
 interface User {
   id: number;
@@ -34,7 +35,9 @@ interface Appointment {
   id: string;
   patient: PatientProfile;
   doctor: DoctorProfile;
-  appointment_datetime: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'postponed';
   reason: string;
   created_at: string;
@@ -46,26 +49,11 @@ interface DoctorInfo {
   last_name: string;
 }
 
-function formatDateTime(dateTimeStr: string) {
-  const date = new Date(dateTimeStr);
-  
-  // Format date
-  const formattedDate = date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-
-  // Format time
-  const formattedTime = date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
+function formatAppointmentDateTime(date: string, time: string) {
+  const dateObj = new Date(`${date}T${time}`);
   return {
-    date: formattedDate,
-    time: formattedTime
+    date: format(dateObj, 'MMMM d, yyyy'),
+    time: format(dateObj, 'h:mm a')
   };
 }
 
@@ -226,7 +214,7 @@ export default function DoctorDashboard() {
               <div className="space-y-4">
                 {appointments.length > 0 ? (
                   appointments.map((appointment) => {
-                    const { date, time } = formatDateTime(appointment.appointment_datetime);
+                    const { date, time } = formatAppointmentDateTime(appointment.appointment_date, appointment.start_time);
                     return (
                       <Card key={appointment.id} className="hover:shadow-lg transition-shadow duration-200">
                         <CardContent className="p-6">
@@ -234,13 +222,13 @@ export default function DoctorDashboard() {
                             {/* Date display */}
                             <div className="bg-blue-50 text-blue-600 rounded-xl p-4 text-center min-w-[100px] shadow-sm">
                               <div className="text-2xl font-bold">
-                                {new Date(appointment.appointment_datetime).getDate()}
+                                {new Date(appointment.appointment_date).getDate()}
                               </div>
                               <div className="text-sm font-medium">
-                                {new Date(appointment.appointment_datetime).toLocaleString("default", { month: "short" })}
+                                {new Date(appointment.appointment_date).toLocaleString("default", { month: "short" })}
                               </div>
                               <div className="text-xs mt-1 text-blue-500">
-                                {new Date(appointment.appointment_datetime).toLocaleString("default", { weekday: "short" })}
+                                {new Date(appointment.appointment_date).toLocaleString("default", { weekday: "short" })}
                               </div>
                             </div>
 

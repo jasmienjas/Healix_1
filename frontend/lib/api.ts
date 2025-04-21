@@ -204,22 +204,40 @@ export const appointmentsApi = {
     return response.data;  // Return just the appointments array
   },
 
-  getPatientAppointments: () =>
-    apiCall('api/accounts/appointments/schedule/'),
+  getPatientAppointments: async () => {
+    const response = await apiCall('api/accounts/appointments/schedule/');
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to fetch appointments');
+    }
+    return response.data;
+  },
 
-  createAppointment: (appointmentData: any) =>
+  createAppointment: (appointmentData: {
+    doctor: number;
+    appointment_date: string;
+    start_time: string;
+    end_time: string;
+    reason?: string;
+  }) =>
     apiCall('api/accounts/appointments/', {
       method: 'POST',
       body: JSON.stringify(appointmentData),
     }),
 
-  postponeAppointment: (appointmentId: number, data: any) =>
+  postponeAppointment: (appointmentId: number, data: {
+    appointment_date: string;
+    start_time: string;
+    end_time: string;
+    postpone_reason: string;
+  }) =>
     apiCall(`api/accounts/appointments/${appointmentId}/postpone/`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
-  cancelAppointment: (appointmentId: number, data: any) =>
+  cancelAppointment: (appointmentId: number, data: {
+    cancellation_message: string;
+  }) =>
     apiCall(`api/accounts/appointments/${appointmentId}/cancel/`, {
       method: 'PATCH',
       body: JSON.stringify(data),

@@ -163,32 +163,33 @@ class PostponeAppointmentView(APIView):
                 'message': 'Only doctors can postpone appointments.'
             }, status=status.HTTP_403_FORBIDDEN)
         
-        new_datetime_str = request.data.get('appointment_datetime')
+        appointment_date = request.data.get('appointment_date')
+        start_time = request.data.get('start_time')
+        end_time = request.data.get('end_time')
         postpone_reason = request.data.get('postpone_reason')
 
-        if not new_datetime_str:
+        if not all([appointment_date, start_time, end_time, postpone_reason]):
             return Response({
                 'success': False,
-                'message': 'New appointment datetime is required.'
-            }, status=status.HTTP_400_BAD_REQUEST)
-            
-        if not postpone_reason:
-            return Response({
-                'success': False,
-                'message': 'A postpone reason is required.'
+                'message': 'All fields (appointment_date, start_time, end_time, postpone_reason) are required.'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            new_datetime = datetime.fromisoformat(new_datetime_str)
-        except Exception:
+            # Parse the date
+            new_date = datetime.strptime(appointment_date, '%Y-%m-%d').date()
+            # Parse the times
+            new_start_time = datetime.strptime(start_time, '%H:%M').time()
+            new_end_time = datetime.strptime(end_time, '%H:%M').time()
+        except ValueError:
             return Response({
                 'success': False,
-                'message': 'Invalid datetime format. Use ISO format (YYYY-MM-DDTHH:MM:SS).'
+                'message': 'Invalid date/time format. Use YYYY-MM-DD for date and HH:MM for time.'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        appointment.appointment_datetime = new_datetime
+        appointment.appointment_date = new_date
+        appointment.start_time = new_start_time
+        appointment.end_time = new_end_time
         appointment.status = 'postponed'
-        appointment.reason = postpone_reason
         appointment.reason = postpone_reason
         appointment.save()
         
@@ -196,9 +197,9 @@ class PostponeAppointmentView(APIView):
         try:
             subject = "Appointment Postponed"
             message = (
-                f"Dear {appointment.patient.user.first_name},\n\n"
+                f"Dear {appointment.patient.first_name},\n\n"
                 f"Your appointment with Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name} "
-                f"has been postponed to {new_datetime}.\n\n"
+                f"has been postponed to {appointment_date} at {start_time}.\n\n"
                 f"Reason: {postpone_reason}\n\n"
                 f"Best regards,\nHealix Team"
             )
@@ -206,7 +207,7 @@ class PostponeAppointmentView(APIView):
                 subject,
                 message,
                 settings.DEFAULT_FROM_EMAIL,
-                [appointment.patient.user.email]
+                [appointment.patient.email]
             )
         except Exception as e:
             logger.error(f"Failed to send postponement email: {e}")
@@ -239,15 +240,14 @@ class CancelAppointmentView(APIView):
         
         appointment.status = 'cancelled'
         appointment.reason = cancellation_message
-        appointment.reason = cancellation_message
         appointment.save()
         
         # Send email notification
         try:
             subject = "Appointment Cancellation Notice"
             message = (
-                f"Dear {appointment.patient.user.first_name},\n\n"
-                f"Your appointment scheduled on {appointment.appointment_datetime} "
+                f"Dear {appointment.patient.first_name},\n\n"
+                f"Your appointment scheduled on {appointment.appointment_date} at {appointment.start_time} "
                 f"has been cancelled by Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name}.\n\n"
                 f"Message from doctor: {cancellation_message}\n\n"
                 f"Best regards,\nHealix Team"
@@ -256,7 +256,7 @@ class CancelAppointmentView(APIView):
                 subject,
                 message,
                 settings.DEFAULT_FROM_EMAIL,
-                [appointment.patient.user.email]
+                [appointment.patient.email]
             )
         except Exception as e:
             logger.error(f"Failed to send cancellation email: {e}")

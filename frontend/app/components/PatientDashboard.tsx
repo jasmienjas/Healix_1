@@ -8,6 +8,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { toast } from 'sonner';
 import { cancelAppointment } from "@/services/api";
 import { searchDoctors } from '@/services/doctor';
+import { format } from 'date-fns';
 
 interface User {
   id: number;
@@ -32,7 +33,9 @@ interface Appointment {
   id: number;
   patient: Patient;
   doctor: Doctor;
-  appointment_datetime: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'postponed';
   reason: string;
   created_at: string;
@@ -132,6 +135,14 @@ export default function PatientDashboard() {
     }
   };
 
+  const formatAppointmentDateTime = (date: string, time: string) => {
+    const dateObj = new Date(`${date}T${time}`);
+    return {
+      date: format(dateObj, 'MMMM d, yyyy'),
+      time: format(dateObj, 'h:mm a')
+    };
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -164,8 +175,8 @@ export default function PatientDashboard() {
         <div className="space-y-4">
           {appointments.length > 0 ? (
             appointments.map((appointment) => {
-              const { date, time } = formatDateTime(appointment.appointment_datetime);
-              const isPastAppointment = new Date(appointment.appointment_datetime) < new Date();
+              const { date, time } = formatAppointmentDateTime(appointment.appointment_date, appointment.start_time);
+              const isPastAppointment = new Date(`${appointment.appointment_date}T${appointment.end_time}`) < new Date();
 
               return (
                 <Card key={appointment.id} className="hover:shadow-lg transition-shadow duration-200">
@@ -174,13 +185,13 @@ export default function PatientDashboard() {
                       {/* Left: Date display */}
                       <div className="bg-blue-50 text-blue-600 rounded-xl p-4 text-center min-w-[100px] shadow-sm">
                         <div className="text-2xl font-bold">
-                          {new Date(appointment.appointment_datetime).getDate()}
+                          {new Date(appointment.appointment_date).getDate()}
                         </div>
                         <div className="text-sm font-medium">
-                          {new Date(appointment.appointment_datetime).toLocaleString("default", { month: "short" })}
+                          {new Date(appointment.appointment_date).toLocaleString("default", { month: "short" })}
                         </div>
                         <div className="text-xs mt-1 text-blue-500">
-                          {new Date(appointment.appointment_datetime).toLocaleString("default", { weekday: "short" })}
+                          {new Date(appointment.appointment_date).toLocaleString("default", { weekday: "short" })}
                         </div>
                       </div>
 
