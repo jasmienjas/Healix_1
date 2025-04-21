@@ -129,3 +129,13 @@ INFO 2025-04-20 20:47:00,655 autoreload 18340 18964 Watching for file changes wi
 INFO 2025-04-20 20:47:51,742 autoreload 18340 18964 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\admin.py changed, reloading.
 INFO 2025-04-20 20:47:52,525 autoreload 24992 12672 Watching for file changes with StatReloader
 INFO 2025-04-20 20:49:33,391 autoreload 20864 15336 Watching for file changes with StatReloader
+INFO 2025-04-20 20:49:50,341 basehttp 20864 22836 "GET /api/accounts/doctors/1/ HTTP/1.1" 301 0
+INFO 2025-04-20 20:49:52,361 basehttp 20864 25632 code 400, message Bad request syntax ("\x16\x03\x03\x00¶\x01\x00\x00¢\x03\x03h\x053¿ı'fj\x81\x0e\x10\x86<A[,\x8d\x12Õ!ŸœPM}&\x9a«\x88¨Ò–\x00\x00*¿,¿+¿0¿/\x00\x9f\x00\x9e¿$¿#¿(¿'¿")
+ERROR 2025-04-20 20:49:52,362 basehttp 20864 25632 You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-04-20 20:49:52,369 basehttp 20864 22272 code 400, message Bad HTTP/0.9 request type ('\x16\x03\x03\x00¶\x01\x00\x00¢\x03\x03h\x053¿Õ<')
+ERROR 2025-04-20 20:49:52,369 basehttp 20864 22272 You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-04-20 20:49:52,515 basehttp 20864 22836 "GET /api/appointments/availability/1/2024-04-20/ HTTP/1.1" 301 0
+INFO 2025-04-20 20:49:52,517 basehttp 20864 19080 code 400, message Bad request version ("\x074ˇœm\x00\x00*¿,¿+¿0¿/\x00\x9f\x00\x9e¿$¿#¿(¿'¿")
+ERROR 2025-04-20 20:49:52,518 basehttp 20864 19080 You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-04-20 20:49:52,521 basehttp 20864 12032 code 400, message Bad HTTP/0.9 request type ('\x16\x03\x03\x00¶\x01\x00\x00¢\x03\x03h\x053¿q')
+ERROR 2025-04-20 20:49:52,521 basehttp 20864 12032 You're accessing the development server over HTTPS, but it only supports HTTP.
