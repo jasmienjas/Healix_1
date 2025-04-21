@@ -796,12 +796,59 @@ class AdminRegisterView(APIView):
 @permission_classes([AllowAny])
 def get_doctor_details(request, doctor_id):
     try:
-        doctor = get_object_or_404(DoctorProfile, id=doctor_id)
-        serializer = DoctorProfileSerializer(doctor)
-        return Response(serializer.data)
+        logger.info(f"Fetching details for doctor ID: {doctor_id}")
+        logger.info(f"Checking if doctor exists in database...")
+        
+        # First check if the doctor exists
+        try:
+            # Get all doctors and log their IDs
+            all_doctors = DoctorProfile.objects.all()
+            logger.info(f"Available doctor IDs: {list(all_doctors.values_list('id', flat=True))}")
+            
+            doctor = DoctorProfile.objects.get(id=doctor_id)
+            logger.info(f"Found doctor: {doctor}")
+            logger.info(f"Doctor data: user={doctor.user}, specialty={doctor.specialty}, office_hours={doctor.office_hours_start}-{doctor.office_hours_end}")
+            
+        except DoctorProfile.DoesNotExist:
+            logger.warning(f"Doctor with ID {doctor_id} not found")
+            return Response(
+                {
+                    'success': False,
+                    'error': 'Doctor not found',
+                    'message': f'No doctor found with ID {doctor_id}'
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Check if required fields are present
+        if not doctor.office_hours_start or not doctor.office_hours_end:
+            logger.warning(f"Doctor {doctor_id} has missing office hours")
+            return Response(
+                {
+                    'success': False,
+                    'error': 'Incomplete doctor profile',
+                    'message': 'Doctor profile is incomplete (missing office hours)'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        logger.info("Serializing doctor data...")
+        serializer = DoctorProfileSerializer(doctor, context={'request': request})
+        logger.info(f"Serialized data: {serializer.data}")
+        logger.info(f"Successfully retrieved doctor details for ID: {doctor_id}")
+        
+        return Response({
+            'success': True,
+            'data': serializer.data
+        })
     except Exception as e:
+        logger.error(f"Error fetching doctor details for ID {doctor_id}: {str(e)}", exc_info=True)
         return Response(
-            {'error': str(e)},
+            {
+                'success': False,
+                'error': 'Failed to fetch doctor details',
+                'message': str(e)
+            },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 

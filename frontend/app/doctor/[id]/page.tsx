@@ -8,6 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import Layout from '@/app/components/layout';
 import { format } from 'date-fns';
 import { MapPin, Clock, Phone, Mail, Calendar as CalendarIcon } from 'lucide-react';
+import Image from 'next/image';
 
 interface TimeSlot {
   id: number;
@@ -58,13 +59,24 @@ export default function DoctorProfilePage() {
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
+        setLoading(true);
+        setError(null);
+        
         const response = await fetch(`/api/doctors/${params.id}`);
-        if (!response.ok) throw new Error('Failed to fetch doctor details');
-        const data = await response.json();
-        setDoctor(data);
+        const responseData = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(responseData.message || 'Failed to fetch doctor details');
+        }
+
+        if (!responseData) {
+          throw new Error('No data received from server');
+        }
+
+        setDoctor(responseData);
       } catch (err) {
-        setError('Failed to load doctor information');
-        console.error(err);
+        console.error('Error fetching doctor:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load doctor information');
       } finally {
         setLoading(false);
       }
@@ -131,14 +143,20 @@ export default function DoctorProfilePage() {
               {/* Profile Picture */}
               <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden flex-shrink-0 border-2 border-blue-100">
                 {doctor.profile_picture ? (
-                  <img
+                  <Image
                     src={doctor.profile_picture}
                     alt={`Dr. ${doctorName}`}
+                    width={192}
+                    height={192}
                     className="w-full h-full object-cover"
-                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      // Fallback to initials if image fails to load
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement?.querySelector('.fallback-initials')?.style.display = 'flex';
+                    }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="fallback-initials w-full h-full flex items-center justify-center">
                     <span className="text-4xl font-semibold text-blue-500">
                       {doctorName.split(' ').map(n => n[0]).join('')}
                     </span>

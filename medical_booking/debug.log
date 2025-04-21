@@ -139,3 +139,9 @@ INFO 2025-04-20 20:49:52,517 basehttp 20864 19080 code 400, message Bad request 
 ERROR 2025-04-20 20:49:52,518 basehttp 20864 19080 You're accessing the development server over HTTPS, but it only supports HTTP.
 INFO 2025-04-20 20:49:52,521 basehttp 20864 12032 code 400, message Bad HTTP/0.9 request type ('\x16\x03\x03\x00¦\x01\x00\x00¢\x03\x03h\x053Àq')
 ERROR 2025-04-20 20:49:52,521 basehttp 20864 12032 You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-04-20 20:56:27,393 autoreload 20864 15336 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
+INFO 2025-04-20 20:56:28,175 autoreload 13052 15708 Watching for file changes with StatReloader
+INFO 2025-04-21 12:44:08,055 autoreload 13052 15708 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
+INFO 2025-04-21 12:44:10,877 autoreload 15696 23016 Watching for file changes with StatReloader
+INFO 2025-04-21 12:44:43,164 autoreload 15696 23016 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
+INFO 2025-04-21 12:44:43,846 autoreload 5056 6496 Watching for file changes with StatReloader
