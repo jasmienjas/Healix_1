@@ -292,3 +292,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'updated_at'
         ]
         depth = 2  # This will include nested serialization of patient and doctor
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Add notes field if it exists in the model
+        if hasattr(instance, 'notes'):
+            data['notes'] = instance.notes
+        return data

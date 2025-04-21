@@ -87,13 +87,15 @@ class Appointment(models.Model):
         choices=[
             ('scheduled', 'Scheduled'),
             ('completed', 'Completed'),
-            ('cancelled', 'Cancelled')
+            ('cancelled', 'Cancelled'),
+            ('postponed', 'Postponed')
         ],
         default='scheduled'
     )
+    reason = models.TextField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    notes = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ['appointment_date', 'start_time']
