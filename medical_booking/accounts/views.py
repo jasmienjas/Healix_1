@@ -273,16 +273,35 @@ class PatientScheduleView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Appointment.objects.filter(patient__user=self.request.user)
+        try:
+            logger.info(f"Fetching appointments for patient: {self.request.user.id}")
+            return Appointment.objects.filter(
+                patient__user=self.request.user
+            ).select_related(
+                'patient__user',
+                'doctor__user'
+            )
+        except Exception as e:
+            logger.error(f"Error fetching patient appointments: {str(e)}", exc_info=True)
+            raise
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({
-            'success': True,
-            'message': 'Appointments retrieved successfully',
-            'data': serializer.data
-        })
+        try:
+            queryset = self.get_queryset()
+            logger.info(f"Found {queryset.count()} appointments")
+            serializer = self.get_serializer(queryset, many=True)
+            logger.info("Successfully serialized appointments")
+            return Response({
+                'success': True,
+                'message': 'Appointments retrieved successfully',
+                'data': serializer.data
+            })
+        except Exception as e:
+            logger.error(f"Error in PatientScheduleView.list: {str(e)}", exc_info=True)
+            return Response({
+                'success': False,
+                'message': f'Error retrieving appointments: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DoctorApprovalStatusView(APIView):
     """
