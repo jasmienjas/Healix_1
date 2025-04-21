@@ -7,6 +7,9 @@ import { ArrowLeft, MapPin, Clock, User, Calendar, DollarSign } from 'lucide-rea
 import { useRouter } from 'next/navigation';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { toast } from 'sonner';
+import { api } from '@/lib/api';
+import { searchDoctors } from '@/services/doctor';
 
 interface BookingDialogProps {
   isOpen: boolean;
@@ -33,17 +36,94 @@ export function BookingDialog({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [problem, setProblem] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
-    // TODO: Implement appointment booking logic
-    console.log('Booking appointment with details:', {
-      email,
-      phone,
-      problem,
-      doctorName,
-      appointmentTime,
-      appointmentDate
-    });
+    try {
+      setIsLoading(true);
+      console.log('Booking appointment with details:', {
+        email,
+        phone,
+        problem,
+        doctorName,
+        appointmentTime,
+        appointmentDate
+      });
+
+      // Parse the appointment time
+      const [startTime, endTime] = appointmentTime.split(' - ').map(time => time.trim());
+      
+      // Format the date to YYYY-MM-DD
+      const dateParts = appointmentDate.split(', ')[1].split(' ');
+      const monthMap = {
+        'January': '01', 'February': '02', 'March': '03', 'April': '04',
+        'May': '05', 'June': '06', 'July': '07', 'August': '08',
+        'September': '09', 'October': '10', 'November': '11', 'December': '12'
+      };
+      const day = dateParts[1].replace(/\D/g, '');
+      const month = monthMap[dateParts[0]];
+      const year = new Date().getFullYear();
+      const formattedDate = `${year}-${month}-${day.padStart(2, '0')}`;
+
+      // Get doctor ID from the name
+      console.log('Searching for doctor:', doctorName);
+      const doctors = await searchDoctors({ name: doctorName });
+      console.log('Search results:', doctors);
+
+      if (!doctors || doctors.length === 0) {
+        // Try searching with just the first name
+        const firstName = doctorName.split(' ')[1]; // Assuming format is "Dr. FirstName LastName"
+        console.log('Trying search with first name:', firstName);
+        const doctorsByFirstName = await searchDoctors({ name: firstName });
+        console.log('Search results by first name:', doctorsByFirstName);
+
+        if (!doctorsByFirstName || doctorsByFirstName.length === 0) {
+          throw new Error(`Doctor "${doctorName}" not found. Please try again with the correct name.`);
+        }
+        const doctorId = doctorsByFirstName[0].id;
+        console.log('Found doctor with ID:', doctorId);
+
+        // Create the appointment
+        const response = await api.appointments.createAppointment({
+          doctor: doctorId,
+          appointment_date: formattedDate,
+          start_time: startTime,
+          end_time: endTime,
+          reason: problem
+        });
+
+        if (response.success) {
+          toast.success('Appointment booked successfully!');
+          onClose();
+        } else {
+          throw new Error(response.message || 'Failed to book appointment');
+        }
+      } else {
+        const doctorId = doctors[0].id;
+        console.log('Found doctor with ID:', doctorId);
+
+        // Create the appointment
+        const response = await api.appointments.createAppointment({
+          doctor: doctorId,
+          appointment_date: formattedDate,
+          start_time: startTime,
+          end_time: endTime,
+          reason: problem
+        });
+
+        if (response.success) {
+          toast.success('Appointment booked successfully!');
+          onClose();
+        } else {
+          throw new Error(response.message || 'Failed to book appointment');
+        }
+      }
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to book appointment');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -149,8 +229,9 @@ export function BookingDialog({
               <Button
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={handleSubmit}
+                disabled={isLoading}
               >
-                Confirm
+                {isLoading ? 'Booking...' : 'Confirm'}
               </Button>
             </div>
           </div>

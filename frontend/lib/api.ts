@@ -198,18 +198,18 @@ export const patientApi = {
 export const appointmentsApi = {
   getDoctorAppointments: async () => {
     const response = await apiCall('api/accounts/appointments/doctor-schedule/');
-    if (!response.success || !response.data) {
+    if (!response.success) {
       throw new Error(response.message || 'Failed to fetch appointments');
     }
-    return response.data;  // Return just the appointments array
+    return response.data || [];  // Return empty array if no data
   },
 
   getPatientAppointments: async () => {
     const response = await apiCall('api/accounts/appointments/schedule/');
-    if (!response.success || !response.data) {
+    if (!response.success) {
       throw new Error(response.message || 'Failed to fetch appointments');
     }
-    return response.data;
+    return response;  // Return the entire response object
   },
 
   createAppointment: (appointmentData: {
@@ -219,7 +219,7 @@ export const appointmentsApi = {
     end_time: string;
     reason?: string;
   }) =>
-    apiCall('api/accounts/appointments/', {
+    apiCall('api/accounts/appointments/create/', {
       method: 'POST',
       body: JSON.stringify(appointmentData),
     }),

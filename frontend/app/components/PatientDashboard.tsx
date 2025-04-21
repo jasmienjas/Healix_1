@@ -70,14 +70,14 @@ export default function PatientDashboard() {
   const fetchAppointments = async () => {
     try {
       console.log('Fetching patient appointments...');
-      const data = await api.appointments.getPatientAppointments();
-      console.log('Raw API response:', data);
+      const response = await api.appointments.getPatientAppointments();
+      console.log('Raw API response:', response);
       
-      if (!data.success || !data.data) {
-        throw new Error(data.message || 'Failed to fetch appointments');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to fetch appointments');
       }
       
-      setAppointments(data.data);
+      setAppointments(response.data || []);
       setError(null);
     } catch (error) {
       console.error('Error fetching appointments:', error);

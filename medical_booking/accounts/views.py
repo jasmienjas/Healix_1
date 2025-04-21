@@ -960,4 +960,94 @@ def get_doctor_availability(request, doctor_id, date):
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+class CreateAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AppointmentSerializer
+
+    def post(self, request):
+        try:
+            logger.info(f"Creating appointment with data: {request.data}")
+            
+            # Validate required fields
+            required_fields = ['doctor', 'appointment_date', 'start_time', 'end_time']
+            if not all(field in request.data for field in required_fields):
+                return Response({
+                    'success': False,
+                    'message': f'Missing required fields: {", ".join(required_fields)}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get doctor profile
+            try:
+                doctor = DoctorProfile.objects.get(id=request.data['doctor'])
+            except DoctorProfile.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'message': 'Doctor not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            # Parse date and time
+            try:
+                appointment_date = datetime.strptime(request.data['appointment_date'], '%Y-%m-%d').date()
+                start_time = datetime.strptime(request.data['start_time'], '%H:%M').time()
+                end_time = datetime.strptime(request.data['end_time'], '%H:%M').time()
+            except ValueError:
+                return Response({
+                    'success': False,
+                    'message': 'Invalid date/time format. Use YYYY-MM-DD for date and HH:MM for time.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check for overlapping appointments
+            if Appointment.objects.filter(
+                doctor=doctor,
+                appointment_date=appointment_date,
+                start_time=start_time
+            ).exists():
+                return Response({
+                    'success': False,
+                    'message': 'This time slot is already booked'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Create appointment
+            appointment = Appointment.objects.create(
+                doctor=doctor,
+                patient=request.user,
+                appointment_date=appointment_date,
+                start_time=start_time,
+                end_time=end_time,
+                reason=request.data.get('reason'),
+                status='scheduled'
+            )
+
+            # Send email notification
+            try:
+                subject = "Appointment Confirmation"
+                message = (
+                    f"Dear {request.user.first_name},\n\n"
+                    f"Your appointment with Dr. {doctor.user.first_name} {doctor.user.last_name} "
+                    f"has been scheduled for {appointment_date} at {start_time}.\n\n"
+                    f"Best regards,\nHealix Team"
+                )
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [request.user.email]
+                )
+            except Exception as e:
+                logger.error(f"Failed to send confirmation email: {e}")
+
+            serializer = AppointmentSerializer(appointment)
+            return Response({
+                'success': True,
+                'message': 'Appointment created successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            logger.error(f"Error creating appointment: {str(e)}", exc_info=True)
+            return Response({
+                'success': False,
+                'message': f'Error creating appointment: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
