@@ -212,17 +212,19 @@ export const appointmentsApi = {
     return response;  // Return the entire response object
   },
 
-  createAppointment: (appointmentData: {
+  createAppointment: async (appointmentData: FormData | {
     doctor: number;
     appointment_date: string;
     start_time: string;
     end_time: string;
     reason?: string;
-  }) =>
-    apiCall('api/accounts/appointments/create/', {
+  }) => {
+    const isFormData = appointmentData instanceof FormData;
+    return apiCall('api/accounts/appointments/create/', {
       method: 'POST',
-      body: JSON.stringify(appointmentData),
-    }),
+      body: isFormData ? appointmentData : JSON.stringify(appointmentData),
+    });
+  },
 
   postponeAppointment: (appointmentId: number, data: {
     appointment_date: string;

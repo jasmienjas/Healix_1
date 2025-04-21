@@ -1021,7 +1021,7 @@ class CreateAppointmentView(APIView):
                 appointment_date=appointment_date,
                 start_time=start_time,
                 end_time=end_time,
-                status__in=['scheduled', 'confirmed']
+                status__in=['pending', 'confirmed']
             ).exists()
 
             if existing_appointment:
@@ -1037,7 +1037,7 @@ class CreateAppointmentView(APIView):
                 'appointment_date': appointment_date,
                 'start_time': start_time,
                 'end_time': end_time,
-                'status': 'scheduled',
+                'status': 'pending',
                 'reason': request.data.get('reason', ''),
                 'notes': request.data.get('notes', ''),
             }

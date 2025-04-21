@@ -185,3 +185,7 @@ INFO 2025-04-22 00:01:57,124 autoreload 6008 12416 C:\Users\AUB\OneDrive - Ameri
 INFO 2025-04-22 00:01:57,984 autoreload 9396 24996 Watching for file changes with StatReloader
 INFO 2025-04-22 00:02:09,219 autoreload 9396 24996 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
 INFO 2025-04-22 00:02:09,927 autoreload 2464 7124 Watching for file changes with StatReloader
+INFO 2025-04-22 00:14:32,052 autoreload 2464 7124 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
+INFO 2025-04-22 00:14:33,208 autoreload 17496 7436 Watching for file changes with StatReloader
+INFO 2025-04-22 00:15:04,064 autoreload 17496 7436 C:\Users\AUB\OneDrive - American University of Beirut\Desktop\Healix_1\medical_booking\accounts\views.py changed, reloading.
+INFO 2025-04-22 00:15:04,979 autoreload 21496 12072 Watching for file changes with StatReloader

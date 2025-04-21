@@ -79,6 +79,8 @@ export function BookingDialog({
       const doctors = await searchDoctors({ name: doctorName });
       console.log('Search results:', doctors);
 
+      let doctorId: number | null = null;
+
       if (!doctors || doctors.length === 0) {
         // Try searching with just the first name
         const firstName = doctorName.split(' ')[1]; // Assuming format is "Dr. FirstName LastName"
@@ -89,53 +91,37 @@ export function BookingDialog({
         if (!doctorsByFirstName || doctorsByFirstName.length === 0) {
           throw new Error(`Doctor "${doctorName}" not found. Please try again with the correct name.`);
         }
-        const doctorId = doctorsByFirstName[0].id;
-        console.log('Found doctor with ID:', doctorId);
-
-        // Create form data for the appointment
-        const formData = new FormData();
-        formData.append('doctor', doctorId);
-        formData.append('appointment_date', formattedDate);
-        formData.append('start_time', startTime);
-        formData.append('end_time', endTime);
-        formData.append('reason', problem);
-        if (document) {
-          formData.append('document', document);
-        }
-
-        // Create the appointment
-        const response = await api.appointments.createAppointment(formData);
-
-        if (response.success) {
-          toast.success('Appointment booked successfully!');
-          onClose();
-        } else {
-          throw new Error(response.message || 'Failed to book appointment');
-        }
+        doctorId = doctorsByFirstName[0].id;
       } else {
-        const doctorId = doctors[0].id;
-        console.log('Found doctor with ID:', doctorId);
+        doctorId = doctors[0].id;
+      }
 
-        // Create form data for the appointment
-        const formData = new FormData();
-        formData.append('doctor', doctorId);
-        formData.append('appointment_date', formattedDate);
-        formData.append('start_time', startTime);
-        formData.append('end_time', endTime);
-        formData.append('reason', problem);
-        if (document) {
-          formData.append('document', document);
-        }
+      if (!doctorId) {
+        throw new Error('Failed to find doctor ID');
+      }
 
-        // Create the appointment
-        const response = await api.appointments.createAppointment(formData);
+      console.log('Found doctor with ID:', doctorId);
 
-        if (response.success) {
-          toast.success('Appointment booked successfully!');
-          onClose();
-        } else {
-          throw new Error(response.message || 'Failed to book appointment');
-        }
+      // Create form data for the appointment
+      const formData = new FormData();
+      formData.append('doctor', doctorId.toString());
+      formData.append('appointment_date', formattedDate);
+      formData.append('start_time', startTime);
+      formData.append('end_time', endTime);
+      formData.append('status', 'pending');
+      formData.append('reason', problem);
+      if (document) {
+        formData.append('document', document);
+      }
+
+      // Create the appointment
+      const response = await api.appointments.createAppointment(formData);
+
+      if (response.success) {
+        toast.success('Appointment booked successfully!');
+        onClose();
+      } else {
+        throw new Error(response.message || 'Failed to book appointment');
       }
     } catch (error) {
       console.error('Error booking appointment:', error);
