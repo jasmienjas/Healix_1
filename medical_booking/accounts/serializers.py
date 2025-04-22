@@ -232,7 +232,7 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
                 print(f"Files saved: {medical_license_path}, {phd_certificate_path}")
 
                 # Create doctor profile
-                print(f"Creating doctor profile with license_number: {license_number}")
+                print(f"Creating doctor profile")
                 doctor_profile_data = {
                     'user': user,
                     'phone_number': phone_number,
@@ -240,7 +240,6 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
                     'office_address': office_address,
                     'medical_license': medical_license_path,
                     'certificate': phd_certificate_path,
-                    'license_number': license_number,
                     'specialty': 'General Medicine',
                     'appointment_cost': 0.00,
                     'office_hours_start': '09:00:00',

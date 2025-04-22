@@ -26,8 +26,8 @@ export default function DashboardPage() {
       console.log('Dashboard - Stored User:', storedUser)
       
       if (!isLoading && !user && !storedUser) {
-        console.log('No auth found, redirecting to login')
-        router.push('/login')
+        console.log('No auth found, redirecting to home')
+        router.push('/')
         return
       }
 

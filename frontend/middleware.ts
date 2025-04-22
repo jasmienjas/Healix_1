@@ -7,6 +7,8 @@ export function middleware(request: NextRequest) {
 
   // Define public paths that don't require authentication
   const isPublicPath =
+    path === "/" ||
+    path === "/home" ||
     path === "/login" ||
     path === "/signup" ||
     path === "/signup/doctor" ||
@@ -24,13 +26,15 @@ export function middleware(request: NextRequest) {
 
   // If already logged in and trying to access login/signup pages
   if (isPublicPath && token) {
-    // Always redirect to main dashboard
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    // Redirect to dashboard only if trying to access login/signup pages
+    if (path === "/login" || path === "/signup" || path === "/signup/doctor" || path === "/signup/patient") {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
   }
 
   // If trying to access protected routes without auth
   if (!isPublicPath && !token) {
-    return NextResponse.redirect(new URL("/login", request.url))
+    return NextResponse.redirect(new URL("/", request.url))
   }
 
   // Allow all other requests to proceed
