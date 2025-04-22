@@ -399,16 +399,27 @@ class DoctorSearchView(generics.ListAPIView):
     def get_queryset(self):
         queryset = DoctorProfile.objects.filter(is_approved=True)
         
+        # Basic filters
         name = self.request.query_params.get('name', None)
         specialty = self.request.query_params.get('specialty', None)
         location = self.request.query_params.get('location', None)
+        
+        # Experience range
+        min_experience = self.request.query_params.get('min_experience', None)
+        max_experience = self.request.query_params.get('max_experience', None)
+        
+        # Rating range
+        min_rating = self.request.query_params.get('min_rating', None)
+        max_rating = self.request.query_params.get('max_rating', None)
+        
+        # Sorting
+        sort_by = self.request.query_params.get('sort_by', 'name')
+        sort_order = self.request.query_params.get('sort_order', 'asc')
 
+        # Apply name filter
         if name:
-            # Split the name into parts and remove empty strings
             name_parts = [part.strip() for part in name.split() if part.strip()]
-            
             if len(name_parts) >= 2:
-                # If we have at least two parts, assume first part is first name and last part is last name
                 first_name = name_parts[0]
                 last_name = name_parts[-1]
                 queryset = queryset.filter(
@@ -416,17 +427,54 @@ class DoctorSearchView(generics.ListAPIView):
                     Q(user__last_name__icontains=last_name)
                 )
             else:
-                # If only one part, search in both first and last name
                 queryset = queryset.filter(
                     Q(user__first_name__icontains=name) |
                     Q(user__last_name__icontains=name)
                 )
         
+        # Apply specialty filter
         if specialty:
             queryset = queryset.filter(specialty__icontains=specialty)
             
+        # Apply location filter
         if location:
             queryset = queryset.filter(office_address__icontains=location)
+
+        # Apply experience range filter
+        if min_experience:
+            try:
+                min_exp = int(min_experience)
+                if min_exp >= 0:
+                    queryset = queryset.filter(years_of_experience__gte=min_exp)
+            except (ValueError, TypeError):
+                pass
+
+        if max_experience:
+            try:
+                max_exp = int(max_experience)
+                if max_exp >= 0:
+                    queryset = queryset.filter(years_of_experience__lte=max_exp)
+            except (ValueError, TypeError):
+                pass
+
+        # Apply rating range filter
+        if min_rating:
+            queryset = queryset.filter(rating__gte=min_rating)
+        if max_rating:
+            queryset = queryset.filter(rating__lte=max_rating)
+
+        # Apply sorting
+        sort_field = {
+            'name': 'user__first_name',
+            'experience': 'years_of_experience',
+            'rating': 'rating',
+            'fee': 'appointment_cost'
+        }.get(sort_by, 'user__first_name')
+
+        if sort_order == 'desc':
+            sort_field = f'-{sort_field}'
+
+        queryset = queryset.order_by(sort_field)
 
         return queryset
 

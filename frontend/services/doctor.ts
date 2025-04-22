@@ -112,17 +112,25 @@ export async function checkDoctorApprovalStatus(email: string) {
 }
 
 interface SearchDoctorParams {
-  specialty?: string;
-  location?: string;
   name?: string;
+  location?: string;
+  specialty?: string;
+  min_experience?: number;
+  max_experience?: number;
+  sort_by?: 'name' | 'experience' | 'fee';
+  sort_order?: 'asc' | 'desc';
 }
 
 export async function searchDoctors(params: SearchDoctorParams) {
   try {
     const queryParams = new URLSearchParams();
-    if (params.specialty) queryParams.append('specialty', params.specialty);
-    if (params.location) queryParams.append('location', params.location);
-    if (params.name) queryParams.append('name', params.name);
+    
+    // Add all non-empty parameters to the query
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        queryParams.append(key, value.toString());
+      }
+    });
 
     const url = `${API_BASE_URL}/api/accounts/doctors/search/?${queryParams.toString()}`;
     console.log('Searching doctors with URL:', url);
