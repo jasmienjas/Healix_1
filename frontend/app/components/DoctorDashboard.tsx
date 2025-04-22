@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ConfirmDialog } from './ConfirmDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface User {
   id: number;
@@ -73,32 +74,8 @@ export default function DoctorDashboard() {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  // Profile link section
-  const profileLink = (
-    <div className="mb-6 flex justify-end">
-      <Link
-        href="/profile"
-        className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
-        View Profile
-      </Link>
-    </div>
-  );
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -173,7 +150,7 @@ export default function DoctorDashboard() {
     try {
       if (!selectedAppointment) return;
       
-      await api.appointments.cancelAppointment(parseInt(selectedAppointment));
+      await api.appointments.cancelAppointment(parseInt(selectedAppointment), reason);
       
       toast.success('Appointment cancelled successfully');
       setIsCancelDialogOpen(false);
@@ -239,7 +216,6 @@ export default function DoctorDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {profileLink}
       <Tabs defaultValue="appointments" className="w-full">
         <TabsList>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
@@ -321,6 +297,15 @@ export default function DoctorDashboard() {
 
                             {/* Action buttons */}
                             <div className="flex flex-col gap-2">
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedAppointmentDetails(appointment);
+                                  setIsDetailsDialogOpen(true);
+                                }}
+                              >
+                                View Details
+                              </Button>
                               {appointment.status === 'pending' && (
                                 <Button
                                   variant="outline"
@@ -331,6 +316,18 @@ export default function DoctorDashboard() {
                                   className="text-green-600 border-green-600 hover:bg-green-50"
                                 >
                                   Confirm
+                                </Button>
+                              )}
+                              {appointment.status !== 'cancelled' && (
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedAppointment(appointment.id.toString());
+                                    setIsCancelDialogOpen(true);
+                                  }}
+                                  className="text-red-600 border-red-600 hover:bg-red-50"
+                                >
+                                  Cancel
                                 </Button>
                               )}
                               {appointment.status === 'cancelled' && (
@@ -391,6 +388,46 @@ export default function DoctorDashboard() {
         title="Delete Appointment"
         description="Are you sure you want to delete this cancelled appointment? This action cannot be undone."
       />
+
+      <Dialog open={isDetailsDialogOpen} onOpenChange={() => setIsDetailsDialogOpen(false)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Appointment Details</DialogTitle>
+          </DialogHeader>
+          {selectedAppointmentDetails && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold">Patient Information</h4>
+                <p>{selectedAppointmentDetails.patient_name}</p>
+                <p className="text-sm text-gray-600">{selectedAppointmentDetails.patient_email}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Date & Time</h4>
+                <p>{format(new Date(selectedAppointmentDetails.appointment_date), 'MMMM d, yyyy')}</p>
+                <p>{selectedAppointmentDetails.start_time} - {selectedAppointmentDetails.end_time}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Status</h4>
+                <p className="capitalize">{selectedAppointmentDetails.status}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Reason for Visit</h4>
+                <p>{selectedAppointmentDetails.reason || 'No reason provided'}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Appointment History</h4>
+                <p className="text-sm text-gray-600">Created: {format(new Date(selectedAppointmentDetails.created_at), 'PPP')}</p>
+                <p className="text-sm text-gray-600">Last Updated: {format(new Date(selectedAppointmentDetails.updated_at), 'PPP')}</p>
+              </div>
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

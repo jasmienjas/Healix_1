@@ -52,6 +52,12 @@ export default function Layout({ children }: LayoutProps) {
       href: "/availability",
       icon: Clock,
       current: pathname === "/availability",
+    },
+    {
+      name: "My Profile",
+      href: "/profile",
+      icon: User,
+      current: pathname === "/profile",
     }
   ];
 

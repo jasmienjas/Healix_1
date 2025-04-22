@@ -254,11 +254,11 @@ export const appointmentsApi = {
     return response;
   },
 
-  cancelAppointment: async (appointmentId: number) => {
+  cancelAppointment: async (appointmentId: number, reason: string) => {
     const response = await apiCall(`api/accounts/appointments/${appointmentId}/cancel/`, {
       method: 'PATCH',
       body: JSON.stringify({
-        cancellation_message: 'Cancelled by user',
+        cancellation_message: reason,
       }),
     });
     return response;
