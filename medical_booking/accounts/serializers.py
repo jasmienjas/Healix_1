@@ -218,21 +218,21 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
 
             print(f"User created with ID: {user.id}")
 
-            # Generate unique filenames
-            medical_license_name = f"medical_licenses/{username}_{timestamp}_{medical_license.name}"
-            phd_certificate_name = f"certificates/{username}_{timestamp}_{phd_certificate.name}"
-
-            print(f"Saving files: {medical_license_name}, {phd_certificate_name}")
-
-            # Save files to storage
-            medical_license_path = default_storage.save(medical_license_name, medical_license)
-            phd_certificate_path = default_storage.save(phd_certificate_name, phd_certificate)
-
-            print(f"Files saved: {medical_license_path}, {phd_certificate_path}")
-
-            # Create doctor profile
-            print(f"Creating doctor profile with license_number: {license_number}")
             try:
+                # Generate unique filenames
+                medical_license_name = f"medical_licenses/{username}_{timestamp}_{medical_license.name}"
+                phd_certificate_name = f"certificates/{username}_{timestamp}_{phd_certificate.name}"
+
+                print(f"Saving files: {medical_license_name}, {phd_certificate_name}")
+
+                # Save files to storage
+                medical_license_path = default_storage.save(medical_license_name, medical_license)
+                phd_certificate_path = default_storage.save(phd_certificate_name, phd_certificate)
+
+                print(f"Files saved: {medical_license_path}, {phd_certificate_path}")
+
+                # Create doctor profile
+                print(f"Creating doctor profile with license_number: {license_number}")
                 doctor_profile_data = {
                     'user': user,
                     'phone_number': phone_number,
@@ -252,19 +252,19 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
                 print("Doctor profile data:", doctor_profile_data)
                 doctor_profile = DoctorProfile.objects.create(**doctor_profile_data)
                 print(f"Doctor profile created: {doctor_profile}")
-            except Exception as e:
-                print(f"Error creating doctor profile: {str(e)}")
-                # If profile creation fails, delete the user
-                user.delete()
-                raise e
 
-            return user
+                return user
+
+            except Exception as e:
+                print(f"Error in profile creation: {str(e)}")
+                # Only delete the user if it was created
+                if user and user.id:
+                    user.delete()
+                raise serializers.ValidationError(f"Error creating doctor profile: {str(e)}")
+
         except Exception as e:
             print(f"Error in create method: {str(e)}")
-            # If user was created but profile creation failed, delete the user
-            if 'user' in locals():
-                user.delete()
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(f"Error in registration: {str(e)}")
 
     def to_representation(self, instance):
         return {
