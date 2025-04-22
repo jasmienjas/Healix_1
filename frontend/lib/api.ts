@@ -265,7 +265,7 @@ export const appointmentsApi = {
   },
 
   confirmAppointment: async (appointmentId: number) => {
-    const response = await apiCall(`api/accounts/appointments/${appointmentId}/confirm/`, {
+    const response = await apiCall(`api/accounts/appointments/confirm/${appointmentId}/`, {
       method: 'PATCH',
     });
     return response;
