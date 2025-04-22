@@ -999,8 +999,8 @@ class CreateAppointmentView(APIView):
 
     def post(self, request):
         try:
-            # Get patient profile
-            patient = PatientProfile.objects.get(user=request.user)
+            # Get patient (CustomUser)
+            patient = request.user
             
             # Get doctor
             doctor_id = request.data.get('doctor')
@@ -1071,14 +1071,14 @@ class CreateAppointmentView(APIView):
                     'Appointment Confirmation',
                     f'Your appointment with Dr. {doctor.user.get_full_name()} has been scheduled for {appointment_date} at {start_time}.',
                     settings.DEFAULT_FROM_EMAIL,
-                    [patient.user.email],
+                    [patient.email],
                     fail_silently=False,
                 )
                 
                 # Send notification to doctor
                 send_mail(
                     'New Appointment Request',
-                    f'You have a new appointment request from {patient.user.get_full_name()} for {appointment_date} at {start_time}.',
+                    f'You have a new appointment request from {patient.get_full_name()} for {appointment_date} at {start_time}.',
                     settings.DEFAULT_FROM_EMAIL,
                     [doctor.user.email],
                     fail_silently=False,
@@ -1088,11 +1088,6 @@ class CreateAppointmentView(APIView):
             
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
-        except PatientProfile.DoesNotExist:
-            return Response(
-                {'error': 'Patient profile not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
         except Exception as e:
             return Response(
                 {'error': str(e)},
