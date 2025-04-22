@@ -254,9 +254,11 @@ AWS_DEFAULT_ACL = 'private'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_S3_ADDRESSING_STYLE = 'virtual'
 
-# S3 Bucket Configuration
-AWS_STORAGE_BUCKET_NAME = 'healixdata'
-AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+# S3 Access Point Configuration
+AWS_S3_ACCESS_POINT_NAME = 'healix'
+AWS_ACCOUNT_ID = '784439927722'
+AWS_STORAGE_BUCKET_NAME = f"{AWS_S3_ACCESS_POINT_NAME}-{AWS_ACCOUNT_ID}"
+AWS_S3_ACCESS_POINT_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3-accesspoint.{AWS_S3_REGION_NAME}.amazonaws.com"
 
 # Debug logging for S3 configuration
 logger.info(f"USE_S3: {USE_S3}")
@@ -264,14 +266,14 @@ logger.info(f"AWS_ACCESS_KEY_ID: {'Set' if AWS_ACCESS_KEY_ID else 'Not set'}")
 logger.info(f"AWS_SECRET_ACCESS_KEY: {'Set' if AWS_SECRET_ACCESS_KEY else 'Not set'}")
 logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
 logger.info(f"AWS_S3_REGION_NAME: {AWS_S3_REGION_NAME}")
-logger.info(f"AWS_S3_CUSTOM_DOMAIN: {AWS_S3_CUSTOM_DOMAIN}")
+logger.info(f"AWS_S3_ACCESS_POINT_URL: {AWS_S3_ACCESS_POINT_URL}")
 
 # Configure storage backends
 if USE_S3 and AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
     # Use S3 for media files
     DEFAULT_FILE_STORAGE = 'medical_booking.storage_backends.CustomS3Boto3Storage'
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
-    logger.info(f"S3 storage configured with custom domain: {MEDIA_URL}")
+    MEDIA_URL = f"{AWS_S3_ACCESS_POINT_URL}/media/"
+    logger.info(f"S3 storage configured with access point URL: {MEDIA_URL}")
 else:
     # Use local storage
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'

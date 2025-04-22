@@ -24,8 +24,13 @@ class CustomS3Boto3Storage(S3Boto3Storage):
             s3={'addressing_style': 'virtual'}
         )
         
-        self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        logger.info(f"Initializing S3 storage with bucket: {self.bucket_name}")
+        # Configure access point
+        self.account_id = '784439927722'
+        self.access_point_name = 'healix'
+        self.bucket_name = f"{self.access_point_name}-{self.account_id}"
+        self.access_point_url = f"https://{self.bucket_name}.s3-accesspoint.{settings.AWS_S3_REGION_NAME}.amazonaws.com"
+        
+        logger.info(f"Initializing S3 storage with access point URL: {self.access_point_url}")
         
         # Create a new client using SigV4
         self.client = boto3.client(
@@ -71,11 +76,8 @@ class CustomS3Boto3Storage(S3Boto3Storage):
                         name = f"appointment_documents/{parts[1]}"
             except Exception as e:
                 logger.error(f"Error cleaning name: {e}")
-                
-        # Ensure the name doesn't start with media/ if location is already media
-        if name.startswith(f"{self.location}/"):
-            name = name[len(self.location)+1:]
-            
+        
+        # Don't remove media/ prefix as it's part of the key
         logger.info(f"[CLEAN] Output name: {name}")
         return name
     
@@ -86,9 +88,12 @@ class CustomS3Boto3Storage(S3Boto3Storage):
         logger.info(f"[NORMALIZE] Input name: {name}")
         name = self._clean_name(name)
         
-        # Add location prefix if it's not already there
-        if not name.startswith(f"{self.location}/"):
-            name = f"{self.location}/{name}"
+        # Add media prefix if it's not already there and not starting with appointment_documents
+        if not name.startswith('media/') and not name.startswith('appointment_documents/'):
+            if name.startswith(f"{self.location}/"):
+                name = name  # Keep as is since it already has the correct prefix
+            else:
+                name = f"{self.location}/{name}"
             
         logger.info(f"[NORMALIZE] Output name: {name}")
         return name

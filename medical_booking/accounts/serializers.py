@@ -332,6 +332,11 @@ class AppointmentSerializer(serializers.ModelSerializer):
                         s3={'addressing_style': 'virtual'}
                     )
                     
+                    # Use access point configuration
+                    account_id = '784439927722'
+                    access_point_name = 'healix'
+                    bucket_name = f"{access_point_name}-{account_id}"
+                    
                     s3_client = boto3.client(
                         's3',
                         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -341,14 +346,19 @@ class AppointmentSerializer(serializers.ModelSerializer):
                     )
                     
                     # Log the bucket and key being used
-                    logger.info(f"Using bucket: {settings.AWS_STORAGE_BUCKET_NAME}")
+                    logger.info(f"Using bucket: {bucket_name}")
                     logger.info(f"Using key: {obj.document.name}")
+                    
+                    # Ensure the key has the media/ prefix
+                    key = obj.document.name
+                    if not key.startswith('media/'):
+                        key = f"media/{key}"
                     
                     url = s3_client.generate_presigned_url(
                         'get_object',
                         Params={
-                            'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
-                            'Key': obj.document.name
+                            'Bucket': bucket_name,
+                            'Key': key
                         },
                         ExpiresIn=3600
                     )
