@@ -103,7 +103,28 @@ class PatientRegisterView(generics.CreateAPIView):
             
             # Send verification email
             try:
-                send_verification_email(user)
+                verification_token = request.data.get('verificationToken')
+                if verification_token:
+                    verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+                    
+                    html_message = render_to_string('email/verification_email.html', {
+                        'verification_url': verification_url,
+                        'expiry_days': 1
+                    })
+                    
+                    plain_message = render_to_string('email/verification_email.txt', {
+                        'verification_url': verification_url,
+                        'expiry_days': 1
+                    })
+
+                    send_mail(
+                        subject='Verify your HEALIX account',
+                        message=plain_message,
+                        html_message=html_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=False
+                    )
             except Exception as e:
                 print(f"Error sending verification email: {str(e)}")
                 # Don't fail the registration if email fails

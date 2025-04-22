@@ -7,9 +7,19 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, X } from "lucide-react"
 import Link from "next/link"
-import { useAuth } from "../../context/auth-context"
 import { signupPatient } from "@/services/patient"
-import { sendVerificationEmail } from "@/lib/verify"
+
+interface SignupResponse {
+  success: boolean;
+  error?: string;
+  data?: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    user_type: string;
+  };
+}
 
 export default function PatientSignupPage() {
   const [firstName, setFirstName] = useState("")
@@ -27,7 +37,6 @@ export default function PatientSignupPage() {
   const [message, setMessage] = useState("")
 
   const router = useRouter()
-  const { signup } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,11 +60,8 @@ export default function PatientSignupPage() {
         verificationToken,
       };
 
-      // Send verification email through backend
-      await sendVerificationEmail(email, verificationToken);
-
       // Register user
-      const response = await signupPatient(formData);
+      const response = await signupPatient(formData) as SignupResponse;
 
       if (response.success) {
         setRegisteredEmail(email)
@@ -78,30 +84,49 @@ export default function PatientSignupPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  };
 
   const handleResendVerification = async () => {
     setIsLoading(true)
     try {
-      // Assuming you have a function called resendVerificationEmail in your auth-context
-      const resendVerificationEmail = () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve(true)
-          }, 1000)
-        })
+      // Generate new verification token
+      const verificationToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      // Get stored user data
+      const storedData = localStorage.getItem(`healix_unverified_${registeredEmail}`);
+      if (!storedData) {
+        throw new Error("User data not found");
       }
-      const success = await resendVerificationEmail(registeredEmail)
-      if (!success) {
-        setError("Failed to resend verification email. Please try again.")
+
+      const userData = JSON.parse(storedData);
+
+      // Prepare form data with all required fields
+      const formData = {
+        email: registeredEmail,
+        verificationToken,
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
+        password: userData.password || "",
+        phoneNumber: userData.phoneNumber || "",
+        birthDate: userData.birthDate || "",
+      };
+
+      // Register user again to trigger verification email
+      const response = await signupPatient(formData) as SignupResponse;
+
+      if (response.success) {
+        setMessage("Verification email resent successfully. Please check your inbox.")
+      } else {
+        setError(response.error || "Failed to resend verification email")
       }
     } catch (err) {
-      setError("An error occurred while resending the verification email")
-      console.error(err)
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
     }
-  }
+  };
 
   if (isVerificationSent) {
     return (
