@@ -220,10 +220,26 @@ export const appointmentsApi = {
     reason?: string;
   }) => {
     const isFormData = appointmentData instanceof FormData;
-    return apiCall('api/accounts/appointments/create/', {
+    const response = await apiCall('api/accounts/appointments/create/', {
       method: 'POST',
       body: isFormData ? appointmentData : JSON.stringify(appointmentData),
     });
+
+    // If the response is the appointment data directly (201 status)
+    if (response && response.id) {
+      return {
+        success: true,
+        data: response,
+        message: 'Appointment created successfully'
+      };
+    }
+
+    // If it's an error response
+    return {
+      success: false,
+      data: null,
+      message: response.message || response.error || 'Failed to create appointment'
+    };
   },
 
   postponeAppointment: (appointmentId: number, data: {
