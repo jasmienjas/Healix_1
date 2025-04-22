@@ -245,6 +245,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # S3 Storage Configuration
+USE_S3 = os.getenv('USE_S3', 'True') == 'True'
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
@@ -257,6 +258,7 @@ AWS_S3_OBJECT_PARAMETERS = {
 }
 
 # Debug logging for S3 configuration
+logger.info(f"USE_S3: {USE_S3}")
 logger.info(f"AWS_ACCESS_KEY_ID: {'Set' if AWS_ACCESS_KEY_ID else 'Not set'}")
 logger.info(f"AWS_SECRET_ACCESS_KEY: {'Set' if AWS_SECRET_ACCESS_KEY else 'Not set'}")
 logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
@@ -266,11 +268,11 @@ logger.info(f"AWS_S3_CUSTOM_DOMAIN: {AWS_S3_CUSTOM_DOMAIN}")
 # Configure storage backends
 STORAGES = {
     "default": {
-        "BACKEND": "medical_booking.storage_backends.CustomS3Boto3Storage",
+        "BACKEND": "medical_booking.storage_backends.CustomS3Boto3Storage" if USE_S3 else "django.core.files.storage.FileSystemStorage",
         "OPTIONS": {
             "location": "media",
             "default_acl": "private",
-        },
+        } if USE_S3 else {},
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -278,7 +280,7 @@ STORAGES = {
 }
 
 # Set the default file storage to S3
-if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
+if USE_S3 and AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = 'medical_booking.storage_backends.CustomS3Boto3Storage'
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
     logger.info("S3 storage configured successfully with custom storage backend")
