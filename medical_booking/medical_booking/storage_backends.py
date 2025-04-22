@@ -27,7 +27,8 @@ class CustomS3Boto3Storage(S3Boto3Storage):
         # Extract account ID from the access point URL
         account_id = '784439927722'
         self.access_point_name = 'healix'
-        self.access_point_url = f"https://{self.access_point_name}-{account_id}.s3-accesspoint.{settings.AWS_S3_REGION_NAME}.amazonaws.com"
+        self.bucket_name = f"{self.access_point_name}-{account_id}"
+        self.access_point_url = f"https://{self.bucket_name}.s3-accesspoint.{settings.AWS_S3_REGION_NAME}.amazonaws.com"
         
         logger.info(f"Initializing S3 storage with access point URL: {self.access_point_url}")
         
@@ -39,12 +40,25 @@ class CustomS3Boto3Storage(S3Boto3Storage):
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             config=config
         )
+        
+        # List objects in the bucket to verify access
+        try:
+            response = self.client.list_objects_v2(
+                Bucket=self.bucket_name,
+                Prefix='media/appointment_documents/'
+            )
+            logger.info("Available files in appointment_documents:")
+            for obj in response.get('Contents', []):
+                logger.info(f"Found file: {obj['Key']}")
+        except Exception as e:
+            logger.error(f"Error listing objects: {str(e)}")
     
     def _clean_name(self, name):
         """
         Clean the file name to ensure it's properly formatted for S3.
         """
-        logger.info(f"Cleaning name: {name}")
+        logger.info(f"[CLEAN] Input name: {name}")
+        
         # Remove any leading slashes
         while name and name[0] == '/':
             name = name[1:]
@@ -53,9 +67,14 @@ class CustomS3Boto3Storage(S3Boto3Storage):
         if any(name.startswith(prefix) for prefix in ['http://', 'https://', 'arn:aws:s3:']):
             # Extract just the file path portion after media/
             try:
-                parts = name.split('media/')
-                if len(parts) > 1:
-                    name = parts[1]
+                if 'media/' in name:
+                    parts = name.split('media/')
+                    if len(parts) > 1:
+                        name = parts[1]
+                elif 'appointment_documents/' in name:
+                    parts = name.split('appointment_documents/')
+                    if len(parts) > 1:
+                        name = f"appointment_documents/{parts[1]}"
             except Exception as e:
                 logger.error(f"Error cleaning name: {e}")
                 
@@ -63,53 +82,90 @@ class CustomS3Boto3Storage(S3Boto3Storage):
         if name.startswith(f"{self.location}/"):
             name = name[len(self.location)+1:]
             
-        logger.info(f"Cleaned name: {name}")
+        logger.info(f"[CLEAN] Output name: {name}")
         return name
     
     def _normalize_name(self, name):
         """
         Normalize the file name for S3 storage.
         """
-        logger.info(f"Normalizing name: {name}")
+        logger.info(f"[NORMALIZE] Input name: {name}")
         name = self._clean_name(name)
+        
         # Add location prefix if it's not already there
         if not name.startswith(f"{self.location}/"):
             name = f"{self.location}/{name}"
-        logger.info(f"Normalized name: {name}")
+            
+        # Verify the file exists in S3
+        try:
+            self.client.head_object(
+                Bucket=self.bucket_name,
+                Key=name
+            )
+            logger.info(f"[NORMALIZE] File exists in S3: {name}")
+        except Exception as e:
+            logger.error(f"[NORMALIZE] File does not exist in S3: {name}")
+            # Try without media prefix
+            try:
+                if name.startswith('media/'):
+                    alt_name = name[len('media/'):]
+                    self.client.head_object(
+                        Bucket=self.bucket_name,
+                        Key=alt_name
+                    )
+                    logger.info(f"[NORMALIZE] File exists with alternative path: {alt_name}")
+                    return alt_name
+            except Exception as e2:
+                logger.error(f"[NORMALIZE] File also not found with alternative path")
+        
+        logger.info(f"[NORMALIZE] Output name: {name}")
         return name
     
     def url(self, name, parameters=None, expire=None):
         """
         Generate the URL for the file with the correct region and path.
         """
-        logger.info(f"Generating URL for file: {name}")
+        logger.info(f"[URL] Generating URL for file: {name}")
         
         try:
             if not name:
-                logger.warning("Empty name provided to url method")
+                logger.warning("[URL] Empty name provided to url method")
                 return None
                 
             # Clean and normalize the name
             clean_name = self._clean_name(name)
             normalized_name = self._normalize_name(clean_name)
-            logger.info(f"Cleaned and normalized name: {normalized_name}")
+            logger.info(f"[URL] Cleaned and normalized name: {normalized_name}")
+            
+            # List all objects with similar prefix to help debug
+            try:
+                prefix = '/'.join(normalized_name.split('/')[:-1]) + '/'
+                logger.info(f"[URL] Listing objects with prefix: {prefix}")
+                response = self.client.list_objects_v2(
+                    Bucket=self.bucket_name,
+                    Prefix=prefix
+                )
+                for obj in response.get('Contents', []):
+                    logger.info(f"[URL] Found similar file: {obj['Key']}")
+            except Exception as e:
+                logger.error(f"[URL] Error listing similar files: {str(e)}")
             
             # Generate presigned URL with SigV4
             try:
                 url = self.client.generate_presigned_url(
                     'get_object',
                     Params={
-                        'Bucket': f"{self.access_point_name}-{784439927722}",
+                        'Bucket': self.bucket_name,
                         'Key': normalized_name
                     },
                     ExpiresIn=3600,  # URL expires in 1 hour
                 )
-                logger.info(f"Generated presigned URL: {url}")
+                logger.info(f"[URL] Generated presigned URL: {url}")
                 return url
             except Exception as e:
-                logger.error(f"Error generating presigned URL: {e}")
+                logger.error(f"[URL] Error generating presigned URL: {e}")
                 return None
             
         except Exception as e:
-            logger.error(f"Error in url method: {str(e)}", exc_info=True)
+            logger.error(f"[URL] Error in url method: {str(e)}", exc_info=True)
             return None 
