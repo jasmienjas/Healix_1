@@ -252,10 +252,12 @@ AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'eu-north-1')
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = 'private'
-AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_ADDRESSING_STYLE = 'virtual'
+
+# S3 Access Point Configuration
+AWS_S3_ACCESS_POINT_NAME = 'healix'
+AWS_S3_ACCESS_POINT_URL = f"https://{AWS_S3_ACCESS_POINT_NAME}-784439927722.s3-accesspoint.{AWS_S3_REGION_NAME}.amazonaws.com"
 
 # Debug logging for S3 configuration
 logger.info(f"USE_S3: {USE_S3}")
@@ -263,31 +265,22 @@ logger.info(f"AWS_ACCESS_KEY_ID: {'Set' if AWS_ACCESS_KEY_ID else 'Not set'}")
 logger.info(f"AWS_SECRET_ACCESS_KEY: {'Set' if AWS_SECRET_ACCESS_KEY else 'Not set'}")
 logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
 logger.info(f"AWS_S3_REGION_NAME: {AWS_S3_REGION_NAME}")
-logger.info(f"AWS_S3_CUSTOM_DOMAIN: {AWS_S3_CUSTOM_DOMAIN}")
+logger.info(f"AWS_S3_ACCESS_POINT_URL: {AWS_S3_ACCESS_POINT_URL}")
 
 # Configure storage backends
-STORAGES = {
-    "default": {
-        "BACKEND": "medical_booking.storage_backends.CustomS3Boto3Storage" if USE_S3 else "django.core.files.storage.FileSystemStorage",
-        "OPTIONS": {
-            "location": "media",
-            "default_acl": "private",
-        } if USE_S3 else {},
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
-
-# Set the default file storage to S3
-if USE_S3 and AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
+if USE_S3 and AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+    # Use S3 for media files
     DEFAULT_FILE_STORAGE = 'medical_booking.storage_backends.CustomS3Boto3Storage'
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
-    logger.info("S3 storage configured successfully with custom storage backend")
-    logger.info(f"Media URL: {MEDIA_URL}")
+    MEDIA_URL = f"{AWS_S3_ACCESS_POINT_URL}/media/"
+    logger.info(f"S3 storage configured with access point URL: {MEDIA_URL}")
 else:
-    logger.warning("S3 storage not configured, using local storage")
+    # Use local storage
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    MEDIA_URL = '/media/'
+    logger.warning("S3 storage not configured, using local storage")
+
+# Static files configuration (using Whitenoise)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
