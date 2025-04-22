@@ -9,6 +9,7 @@ import { Eye, EyeOff, X } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "../../context/auth-context"
 import { signupPatient } from "@/services/patient"
+import { sendVerificationEmail } from "@/lib/verify"
 
 export default function PatientSignupPage() {
   const [firstName, setFirstName] = useState("")
@@ -34,8 +35,10 @@ export default function PatientSignupPage() {
     setIsLoading(true);
 
     try {
-      // Generate verification token
-      const verificationToken = crypto.randomBytes(32).toString('hex');
+      // Generate verification token using browser-compatible method
+      const verificationToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
       
       // Prepare form data
       const formData = {
