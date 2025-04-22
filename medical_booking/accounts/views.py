@@ -36,9 +36,47 @@ from .serializers import (
     DoctorProfileSerializer
 )
 from .token_serializers import CustomTokenObtainPairSerializer
-from .utils import send_verification_email
 
 logger = logging.getLogger('accounts')
+
+def send_verification_email(user):
+    """
+    Send verification email to the user
+    """
+    try:
+        # Generate verification token
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        # Create verification URL
+        verification_url = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
+        
+        # Render email templates
+        html_message = render_to_string('email/verification_email.html', {
+            'verification_url': verification_url,
+            'expiry_days': 1
+        })
+        
+        plain_message = render_to_string('email/verification_email.txt', {
+            'verification_url': verification_url,
+            'expiry_days': 1
+        })
+
+        # Send email
+        send_mail(
+            subject='Verify your HEALIX account',
+            message=plain_message,
+            html_message=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False
+        )
+        
+        logger.info(f"Verification email sent to {user.email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send verification email to {user.email}: {str(e)}")
+        return False
 
 class LoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
