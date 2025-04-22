@@ -390,10 +390,23 @@ class DoctorSearchView(generics.ListAPIView):
         location = self.request.query_params.get('location', None)
 
         if name:
-            queryset = queryset.filter(
-                Q(user__first_name__icontains=name) |
-                Q(user__last_name__icontains=name)
-            )
+            # Split the name into parts and remove empty strings
+            name_parts = [part.strip() for part in name.split() if part.strip()]
+            
+            if len(name_parts) >= 2:
+                # If we have at least two parts, assume first part is first name and last part is last name
+                first_name = name_parts[0]
+                last_name = name_parts[-1]
+                queryset = queryset.filter(
+                    Q(user__first_name__icontains=first_name) &
+                    Q(user__last_name__icontains=last_name)
+                )
+            else:
+                # If only one part, search in both first and last name
+                queryset = queryset.filter(
+                    Q(user__first_name__icontains=name) |
+                    Q(user__last_name__icontains=name)
+                )
         
         if specialty:
             queryset = queryset.filter(specialty__icontains=specialty)
@@ -982,6 +995,7 @@ def get_doctor_availability(request, doctor_id, date):
 
 class CreateAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
         try:
@@ -997,8 +1011,9 @@ class CreateAppointmentView(APIView):
                 )
             
             try:
-                doctor = DoctorProfile.objects.get(id=doctor_id)
-            except DoctorProfile.DoesNotExist:
+                # Convert doctor_id to integer since it comes as a string from FormData
+                doctor = DoctorProfile.objects.get(id=int(doctor_id))
+            except (DoctorProfile.DoesNotExist, ValueError):
                 return Response(
                     {'error': 'Doctor not found'},
                     status=status.HTTP_404_NOT_FOUND

@@ -70,7 +70,7 @@ export function BookingDialog({
         'September': '09', 'October': '10', 'November': '11', 'December': '12'
       };
       const day = dateParts[1].replace(/\D/g, '');
-      const month = monthMap[dateParts[0]] || '01'; // Fallback to January if month not found
+      const month = monthMap[dateParts[0]] || '01';
       const year = new Date().getFullYear();
       const formattedDate = `${year}-${month}-${day.padStart(2, '0')}`;
 
@@ -79,45 +79,28 @@ export function BookingDialog({
       const doctors = await searchDoctors({ name: doctorName });
       console.log('Search results:', doctors);
 
-      let doctorId: number | null = null;
-
       if (!doctors || doctors.length === 0) {
-        // Try searching with just the first name
-        const firstName = doctorName.split(' ')[1]; // Assuming format is "Dr. FirstName LastName"
-        console.log('Trying search with first name:', firstName);
-        const doctorsByFirstName = await searchDoctors({ name: firstName });
-        console.log('Search results by first name:', doctorsByFirstName);
-
-        if (!doctorsByFirstName || doctorsByFirstName.length === 0) {
-          throw new Error(`Doctor "${doctorName}" not found. Please try again with the correct name.`);
-        }
-        doctorId = doctorsByFirstName[0].id;
-      } else {
-        doctorId = doctors[0].id;
+        throw new Error(`Doctor "${doctorName}" not found. Please try again with the correct name.`);
       }
 
-      if (!doctorId) {
-        throw new Error('Failed to find doctor ID');
+      const doctor = doctors[0];
+      if (!doctor || !doctor.id) {
+        throw new Error('Failed to get doctor ID from search results');
       }
 
-      console.log('Found doctor with ID:', doctorId);
+      console.log('Found doctor with ID:', doctor.id);
 
       // Create form data for the appointment
       const formData = new FormData();
-      formData.append('doctor', doctorId.toString());
+      formData.append('doctor', String(doctor.id));
       formData.append('appointment_date', formattedDate);
       formData.append('start_time', startTime);
       formData.append('end_time', endTime);
       formData.append('status', 'pending');
       formData.append('reason', problem);
-      // Only append document if it exists and the feature is supported
-      try {
-        if (document) {
-          formData.append('document', document);
-        }
-      } catch (error) {
-        console.warn('Document upload failed:', error);
-        // Continue without the document
+      
+      if (document) {
+        formData.append('document', document);
       }
 
       // Create the appointment
