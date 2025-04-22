@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 import { formatDateTime } from '@/lib/utils';
 import { ConfirmDialog } from './ConfirmDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from 'sonner';
 import { cancelAppointment } from "@/services/api";
 import { searchDoctors } from '@/services/doctor';
@@ -47,6 +48,8 @@ interface Appointment {
   created_at: string;
   updated_at: string;
   doctor_name: string;
+  document?: string;
+  document_url?: string;
 }
 
 interface DoctorSearchResult {
@@ -67,6 +70,8 @@ export default function PatientDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
   
   // New state for doctor search
   const [searchTerm, setSearchTerm] = useState('');
@@ -112,6 +117,11 @@ export default function PatientDashboard() {
       console.error("Error cancelling appointment:", error);
       toast.error("Failed to cancel appointment");
     }
+  };
+
+  const handleViewDetails = (appointment: Appointment) => {
+    setSelectedAppointmentDetails(appointment);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleSearch = async () => {
@@ -179,7 +189,6 @@ export default function PatientDashboard() {
         <div className="space-y-4">
           {appointments.length > 0 ? (
             appointments.map((appointment) => {
-              console.log('Individual appointment data:', JSON.stringify(appointment, null, 2));
               const { date, time } = formatAppointmentDateTime(appointment.appointment_date, appointment.start_time);
               const isPastAppointment = new Date(`${appointment.appointment_date}T${appointment.end_time}`) < new Date();
 
@@ -201,7 +210,7 @@ export default function PatientDashboard() {
                       </div>
 
                       {/* Middle: Doctor and appointment details */}
-                      <div className="flex-1 space-y-2">
+                      <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h4 className="text-lg font-semibold">
                             Dr. {appointment.doctor_name}
@@ -216,7 +225,7 @@ export default function PatientDashboard() {
                           </span>
                         </div>
                         
-                        <div className="space-y-2">
+                        <div className="mt-2 space-y-1 text-sm text-gray-600">
                           {/* Time */}
                           <p className="flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -247,19 +256,26 @@ export default function PatientDashboard() {
                       </div>
 
                       {/* Right: Action buttons */}
-                      {!isPastAppointment && appointment.status !== 'cancelled' && (
-                        <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => handleViewDetails(appointment)}
+                        >
+                          View Details
+                        </Button>
+                        {!isPastAppointment && appointment.status !== 'cancelled' && (
                           <Button
                             variant="outline"
                             onClick={() => {
                               setSelectedAppointment(appointment.id.toString());
                               setIsConfirmDialogOpen(true);
                             }}
+                            className="text-red-600 border-red-600 hover:bg-red-50"
                           >
                             Cancel
                           </Button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -271,6 +287,7 @@ export default function PatientDashboard() {
         </div>
       </section>
 
+      {/* Cancel Confirmation Dialog */}
       <ConfirmDialog
         isOpen={isConfirmDialogOpen}
         onClose={() => setIsConfirmDialogOpen(false)}
@@ -278,6 +295,54 @@ export default function PatientDashboard() {
         title="Cancel Appointment"
         description="Are you sure you want to cancel this appointment?"
       />
+
+      {/* Appointment Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Appointment Details</DialogTitle>
+          </DialogHeader>
+          {selectedAppointmentDetails && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold">Doctor</h4>
+                <p>Dr. {selectedAppointmentDetails.doctor_name}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Date & Time</h4>
+                <p>{format(new Date(selectedAppointmentDetails.appointment_date), 'MMMM d, yyyy')}</p>
+                <p>{selectedAppointmentDetails.start_time} - {selectedAppointmentDetails.end_time}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Status</h4>
+                <p className="capitalize">{selectedAppointmentDetails.status}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Reason</h4>
+                <p>{selectedAppointmentDetails.reason || 'No reason provided'}</p>
+              </div>
+              {selectedAppointmentDetails.document_url && (
+                <div>
+                  <h4 className="font-semibold">Documents</h4>
+                  <a 
+                    href={selectedAppointmentDetails.document_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    View Document
+                  </a>
+                </div>
+              )}
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

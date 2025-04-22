@@ -1066,23 +1066,28 @@ class CreateAppointmentView(APIView):
             if serializer.is_valid():
                 appointment = serializer.save()
                 
-                # Send confirmation email to patient
-                send_mail(
-                    'Appointment Confirmation',
-                    f'Your appointment with Dr. {doctor.user.get_full_name()} has been scheduled for {appointment_date} at {start_time}.',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [patient.email],
-                    fail_silently=False,
-                )
-                
-                # Send notification to doctor
-                send_mail(
-                    'New Appointment Request',
-                    f'You have a new appointment request from {patient.get_full_name()} for {appointment_date} at {start_time}.',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [doctor.user.email],
-                    fail_silently=False,
-                )
+                # Try to send confirmation emails, but don't fail if they don't send
+                try:
+                    # Send confirmation email to patient
+                    send_mail(
+                        'Appointment Confirmation',
+                        f'Your appointment with Dr. {doctor.user.get_full_name()} has been scheduled for {appointment_date} at {start_time}.',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [patient.email],
+                        fail_silently=True,  # Set to True to prevent email errors from affecting the appointment creation
+                    )
+                    
+                    # Send notification to doctor
+                    send_mail(
+                        'New Appointment Request',
+                        f'You have a new appointment request from {patient.get_full_name()} for {appointment_date} at {start_time}.',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [doctor.user.email],
+                        fail_silently=True,  # Set to True to prevent email errors from affecting the appointment creation
+                    )
+                except Exception as e:
+                    # Log the email error but don't let it affect the appointment creation
+                    logger.error(f"Failed to send confirmation emails: {str(e)}")
                 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             

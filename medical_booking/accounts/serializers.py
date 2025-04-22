@@ -307,9 +307,29 @@ class AppointmentSerializer(serializers.ModelSerializer):
         return obj.doctor.user.email
 
     def get_document_url(self, obj):
-        if obj.document:
+        if not obj.document:
+            return None
+            
+        try:
+            # If we're using S3 storage, construct the URL directly
+            if hasattr(obj.document.storage, 'bucket_name'):
+                # Get the bucket name
+                bucket_name = obj.document.storage.bucket_name
+                
+                # Ensure the file name is properly encoded
+                file_name = obj.document.name.replace(' ', '%20')
+                
+                # Generate S3 URL with the correct region
+                s3_url = f"https://{bucket_name}.s3.eu-north-1.amazonaws.com/{file_name}"
+                
+                return s3_url
+            
+            # For local storage, build the absolute URL
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.document.url)
             return obj.document.url
-        return None
+            
+        except Exception as e:
+            logger.error(f"Error generating document URL: {str(e)}", exc_info=True)
+            return None
