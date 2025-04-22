@@ -248,7 +248,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 USE_S3 = os.getenv('USE_S3', 'True') == 'True'
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'eu-north-1')
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = 'private'
@@ -257,7 +256,9 @@ AWS_S3_ADDRESSING_STYLE = 'virtual'
 
 # S3 Access Point Configuration
 AWS_S3_ACCESS_POINT_NAME = 'healix'
-AWS_S3_ACCESS_POINT_URL = f"https://{AWS_S3_ACCESS_POINT_NAME}-784439927722.s3-accesspoint.{AWS_S3_REGION_NAME}.amazonaws.com"
+AWS_ACCOUNT_ID = '784439927722'
+AWS_STORAGE_BUCKET_NAME = f"{AWS_S3_ACCESS_POINT_NAME}-{AWS_ACCOUNT_ID}"
+AWS_S3_ACCESS_POINT_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3-accesspoint.{AWS_S3_REGION_NAME}.amazonaws.com"
 
 # Debug logging for S3 configuration
 logger.info(f"USE_S3: {USE_S3}")

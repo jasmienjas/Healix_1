@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 import logging
 import boto3
+from botocore.config import Config
 from django.conf import settings
 
 logger = logging.getLogger('accounts')
@@ -325,16 +326,33 @@ class AppointmentSerializer(serializers.ModelSerializer):
             if settings.USE_S3:
                 logger.info("Using S3 storage")
                 try:
+                    # Configure boto3 with Signature Version 4
+                    config = Config(
+                        signature_version='s3v4',
+                        s3={'addressing_style': 'virtual'}
+                    )
+                    
+                    # Use the same bucket name as storage backend
+                    account_id = '784439927722'
+                    access_point_name = 'healix'
+                    bucket_name = f"{access_point_name}-{account_id}"
+                    
                     s3_client = boto3.client(
                         's3',
                         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                        region_name=settings.AWS_S3_REGION_NAME
+                        region_name=settings.AWS_S3_REGION_NAME,
+                        config=config
                     )
+                    
+                    # Log the bucket and key being used
+                    logger.info(f"Using bucket: {bucket_name}")
+                    logger.info(f"Using key: {obj.document.name}")
+                    
                     url = s3_client.generate_presigned_url(
                         'get_object',
                         Params={
-                            'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                            'Bucket': bucket_name,
                             'Key': obj.document.name
                         },
                         ExpiresIn=3600
