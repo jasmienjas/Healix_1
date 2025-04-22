@@ -270,6 +270,13 @@ export const appointmentsApi = {
     });
     return response;
   },
+
+  deleteAppointment: async (appointmentId: number) => {
+    const response = await apiCall(`api/accounts/appointments/${appointmentId}/delete/`, {
+      method: 'DELETE',
+    });
+    return response;
+  },
 };
 
 // Export the API object

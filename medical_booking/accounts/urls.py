@@ -18,7 +18,8 @@ from .views import (
     get_doctor_details,
     get_doctor_availability,
     CreateAppointmentView,
-    ConfirmAppointmentView
+    ConfirmAppointmentView,
+    DeleteAppointmentView
 )
 
 urlpatterns = [
@@ -28,6 +29,7 @@ urlpatterns = [
     path('register/admin/', AdminRegisterView.as_view(), name='admin-register'),
     path('appointments/<int:pk>/postpone/', PostponeAppointmentView.as_view(), name='postpone-appointment'),
     path('appointments/<int:pk>/cancel/', CancelAppointmentView.as_view(), name='cancel-appointment'),
+    path('appointments/<int:pk>/delete/', DeleteAppointmentView.as_view(), name='delete-appointment'),
     path('appointments/confirm/<int:pk>/', ConfirmAppointmentView.as_view(), name='confirm-appointment'),
     path('appointments/schedule/', PatientScheduleView.as_view(), name='patient-schedule'),
     path('appointments/create/', CreateAppointmentView.as_view(), name='create-appointment'),

@@ -73,6 +73,7 @@ export default function PatientDashboard() {
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedAppointmentDetails, setSelectedAppointmentDetails] = useState<Appointment | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   // New state for doctor search
   const [searchTerm, setSearchTerm] = useState('');
@@ -156,6 +157,24 @@ export default function PatientDashboard() {
       date: format(dateObj, 'MMMM d, yyyy'),
       time: format(dateObj, 'h:mm a')
     };
+  };
+
+  const handleDeleteAppointment = async () => {
+    if (!selectedAppointment) return;
+
+    try {
+      await api.appointments.deleteAppointment(parseInt(selectedAppointment));
+      toast.success('Appointment deleted successfully');
+      // Refresh appointments
+      const response = await api.appointments.getPatientAppointments();
+      if (response.success) {
+        setAppointments(response.data);
+      }
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      toast.error('Failed to delete appointment');
+    }
   };
 
   if (loading) {
@@ -276,6 +295,18 @@ export default function PatientDashboard() {
                             Cancel
                           </Button>
                         )}
+                        {appointment.status === 'cancelled' && (
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedAppointment(appointment.id.toString());
+                              setIsDeleteDialogOpen(true);
+                            }}
+                            className="text-red-600 border-red-600 hover:bg-red-50"
+                          >
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -344,6 +375,15 @@ export default function PatientDashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteAppointment}
+        title="Delete Appointment"
+        description="Are you sure you want to delete this cancelled appointment? This action cannot be undone."
+      />
     </div>
   );
 } 

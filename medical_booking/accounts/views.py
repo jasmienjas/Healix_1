@@ -1157,4 +1157,43 @@ class ConfirmAppointmentView(APIView):
                 'success': False,
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DeleteAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            appointment = get_object_or_404(Appointment, pk=pk)
+            
+            # Check if the user is either the doctor or the patient of the appointment
+            is_doctor = request.user.user_type == 'doctor' and appointment.doctor.user == request.user
+            is_patient = request.user == appointment.patient
+            
+            if not (is_doctor or is_patient):
+                return Response({
+                    'success': False,
+                    'message': 'You can only delete your own appointments.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Check if the appointment is cancelled
+            if appointment.status != 'cancelled':
+                return Response({
+                    'success': False,
+                    'message': 'Only cancelled appointments can be deleted.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Delete the appointment
+            appointment.delete()
+            
+            return Response({
+                'success': True,
+                'message': 'Appointment deleted successfully'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error deleting appointment: {str(e)}")
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         

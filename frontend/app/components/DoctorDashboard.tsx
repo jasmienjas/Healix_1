@@ -11,6 +11,7 @@ import { CancelDialog } from './CancelDialog';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface User {
   id: number;
@@ -70,6 +71,8 @@ export default function DoctorDashboard() {
   const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
   const [isPostponeDialogOpen, setIsPostponeDialogOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Profile link section
   const profileLink = (
@@ -196,6 +199,22 @@ export default function DoctorDashboard() {
     }
   };
 
+  const handleDeleteAppointment = async () => {
+    if (!selectedAppointment) return;
+
+    try {
+      await api.appointments.deleteAppointment(parseInt(selectedAppointment));
+      toast.success('Appointment deleted successfully');
+      // Refresh appointments
+      const newAppointments = await api.appointments.getDoctorAppointments();
+      setAppointments(newAppointments);
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      toast.error('Failed to delete appointment');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -301,39 +320,31 @@ export default function DoctorDashboard() {
                             </div>
 
                             {/* Action buttons */}
-                            <div className="flex gap-2 mt-4">
+                            <div className="flex flex-col gap-2">
                               {appointment.status === 'pending' && (
                                 <Button
-                                  variant="default"
-                                  size="sm"
-                                  className="w-24 bg-green-600 hover:bg-green-700"
-                                  onClick={() => handleConfirm(appointment.id)}
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedAppointment(appointment.id.toString());
+                                    setIsConfirmDialogOpen(true);
+                                  }}
+                                  className="text-green-600 border-green-600 hover:bg-green-50"
                                 >
                                   Confirm
                                 </Button>
                               )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-24"
-                                onClick={() => {
-                                  setSelectedAppointment(appointment.id);
-                                  setIsPostponeDialogOpen(true);
-                                }}
-                              >
-                                Postpone
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-24 text-red-600 border-red-600 hover:bg-red-50"
-                                onClick={() => {
-                                  setSelectedAppointment(appointment.id);
-                                  setIsCancelDialogOpen(true);
-                                }}
-                              >
-                                Cancel
-                              </Button>
+                              {appointment.status === 'cancelled' && (
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedAppointment(appointment.id.toString());
+                                    setIsDeleteDialogOpen(true);
+                                  }}
+                                  className="text-red-600 border-red-600 hover:bg-red-50"
+                                >
+                                  Delete
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </CardContent>
@@ -365,6 +376,20 @@ export default function DoctorDashboard() {
         onClose={() => setIsCancelDialogOpen(false)}
         onConfirm={handleCancel}
         appointmentId={selectedAppointment || ''}
+      />
+      <ConfirmDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => setIsConfirmDialogOpen(false)}
+        onConfirm={() => selectedAppointment && handleConfirm(selectedAppointment)}
+        title="Confirm Appointment"
+        description="Are you sure you want to confirm this appointment?"
+      />
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteAppointment}
+        title="Delete Appointment"
+        description="Are you sure you want to delete this cancelled appointment? This action cannot be undone."
       />
     </div>
   );
