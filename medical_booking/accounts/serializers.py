@@ -315,18 +315,22 @@ class AppointmentSerializer(serializers.ModelSerializer):
             return None
             
         try:
-            # If we're using S3 storage, construct the URL directly
+            # If we're using S3 storage, generate a pre-signed URL
             if hasattr(obj.document.storage, 'bucket_name'):
-                # Get the bucket name
-                bucket_name = obj.document.storage.bucket_name
+                # Get the S3 client from the storage backend
+                s3_client = obj.document.storage.connection
                 
-                # Ensure the file name is properly encoded
-                file_name = obj.document.name.replace(' ', '%20')
+                # Generate a pre-signed URL that expires in 1 hour (3600 seconds)
+                url = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={
+                        'Bucket': obj.document.storage.bucket_name,
+                        'Key': obj.document.name
+                    },
+                    ExpiresIn=3600
+                )
                 
-                # Generate S3 URL with the correct region
-                s3_url = f"https://{bucket_name}.s3.eu-north-1.amazonaws.com/{file_name}"
-                
-                return s3_url
+                return url
             
             # For local storage, build the absolute URL
             request = self.context.get('request')

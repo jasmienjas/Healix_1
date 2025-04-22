@@ -57,12 +57,6 @@ export default function Layout({ children }: LayoutProps) {
 
   const patientNavigation = [
     {
-      name: "Book Appointment",
-      href: "/book-appointment",
-      icon: Calendar,
-      current: pathname === "/book-appointment",
-    },
-    {
       name: "My Appointments",
       href: "/dashboard",
       icon: Clock,
