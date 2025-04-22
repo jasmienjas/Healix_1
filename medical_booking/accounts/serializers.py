@@ -292,7 +292,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'status', 'reason', 'notes', 'document', 'document_url',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['patient', 'doctor', 'created_at', 'updated_at']
+        read_only_fields = ['patient', 'created_at', 'updated_at']
 
     def get_patient_name(self, obj):
         return f"{obj.patient.first_name} {obj.patient.last_name}"
