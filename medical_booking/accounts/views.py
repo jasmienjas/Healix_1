@@ -21,6 +21,7 @@ from django.db.models import Q
 from django.db.utils import IntegrityError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
+from django.template.loader import render_to_string
 
 import logging
 import os
@@ -35,6 +36,7 @@ from .serializers import (
     DoctorProfileSerializer
 )
 from .token_serializers import CustomTokenObtainPairSerializer
+from .utils import send_verification_email
 
 logger = logging.getLogger('accounts')
 
@@ -60,9 +62,18 @@ class PatientRegisterView(generics.CreateAPIView):
             
         try:
             user = serializer.save()
+            
+            # Send verification email
+            try:
+                send_verification_email(user)
+            except Exception as e:
+                print(f"Error sending verification email: {str(e)}")
+                # Don't fail the registration if email fails
+                pass
+            
             return Response({
                 'success': True,
-                'message': 'Registration successful',
+                'message': 'Registration successful. Please check your email to verify your account.',
                 'data': {
                     'id': user.id,
                     'email': user.email,
@@ -77,7 +88,46 @@ class PatientRegisterView(generics.CreateAPIView):
                 'success': False,
                 'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
+class VerifyEmailView(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        try:
+            uid = request.GET.get('uid')
+            token = request.GET.get('token')
+            
+            if not uid or not token:
+                return Response({
+                    'success': False,
+                    'message': 'Missing verification parameters'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                uid = force_str(urlsafe_base64_decode(uid))
+                user = CustomUser.objects.get(pk=uid)
+            except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+                user = None
+            
+            if user is not None and is_verification_token_valid(user, token):
+                user.is_verified = True
+                user.save()
+                return Response({
+                    'success': True,
+                    'message': 'Email verified successfully'
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'Invalid verification link'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class DoctorRegisterView(APIView):
     """
     View for doctor registration.
@@ -1277,4 +1327,44 @@ class DeleteAppointmentView(APIView):
                 'success': False,
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def send_verification_email(request):
+    try:
+        email = request.data.get('email')
+        verification_token = request.data.get('verificationToken')
+        
+        if not email or not verification_token:
+            return Response(
+                {'error': 'Email and verification token are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        verification_link = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+
+        html_message = render_to_string('email/verification_email.html', {
+            'verification_url': verification_link,
+            'expiry_days': 1
+        })
+        
+        plain_message = render_to_string('email/verification_email.txt', {
+            'verification_url': verification_link,
+            'expiry_days': 1
+        })
+
+        send_mail(
+            subject='Verify your HEALIX account',
+            message=plain_message,
+            html_message=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False
+        )
+
+        return Response({'success': True, 'message': 'Verification email sent successfully'})
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
         

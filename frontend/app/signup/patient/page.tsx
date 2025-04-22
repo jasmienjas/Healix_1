@@ -28,26 +28,33 @@ export default function PatientSignupPage() {
   const router = useRouter()
   const { signup } = useAuth()
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
-      const userData = {
-        firstName,
-        lastName,
+      // Generate verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      
+      // Prepare form data
+      const formData = {
         email,
         password,
+        firstName,
+        lastName,
         phoneNumber,
         birthDate,
-      }
+        verificationToken,
+      };
 
-      console.log('Sending signup data:', userData)
-      const result = await signupPatient(userData)
-      console.log('Signup response:', result)
+      // Send verification email through backend
+      await sendVerificationEmail(email, verificationToken);
 
-      if (result.success) {
+      // Register user
+      const response = await signupPatient(formData);
+
+      if (response.success) {
         setRegisteredEmail(email)
         setIsVerificationSent(true)
         setMessage("Please check your email for verification instructions.")
@@ -61,11 +68,10 @@ export default function PatientSignupPage() {
         // Redirect to verification page
         router.push(`/verify-email?email=${encodeURIComponent(email)}`)
       } else {
-        setError(result.message || "Registration failed")
+        setError(response.error || "Registration failed")
       }
-    } catch (err: any) {
-      console.error('Signup error:', err)
-      setError(err.message || "An error occurred during signup")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
     }
@@ -163,7 +169,7 @@ export default function PatientSignupPage() {
 
               {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 
-              <form onSubmit={handleSignup}>
+              <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
