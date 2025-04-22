@@ -148,12 +148,12 @@ export default function DoctorDashboard() {
       const endTime = new Date(startTime.getTime() + 30 * 60000);
       const formattedEndTime = endTime.toTimeString().slice(0, 5);
       
-      await api.appointments.postponeAppointment(parseInt(selectedAppointment), {
-        appointment_date: date,
-        start_time: time,
-        end_time: formattedEndTime,
-        postpone_reason: reason
-      });
+      await api.appointments.postponeAppointment(
+        parseInt(selectedAppointment),
+        date,
+        time,
+        formattedEndTime
+      );
       
       toast.success('Appointment postponed successfully');
       setIsPostponeDialogOpen(false);
@@ -170,9 +170,7 @@ export default function DoctorDashboard() {
     try {
       if (!selectedAppointment) return;
       
-      await api.appointments.cancelAppointment(parseInt(selectedAppointment), {
-        cancellation_message: reason
-      });
+      await api.appointments.cancelAppointment(parseInt(selectedAppointment));
       
       toast.success('Appointment cancelled successfully');
       setIsCancelDialogOpen(false);
@@ -182,6 +180,19 @@ export default function DoctorDashboard() {
     } catch (error) {
       console.error('Error cancelling appointment:', error);
       toast.error('Failed to cancel appointment');
+    }
+  };
+
+  const handleConfirm = async (appointmentId: string) => {
+    try {
+      await api.appointments.confirmAppointment(parseInt(appointmentId));
+      toast.success('Appointment confirmed successfully');
+      // Refresh appointments
+      const newAppointments = await api.appointments.getDoctorAppointments();
+      setAppointments(newAppointments);
+    } catch (error) {
+      console.error('Error confirming appointment:', error);
+      toast.error('Failed to confirm appointment');
     }
   };
 
@@ -290,7 +301,17 @@ export default function DoctorDashboard() {
                             </div>
 
                             {/* Action buttons */}
-                            <div className="flex flex-col gap-2">
+                            <div className="flex gap-2 mt-4">
+                              {appointment.status === 'pending' && (
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="w-24 bg-green-600 hover:bg-green-700"
+                                  onClick={() => handleConfirm(appointment.id)}
+                                >
+                                  Confirm
+                                </Button>
+                              )}
                               <Button
                                 variant="outline"
                                 size="sm"

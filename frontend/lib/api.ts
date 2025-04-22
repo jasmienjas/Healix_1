@@ -242,24 +242,34 @@ export const appointmentsApi = {
     };
   },
 
-  postponeAppointment: (appointmentId: number, data: {
-    appointment_date: string;
-    start_time: string;
-    end_time: string;
-    postpone_reason: string;
-  }) =>
-    apiCall(`api/accounts/appointments/${appointmentId}/postpone/`, {
+  postponeAppointment: async (appointmentId: number, newDate: string, newStartTime: string, newEndTime: string) => {
+    const response = await apiCall(`api/accounts/appointments/${appointmentId}/postpone/`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
-    }),
+      body: JSON.stringify({
+        appointment_date: newDate,
+        start_time: newStartTime,
+        end_time: newEndTime,
+      }),
+    });
+    return response;
+  },
 
-  cancelAppointment: (appointmentId: number, data: {
-    cancellation_message: string;
-  }) =>
-    apiCall(`api/accounts/appointments/${appointmentId}/cancel/`, {
+  cancelAppointment: async (appointmentId: number) => {
+    const response = await apiCall(`api/accounts/appointments/${appointmentId}/cancel/`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
-    }),
+      body: JSON.stringify({
+        cancellation_message: 'Cancelled by user',
+      }),
+    });
+    return response;
+  },
+
+  confirmAppointment: async (appointmentId: number) => {
+    const response = await apiCall(`api/accounts/appointments/${appointmentId}/confirm/`, {
+      method: 'PATCH',
+    });
+    return response;
+  },
 };
 
 // Export the API object

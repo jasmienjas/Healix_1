@@ -1098,4 +1098,63 @@ class CreateAppointmentView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class ConfirmAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            # Get the appointment
+            appointment = get_object_or_404(Appointment, pk=pk)
+            
+            # Ensure that only doctors can confirm appointments
+            if request.user.user_type != 'doctor':
+                return Response({
+                    'success': False,
+                    'message': 'Only doctors can confirm appointments.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Ensure the doctor is confirming their own appointment
+            if appointment.doctor.user != request.user:
+                return Response({
+                    'success': False,
+                    'message': 'You can only confirm your own appointments.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Update appointment status
+            appointment.status = 'confirmed'
+            appointment.save()
+            
+            # Send confirmation email to patient
+            try:
+                subject = "Appointment Confirmed"
+                message = (
+                    f"Dear {appointment.patient.first_name},\n\n"
+                    f"Your appointment with Dr. {appointment.doctor.user.get_full_name()} "
+                    f"on {appointment.appointment_date} at {appointment.start_time} has been confirmed.\n\n"
+                    f"Location: {appointment.doctor.office_address}\n\n"
+                    f"Best regards,\nHealix Team"
+                )
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [appointment.patient.email]
+                )
+            except Exception as e:
+                logger.error(f"Failed to send confirmation email: {e}")
+            
+            serializer = AppointmentSerializer(appointment)
+            return Response({
+                'success': True,
+                'message': 'Appointment confirmed successfully',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error confirming appointment: {str(e)}")
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
