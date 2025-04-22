@@ -87,6 +87,7 @@ export default function PatientDashboard() {
       if (!response.success) {
         throw new Error(response.message);
       }
+      console.log('Raw appointments response:', response);
       console.log('Appointments data:', JSON.stringify(response.data, null, 2));
       setAppointments(response.data);
       setLoading(false);
@@ -122,6 +123,8 @@ export default function PatientDashboard() {
   };
 
   const handleViewDetails = (appointment: Appointment) => {
+    console.log('Viewing appointment details:', appointment);
+    console.log('Document URL:', appointment.document_url);
     setSelectedAppointmentDetails(appointment);
     setIsDetailsDialogOpen(true);
   };

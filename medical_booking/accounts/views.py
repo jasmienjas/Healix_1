@@ -293,13 +293,26 @@ class PatientScheduleView(generics.ListAPIView):
 
     def get_queryset(self):
         try:
+            logger.info("=== START OF PATIENT SCHEDULE FETCH ===")
             logger.info(f"Fetching appointments for patient: {self.request.user.id}")
-            return Appointment.objects.filter(
+            appointments = Appointment.objects.filter(
                 patient=self.request.user
             ).select_related(
                 'patient',
                 'doctor__user'
             )
+            logger.info(f"Found {appointments.count()} appointments")
+            
+            # Log details of each appointment
+            for appointment in appointments:
+                logger.info(f"Appointment {appointment.id}:")
+                logger.info(f"- Document: {appointment.document if appointment.document else 'None'}")
+                if appointment.document:
+                    logger.info(f"- Document name: {appointment.document.name}")
+                    logger.info(f"- Document URL: {appointment.document.url}")
+                    logger.info(f"- Document storage: {appointment.document.storage}")
+            
+            return appointments
         except Exception as e:
             logger.error(f"Error fetching patient appointments: {str(e)}", exc_info=True)
             raise
@@ -310,6 +323,7 @@ class PatientScheduleView(generics.ListAPIView):
             logger.info(f"Found {queryset.count()} appointments")
             serializer = self.get_serializer(queryset, many=True)
             logger.info("Successfully serialized appointments")
+            logger.info(f"Serialized data: {serializer.data}")
             return Response({
                 'success': True,
                 'message': 'Appointments retrieved successfully',
@@ -999,6 +1013,10 @@ class CreateAppointmentView(APIView):
 
     def post(self, request):
         try:
+            logger.info("=== START OF APPOINTMENT CREATION ===")
+            logger.info(f"Request data: {request.data}")
+            logger.info(f"Request files: {request.FILES}")
+            
             # Get patient (CustomUser)
             patient = request.user
             
@@ -1059,12 +1077,25 @@ class CreateAppointmentView(APIView):
 
             # Handle document upload
             if 'document' in request.FILES:
-                appointment_data['document'] = request.FILES['document']
+                logger.info("Document found in request.FILES")
+                document = request.FILES['document']
+                logger.info(f"Document name: {document.name}")
+                logger.info(f"Document size: {document.size}")
+                logger.info(f"Document content type: {document.content_type}")
+                appointment_data['document'] = document
+            else:
+                logger.info("No document found in request.FILES")
 
+            logger.info(f"Final appointment data: {appointment_data}")
             serializer = AppointmentSerializer(data=appointment_data, context={'request': request})
             
             if serializer.is_valid():
+                logger.info("Serializer is valid")
                 appointment = serializer.save()
+                logger.info(f"Appointment saved with ID: {appointment.id}")
+                if appointment.document:
+                    logger.info(f"Document saved: {appointment.document.name}")
+                    logger.info(f"Document URL: {appointment.document.url}")
                 
                 # Try to send confirmation emails, but don't fail if they don't send
                 try:
@@ -1090,10 +1121,12 @@ class CreateAppointmentView(APIView):
                     logger.error(f"Failed to send confirmation emails: {str(e)}")
                 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-            
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                logger.error(f"Serializer errors: {serializer.errors}")
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
         except Exception as e:
+            logger.error(f"Error creating appointment: {str(e)}", exc_info=True)
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

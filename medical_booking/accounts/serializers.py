@@ -4,6 +4,8 @@ from django.core.files.storage import default_storage
 import os
 from datetime import datetime
 import logging
+import boto3
+from django.conf import settings
 
 logger = logging.getLogger('accounts')
 
@@ -311,33 +313,50 @@ class AppointmentSerializer(serializers.ModelSerializer):
         return obj.doctor.office_address
 
     def get_document_url(self, obj):
-        if not obj.document:
-            return None
-            
         try:
-            # If we're using S3 storage, generate a pre-signed URL
-            if hasattr(obj.document.storage, 'bucket_name'):
-                # Get the S3 client from the storage backend
-                s3_client = obj.document.storage.connection
-                
-                # Generate a pre-signed URL that expires in 1 hour (3600 seconds)
-                url = s3_client.generate_presigned_url(
-                    'get_object',
-                    Params={
-                        'Bucket': obj.document.storage.bucket_name,
-                        'Key': obj.document.name
-                    },
-                    ExpiresIn=3600
-                )
-                
-                return url
-            
-            # For local storage, build the absolute URL
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.document.url)
-            return obj.document.url
-            
+            logger.info(f"Getting document URL for appointment {obj.id}")
+            if not obj.document:
+                logger.info("No document found for appointment")
+                return None
+
+            logger.info(f"Document name: {obj.document.name}")
+            logger.info(f"Document storage: {obj.document.storage}")
+
+            if settings.USE_S3:
+                logger.info("Using S3 storage")
+                try:
+                    s3_client = boto3.client(
+                        's3',
+                        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                        region_name=settings.AWS_S3_REGION_NAME
+                    )
+                    url = s3_client.generate_presigned_url(
+                        'get_object',
+                        Params={
+                            'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                            'Key': obj.document.name
+                        },
+                        ExpiresIn=3600
+                    )
+                    logger.info(f"Generated S3 presigned URL: {url}")
+                    return url
+                except Exception as e:
+                    logger.error(f"Error generating S3 presigned URL: {str(e)}", exc_info=True)
+                    return None
+            else:
+                logger.info("Using local storage")
+                try:
+                    request = self.context.get('request')
+                    if request is not None:
+                        url = request.build_absolute_uri(obj.document.url)
+                        logger.info(f"Generated local URL: {url}")
+                        return url
+                    logger.warning("No request found in context")
+                    return None
+                except Exception as e:
+                    logger.error(f"Error generating local URL: {str(e)}", exc_info=True)
+                    return None
         except Exception as e:
-            logger.error(f"Error generating document URL: {str(e)}", exc_info=True)
+            logger.error(f"Error in get_document_url: {str(e)}", exc_info=True)
             return None
