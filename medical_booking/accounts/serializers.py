@@ -282,12 +282,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
     doctor_name = serializers.SerializerMethodField()
     doctor_email = serializers.SerializerMethodField()
     document_url = serializers.SerializerMethodField()
+    doctor_office_address = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
         fields = [
             'id', 'patient', 'patient_name', 'patient_email',
-            'doctor', 'doctor_name', 'doctor_email',
+            'doctor', 'doctor_name', 'doctor_email', 'doctor_office_address',
             'appointment_date', 'start_time', 'end_time',
             'status', 'reason', 'notes', 'document', 'document_url',
             'created_at', 'updated_at'
@@ -305,6 +306,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     def get_doctor_email(self, obj):
         return obj.doctor.user.email
+
+    def get_doctor_office_address(self, obj):
+        return obj.doctor.office_address
 
     def get_document_url(self, obj):
         if not obj.document:
