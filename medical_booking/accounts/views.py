@@ -1367,7 +1367,8 @@ class DeleteAppointmentView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
-def send_verification_email(request):
+@permission_classes([AllowAny])
+def send_verification_email_view(request):
     try:
         email = request.data.get('email')
         verification_token = request.data.get('verificationToken')
@@ -1378,18 +1379,30 @@ def send_verification_email(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        verification_link = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+        # Get the user
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response(
+                {'error': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
+        # Create verification URL
+        verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+
+        # Render email templates
         html_message = render_to_string('email/verification_email.html', {
-            'verification_url': verification_link,
+            'verification_url': verification_url,
             'expiry_days': 1
         })
         
         plain_message = render_to_string('email/verification_email.txt', {
-            'verification_url': verification_link,
+            'verification_url': verification_url,
             'expiry_days': 1
         })
 
+        # Send email
         send_mail(
             subject='Verify your HEALIX account',
             message=plain_message,
@@ -1401,6 +1414,7 @@ def send_verification_email(request):
 
         return Response({'success': True, 'message': 'Verification email sent successfully'})
     except Exception as e:
+        logger.error(f"Error sending verification email: {str(e)}")
         return Response(
             {'error': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
