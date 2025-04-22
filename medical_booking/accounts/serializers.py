@@ -332,11 +332,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
                         s3={'addressing_style': 'virtual'}
                     )
                     
-                    # Use the same bucket name as storage backend
-                    account_id = '784439927722'
-                    access_point_name = 'healix'
-                    bucket_name = f"{access_point_name}-{account_id}"
-                    
                     s3_client = boto3.client(
                         's3',
                         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -346,13 +341,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
                     )
                     
                     # Log the bucket and key being used
-                    logger.info(f"Using bucket: {bucket_name}")
+                    logger.info(f"Using bucket: {settings.AWS_STORAGE_BUCKET_NAME}")
                     logger.info(f"Using key: {obj.document.name}")
                     
                     url = s3_client.generate_presigned_url(
                         'get_object',
                         Params={
-                            'Bucket': bucket_name,
+                            'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
                             'Key': obj.document.name
                         },
                         ExpiresIn=3600

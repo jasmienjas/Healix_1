@@ -24,15 +24,10 @@ class CustomS3Boto3Storage(S3Boto3Storage):
             s3={'addressing_style': 'virtual'}
         )
         
-        # Extract account ID from the access point URL
-        account_id = '784439927722'
-        self.access_point_name = 'healix'
-        self.bucket_name = f"{self.access_point_name}-{account_id}"
-        self.access_point_url = f"https://{self.bucket_name}.s3-accesspoint.{settings.AWS_S3_REGION_NAME}.amazonaws.com"
+        self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+        logger.info(f"Initializing S3 storage with bucket: {self.bucket_name}")
         
-        logger.info(f"Initializing S3 storage with access point URL: {self.access_point_url}")
-        
-        # Create a new client using the access point and SigV4
+        # Create a new client using SigV4
         self.client = boto3.client(
             's3',
             region_name=settings.AWS_S3_REGION_NAME,
@@ -63,9 +58,8 @@ class CustomS3Boto3Storage(S3Boto3Storage):
         while name and name[0] == '/':
             name = name[1:]
             
-        # Handle full URLs or ARNs
-        if any(name.startswith(prefix) for prefix in ['http://', 'https://', 'arn:aws:s3:']):
-            # Extract just the file path portion after media/
+        # Handle full URLs
+        if any(name.startswith(prefix) for prefix in ['http://', 'https://']):
             try:
                 if 'media/' in name:
                     parts = name.split('media/')
@@ -96,28 +90,6 @@ class CustomS3Boto3Storage(S3Boto3Storage):
         if not name.startswith(f"{self.location}/"):
             name = f"{self.location}/{name}"
             
-        # Verify the file exists in S3
-        try:
-            self.client.head_object(
-                Bucket=self.bucket_name,
-                Key=name
-            )
-            logger.info(f"[NORMALIZE] File exists in S3: {name}")
-        except Exception as e:
-            logger.error(f"[NORMALIZE] File does not exist in S3: {name}")
-            # Try without media prefix
-            try:
-                if name.startswith('media/'):
-                    alt_name = name[len('media/'):]
-                    self.client.head_object(
-                        Bucket=self.bucket_name,
-                        Key=alt_name
-                    )
-                    logger.info(f"[NORMALIZE] File exists with alternative path: {alt_name}")
-                    return alt_name
-            except Exception as e2:
-                logger.error(f"[NORMALIZE] File also not found with alternative path")
-        
         logger.info(f"[NORMALIZE] Output name: {name}")
         return name
     
@@ -158,7 +130,7 @@ class CustomS3Boto3Storage(S3Boto3Storage):
                         'Bucket': self.bucket_name,
                         'Key': normalized_name
                     },
-                    ExpiresIn=3600,  # URL expires in 1 hour
+                    ExpiresIn=3600  # URL expires in 1 hour
                 )
                 logger.info(f"[URL] Generated presigned URL: {url}")
                 return url
