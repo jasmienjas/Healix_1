@@ -36,17 +36,16 @@ class CustomS3Boto3Storage(S3Boto3Storage):
             config=config
         )
         
-        # List objects in the bucket to verify access
+        # List ALL objects in the bucket to see what we have
         try:
-            response = self.client.list_objects_v2(
-                Bucket=self.bucket_name,
-                Prefix='media/appointment_documents/'
-            )
-            logger.info("Available files in appointment_documents:")
-            for obj in response.get('Contents', []):
-                logger.info(f"Found file: {obj['Key']}")
+            logger.info("=== LISTING ALL FILES IN BUCKET ===")
+            paginator = self.client.get_paginator('list_objects_v2')
+            for page in paginator.paginate(Bucket=self.bucket_name):
+                for obj in page.get('Contents', []):
+                    logger.info(f"Found file: {obj['Key']}")
+            logger.info("=== END OF FILE LISTING ===")
         except Exception as e:
-            logger.error(f"Error listing objects: {str(e)}")
+            logger.error(f"Error listing all objects: {str(e)}")
     
     def _clean_name(self, name):
         """
@@ -72,7 +71,6 @@ class CustomS3Boto3Storage(S3Boto3Storage):
             except Exception as e:
                 logger.error(f"Error cleaning name: {e}")
         
-        # Don't remove media/ prefix as it's part of the key
         logger.info(f"[CLEAN] Output name: {name}")
         return name
     
@@ -83,12 +81,9 @@ class CustomS3Boto3Storage(S3Boto3Storage):
         logger.info(f"[NORMALIZE] Input name: {name}")
         name = self._clean_name(name)
         
-        # Add media prefix if it's not already there and not starting with appointment_documents
-        if not name.startswith('media/') and not name.startswith('appointment_documents/'):
-            if name.startswith(f"{self.location}/"):
-                name = name  # Keep as is since it already has the correct prefix
-            else:
-                name = f"{self.location}/{name}"
+        # Add media prefix if it's not already there
+        if not name.startswith('media/'):
+            name = f"media/{name}"
             
         logger.info(f"[NORMALIZE] Output name: {name}")
         return name
@@ -109,18 +104,27 @@ class CustomS3Boto3Storage(S3Boto3Storage):
             normalized_name = self._normalize_name(clean_name)
             logger.info(f"[URL] Cleaned and normalized name: {normalized_name}")
             
-            # List all objects with similar prefix to help debug
+            # Check if file exists
             try:
-                prefix = '/'.join(normalized_name.split('/')[:-1]) + '/'
-                logger.info(f"[URL] Listing objects with prefix: {prefix}")
-                response = self.client.list_objects_v2(
+                self.client.head_object(
                     Bucket=self.bucket_name,
-                    Prefix=prefix
+                    Key=normalized_name
                 )
-                for obj in response.get('Contents', []):
-                    logger.info(f"[URL] Found similar file: {obj['Key']}")
+                logger.info(f"[URL] File exists at key: {normalized_name}")
             except Exception as e:
-                logger.error(f"[URL] Error listing similar files: {str(e)}")
+                logger.error(f"[URL] File does not exist at key: {normalized_name}")
+                # Try without media prefix
+                if normalized_name.startswith('media/'):
+                    alt_name = normalized_name[6:]  # Remove 'media/'
+                    try:
+                        self.client.head_object(
+                            Bucket=self.bucket_name,
+                            Key=alt_name
+                        )
+                        logger.info(f"[URL] File exists at alternative key: {alt_name}")
+                        normalized_name = alt_name
+                    except Exception as e2:
+                        logger.error(f"[URL] File also not found at alternative key: {alt_name}")
             
             # Generate presigned URL with SigV4
             try:
@@ -140,4 +144,16 @@ class CustomS3Boto3Storage(S3Boto3Storage):
             
         except Exception as e:
             logger.error(f"[URL] Error in url method: {str(e)}", exc_info=True)
-            return None 
+            return None
+            
+    def _save(self, name, content):
+        """
+        Save the file to S3 and log the exact path used.
+        """
+        logger.info(f"[SAVE] Saving file with name: {name}")
+        cleaned_name = self._clean_name(name)
+        normalized_name = self._normalize_name(cleaned_name)
+        logger.info(f"[SAVE] Will save to key: {normalized_name}")
+        name = super()._save(normalized_name, content)
+        logger.info(f"[SAVE] File saved as: {name}")
+        return name 
