@@ -42,12 +42,6 @@ export default function Layout({ children }: LayoutProps) {
       current: pathname === "/dashboard",
     },
     {
-      name: "Patient Records",
-      href: "/patient-records",
-      icon: FileText,
-      current: pathname === "/patient-records",
-    },
-    {
       name: "My Availability",
       href: "/availability",
       icon: Clock,
