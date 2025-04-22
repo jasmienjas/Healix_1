@@ -24,13 +24,8 @@ class CustomS3Boto3Storage(S3Boto3Storage):
             s3={'addressing_style': 'virtual'}
         )
         
-        # Configure access point
-        self.account_id = '784439927722'
-        self.access_point_name = 'healix'
-        self.bucket_name = f"{self.access_point_name}-{self.account_id}"
-        self.access_point_url = f"https://{self.bucket_name}.s3-accesspoint.{settings.AWS_S3_REGION_NAME}.amazonaws.com"
-        
-        logger.info(f"Initializing S3 storage with access point URL: {self.access_point_url}")
+        self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+        logger.info(f"Initializing S3 storage with bucket: {self.bucket_name}")
         
         # Create a new client using SigV4
         self.client = boto3.client(
