@@ -105,10 +105,11 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
     birthDate = serializers.DateField(write_only=True)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+    verificationToken = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'firstName', 'lastName', 'email', 'password', 'phoneNumber', 'birthDate']
+        fields = ['id', 'firstName', 'lastName', 'email', 'password', 'phoneNumber', 'birthDate', 'verificationToken']
 
     def create(self, validated_data):
         try:
