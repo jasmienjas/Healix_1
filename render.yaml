@@ -3,7 +3,14 @@ services:
   - type: web
     name: healix_backend
     env: python
-    buildCommand: cd medical_booking && pip install -r requirements.txt && python manage.py collectstatic --noinput
+    buildCommand: >
+      cd medical_booking &&
+      pip install -r requirements.txt &&
+      python manage.py migrate accounts 0014 --fake &&
+      python manage.py migrate accounts 0015 --fake &&
+      python manage.py migrate accounts 0016 --fake &&
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput
     startCommand: cd medical_booking && gunicorn medical_booking.wsgi:application
     staticPublishPath: ./medical_booking/staticfiles
     envVars:
