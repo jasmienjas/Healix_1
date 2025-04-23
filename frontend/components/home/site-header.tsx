@@ -21,7 +21,6 @@ export default function SiteHeader() {
       </div>
 
       <nav className="flex items-center space-x-8">
-        
         <Link href="/login" className="hover:text-gray-300 transition-colors">
           Login
         </Link>
@@ -29,9 +28,6 @@ export default function SiteHeader() {
           Signup
         </Link>
         <ContactModal />
-        <Link href="/home" className="text-white hover:text-gray-300 transition-colors">
-          Home
-        </Link>
       </nav>
     </header>
   )

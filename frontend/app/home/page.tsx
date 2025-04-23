@@ -17,7 +17,7 @@ export default function Home() {
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="space-y-6">
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-                Your Health <span className="text-blue-400">Our Priority</span>
+                Your Health is <span className="text-blue-400">Our Priority</span>
               </h1>
               <p className="max-w-[600px] text-navy-100 md:text-xl">
                 Connect with trusted healthcare professionals and book appointments with ease.
