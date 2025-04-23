@@ -212,36 +212,71 @@ export const appointmentsApi = {
     return response;  // Return the entire response object
   },
 
-  createAppointment: (appointmentData: {
+  createAppointment: async (appointmentData: FormData | {
     doctor: number;
     appointment_date: string;
     start_time: string;
     end_time: string;
     reason?: string;
-  }) =>
-    apiCall('api/accounts/appointments/create/', {
+  }) => {
+    const isFormData = appointmentData instanceof FormData;
+    const response = await apiCall('api/accounts/appointments/create/', {
       method: 'POST',
-      body: JSON.stringify(appointmentData),
-    }),
+      body: isFormData ? appointmentData : JSON.stringify(appointmentData),
+    });
 
-  postponeAppointment: (appointmentId: number, data: {
-    appointment_date: string;
-    start_time: string;
-    end_time: string;
-    postpone_reason: string;
-  }) =>
-    apiCall(`api/accounts/appointments/${appointmentId}/postpone/`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    }),
+    // If the response is the appointment data directly (201 status)
+    if (response && response.id) {
+      return {
+        success: true,
+        data: response,
+        message: 'Appointment created successfully'
+      };
+    }
 
-  cancelAppointment: (appointmentId: number, data: {
-    cancellation_message: string;
-  }) =>
-    apiCall(`api/accounts/appointments/${appointmentId}/cancel/`, {
+    // If it's an error response
+    return {
+      success: false,
+      data: null,
+      message: response.message || response.error || 'Failed to create appointment'
+    };
+  },
+
+  postponeAppointment: async (appointmentId: number, newDate: string, newStartTime: string, newEndTime: string) => {
+    const response = await apiCall(`api/accounts/appointments/${appointmentId}/postpone/`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
-    }),
+      body: JSON.stringify({
+        appointment_date: newDate,
+        start_time: newStartTime,
+        end_time: newEndTime,
+      }),
+    });
+    return response;
+  },
+
+  cancelAppointment: async (appointmentId: number, reason: string) => {
+    const response = await apiCall(`api/accounts/appointments/${appointmentId}/cancel/`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        cancellation_message: reason,
+      }),
+    });
+    return response;
+  },
+
+  confirmAppointment: async (appointmentId: number) => {
+    const response = await apiCall(`api/accounts/appointments/confirm/${appointmentId}/`, {
+      method: 'PATCH',
+    });
+    return response;
+  },
+
+  deleteAppointment: async (appointmentId: number) => {
+    const response = await apiCall(`api/accounts/appointments/${appointmentId}/delete/`, {
+      method: 'DELETE',
+    });
+    return response;
+  },
 };
 
 // Export the API object

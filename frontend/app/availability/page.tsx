@@ -11,7 +11,7 @@ export default function AvailabilityPage() {
 
   useEffect(() => {
     if (!user || user.user_type !== 'doctor') {
-      router.push('/login');
+      router.push('/');
     }
   }, [user, router]);
 

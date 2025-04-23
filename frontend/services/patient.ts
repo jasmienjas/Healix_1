@@ -7,6 +7,7 @@ interface PatientSignupData {
     password: string;
     phoneNumber: string;
     birthDate: string;
+    verificationToken: string;
 }
 
 export async function signupPatient(data: PatientSignupData) {
@@ -21,10 +22,11 @@ export async function signupPatient(data: PatientSignupData) {
             email: data.email,
             password: data.password,
             phoneNumber: data.phoneNumber,
-            birthDate: data.birthDate
+            birthDate: data.birthDate,
+            verificationToken: data.verificationToken
         };
 
-        console.log('Sending data:', { ...requestData, password: '***' });
+        console.log('Sending data:', { ...requestData, password: '***', verificationToken: '***' });
 
         const response = await fetch(url, {
             method: 'POST',
@@ -55,9 +57,6 @@ export async function signupPatient(data: PatientSignupData) {
             const errorMessage = result.message || result.error || 'Registration failed';
             throw new Error(errorMessage);
         }
-
-        // Don't try to send verification email for now
-        // We'll add this back once basic registration works
 
         return {
             success: true,

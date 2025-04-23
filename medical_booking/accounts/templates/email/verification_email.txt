@@ -1,0 +1,14 @@
+Welcome to HEALIX!
+
+Hello {{ user.first_name }},
+
+Thank you for signing up with HEALIX. To complete your registration, please verify your email address by clicking the link below:
+
+{{ verification_url }}
+
+This link will expire in {{ expiry_days }} day{% if expiry_days > 1 %}s{% endif %}.
+
+If you did not create an account with HEALIX, please ignore this email.
+
+Best regards,
+The HEALIX Team 

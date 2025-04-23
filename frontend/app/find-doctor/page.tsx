@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Filter, SortAsc, SortDesc } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import Layout from '../components/layout';
 import { searchDoctors } from '@/services/doctor';
 import { useRouter } from 'next/navigation';
@@ -31,23 +33,44 @@ interface Doctor {
   education: string;
 }
 
+interface SearchFilters {
+  name: string;
+  location: string;
+  specialty: string;
+  minExperience: number;
+  maxExperience: number;
+  sortBy: 'name' | 'experience' | 'fee';
+  sortOrder: 'asc' | 'desc';
+}
+
 export default function FindDoctorPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [location, setLocation] = useState('');
+  const [filters, setFilters] = useState<SearchFilters>({
+    name: '',
+    location: '',
+    specialty: '',
+    minExperience: 0,
+    maxExperience: 50,
+    sortBy: 'name',
+    sortOrder: 'asc'
+  });
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
     try {
       const doctors = await searchDoctors({
-        name: searchTerm,
-        location: location,
-        specialty: searchTerm // Using searchTerm for specialty as well
+        name: filters.name,
+        location: filters.location,
+        specialty: filters.specialty,
+        min_experience: filters.minExperience,
+        max_experience: filters.maxExperience,
+        sort_by: filters.sortBy,
+        sort_order: filters.sortOrder
       });
-      console.log('Search results:', doctors);
       setDoctors(doctors || []);
     } catch (err) {
       setError('Failed to fetch doctors. Please try again.');
@@ -59,7 +82,6 @@ export default function FindDoctorPage() {
   };
 
   useEffect(() => {
-    // Initial load of doctors
     handleSearch();
   }, []);
 
@@ -75,32 +97,123 @@ export default function FindDoctorPage() {
         <section className="max-w-7xl mx-auto">
           <Card>
             <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <Input
-                    placeholder="Search by name or specialty"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+              <div className="flex flex-col gap-4">
+                {/* Main Search Bar */}
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <Input
+                      placeholder="Search by name or specialty"
+                      value={filters.name}
+                      onChange={(e) => setFilters({...filters, name: e.target.value})}
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="relative flex-1">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <Input
+                      placeholder="Set your location"
+                      value={filters.location}
+                      onChange={(e) => setFilters({...filters, location: e.target.value})}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleSearch} 
+                    disabled={loading}
+                    className="bg-[#002B5B] hover:bg-[#002B5B]/90 text-white"
+                  >
+                    {loading ? 'Searching...' : 'Search'}
+                  </Button>
                 </div>
-                <div className="relative flex-1">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <Input
-                    placeholder="Set your location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="pl-10"
-                  />
+
+                {/* Filter Toggle */}
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center gap-2"
+                  >
+                    <Filter className="h-4 w-4" />
+                    {showFilters ? 'Hide Filters' : 'Show Filters'}
+                  </Button>
                 </div>
-                <Button 
-                  onClick={handleSearch} 
-                  disabled={loading}
-                  className="bg-[#002B5B] hover:bg-[#002B5B]/90 text-white"
-                >
-                  {loading ? 'Searching...' : 'Search'}
-                </Button>
+
+                {/* Advanced Filters */}
+                {showFilters && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                    {/* Specialty Filter */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Specialty</label>
+                      <Input
+                        placeholder="Enter specialty"
+                        value={filters.specialty}
+                        onChange={(e) => setFilters({...filters, specialty: e.target.value})}
+                      />
+                    </div>
+
+                    {/* Experience Range */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Years of Experience</label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={filters.minExperience}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            if (!isNaN(value) && value >= 0 && value <= 50) {
+                              setFilters({...filters, minExperience: value});
+                            }
+                          }}
+                          className="w-20"
+                        />
+                        <span>to</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={filters.maxExperience}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            if (!isNaN(value) && value >= 0 && value <= 50) {
+                              setFilters({...filters, maxExperience: value});
+                            }
+                          }}
+                          className="w-20"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sort Options */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Sort By</label>
+                      <div className="flex gap-2">
+                        <Select
+                          value={filters.sortBy}
+                          onValueChange={(value) => setFilters({...filters, sortBy: value as SearchFilters['sortBy']})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sort by" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="name">Name</SelectItem>
+                            <SelectItem value="experience">Experience</SelectItem>
+                            <SelectItem value="fee">Fee</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setFilters({...filters, sortOrder: filters.sortOrder === 'asc' ? 'desc' : 'asc'})}
+                        >
+                          {filters.sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

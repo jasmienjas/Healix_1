@@ -15,6 +15,7 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=30)  # Override first_name to make it required
     last_name = models.CharField(max_length=30)   # Override last_name to make it required
     email = models.EmailField(unique=True)        # Override email to make it unique
+    verification_token = models.CharField(max_length=100, null=True, blank=True, default=None)  # Make it nullable with default None
 
     # Avoid conflicts with Django auth system
     groups = models.ManyToManyField(Group, related_name="customuser_groups", blank=True)
@@ -30,17 +31,16 @@ def doctor_profile_picture_path(instance, filename):
 class DoctorProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='doctor_profile')
     specialty = models.CharField(max_length=100)
-    license_number = models.CharField(max_length=50, unique=True)
     office_address = models.CharField(max_length=200)
     office_number = models.CharField(max_length=20)
     phone_number = models.CharField(max_length=20)
     profile_picture = models.ImageField(upload_to=doctor_profile_picture_path, null=True, blank=True)
-    appointment_cost = models.DecimalField(max_digits=10, decimal_places=2)
-    office_hours_start = models.TimeField()
-    office_hours_end = models.TimeField()
-    bio = models.TextField()
-    years_of_experience = models.IntegerField()
-    education = models.TextField()
+    appointment_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    office_hours_start = models.TimeField(default='09:00:00')
+    office_hours_end = models.TimeField(default='17:00:00')
+    bio = models.TextField(default='No bio provided')
+    years_of_experience = models.IntegerField(default=0)
+    education = models.TextField(default='Not specified')
     medical_license = models.FileField(upload_to='medical_licenses/', null=True, blank=True)
     certificate = models.FileField(upload_to='certificates/', null=True, blank=True)
     is_approved = models.BooleanField(default=False)
@@ -56,7 +56,9 @@ class DoctorProfile(models.Model):
 
 class PatientProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='patient_profile')
-    phone_number = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
+    age = models.IntegerField(null=True, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
     medical_history = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -67,7 +69,6 @@ class PatientProfile(models.Model):
     class Meta:
         verbose_name = "Patient Profile"
         verbose_name_plural = "Patient Profiles"
-    phone_number = models.CharField(max_length=15, null=True, blank=True)
 
 APPOINTMENT_STATUS_CHOICES = (
     ('pending', 'Pending'),
@@ -77,38 +78,27 @@ APPOINTMENT_STATUS_CHOICES = (
 )
 
 class Appointment(models.Model):
-    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name='appointments')
-    patient = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='appointments')
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('cancelled', 'Cancelled'),
+        ('postponed', 'Postponed'),
+    ]
+
+    patient = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='patient_appointments')
+    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name='doctor_appointments')
     appointment_date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
-    status = models.CharField(
-        max_length=20,
-        choices=[
-            ('scheduled', 'Scheduled'),
-            ('completed', 'Completed'),
-            ('cancelled', 'Cancelled'),
-            ('postponed', 'Postponed')
-        ],
-        default='scheduled'
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     reason = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+    document = models.FileField(upload_to='appointment_documents/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        ordering = ['appointment_date', 'start_time']
-        # Ensure no overlapping appointments for the same doctor
-        constraints = [
-            models.UniqueConstraint(
-                fields=['doctor', 'appointment_date', 'start_time'],
-                name='unique_appointment_slot'
-            )
-        ]
-
     def __str__(self):
-        return f"Appointment with Dr. {self.doctor.user.username} on {self.appointment_date} at {self.start_time}"
+        return f"{self.patient.get_full_name()} - {self.doctor.user.get_full_name()} - {self.appointment_date} {self.start_time}"
 
 class DoctorAvailability(models.Model):
     doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name='availability_slots')

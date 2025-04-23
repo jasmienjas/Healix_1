@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, MapPin, Clock, User, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, User, Calendar, DollarSign, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
@@ -37,6 +37,14 @@ export function BookingDialog({
   const [phone, setPhone] = useState('');
   const [problem, setProblem] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [document, setDocument] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setDocument(e.target.files[0]);
+    }
+  };
 
   const handleSubmit = async () => {
     try {
@@ -47,7 +55,8 @@ export function BookingDialog({
         problem,
         doctorName,
         appointmentTime,
-        appointmentDate
+        appointmentDate,
+        document: document?.name
       });
 
       // Parse the appointment time
@@ -55,13 +64,13 @@ export function BookingDialog({
       
       // Format the date to YYYY-MM-DD
       const dateParts = appointmentDate.split(', ')[1].split(' ');
-      const monthMap = {
+      const monthMap: { [key: string]: string } = {
         'January': '01', 'February': '02', 'March': '03', 'April': '04',
         'May': '05', 'June': '06', 'July': '07', 'August': '08',
         'September': '09', 'October': '10', 'November': '11', 'December': '12'
       };
       const day = dateParts[1].replace(/\D/g, '');
-      const month = monthMap[dateParts[0]];
+      const month = monthMap[dateParts[0]] || '01';
       const year = new Date().getFullYear();
       const formattedDate = `${year}-${month}-${day.padStart(2, '0')}`;
 
@@ -71,52 +80,37 @@ export function BookingDialog({
       console.log('Search results:', doctors);
 
       if (!doctors || doctors.length === 0) {
-        // Try searching with just the first name
-        const firstName = doctorName.split(' ')[1]; // Assuming format is "Dr. FirstName LastName"
-        console.log('Trying search with first name:', firstName);
-        const doctorsByFirstName = await searchDoctors({ name: firstName });
-        console.log('Search results by first name:', doctorsByFirstName);
+        throw new Error(`Doctor "${doctorName}" not found. Please try again with the correct name.`);
+      }
 
-        if (!doctorsByFirstName || doctorsByFirstName.length === 0) {
-          throw new Error(`Doctor "${doctorName}" not found. Please try again with the correct name.`);
-        }
-        const doctorId = doctorsByFirstName[0].id;
-        console.log('Found doctor with ID:', doctorId);
+      const doctor = doctors[0];
+      if (!doctor || !doctor.id) {
+        throw new Error('Failed to get doctor ID from search results');
+      }
 
-        // Create the appointment
-        const response = await api.appointments.createAppointment({
-          doctor: doctorId,
-          appointment_date: formattedDate,
-          start_time: startTime,
-          end_time: endTime,
-          reason: problem
-        });
+      console.log('Found doctor with ID:', doctor.id);
 
-        if (response.success) {
-          toast.success('Appointment booked successfully!');
-          onClose();
-        } else {
-          throw new Error(response.message || 'Failed to book appointment');
-        }
+      // Create form data for the appointment
+      const formData = new FormData();
+      formData.append('doctor', String(doctor.id));
+      formData.append('appointment_date', formattedDate);
+      formData.append('start_time', startTime);
+      formData.append('end_time', endTime);
+      formData.append('status', 'pending');
+      formData.append('reason', problem);
+      
+      if (document) {
+        formData.append('document', document);
+      }
+
+      // Create the appointment
+      const response = await api.appointments.createAppointment(formData);
+
+      if (response.success) {
+        toast.success('Appointment booked successfully!');
+        onClose();
       } else {
-        const doctorId = doctors[0].id;
-        console.log('Found doctor with ID:', doctorId);
-
-        // Create the appointment
-        const response = await api.appointments.createAppointment({
-          doctor: doctorId,
-          appointment_date: formattedDate,
-          start_time: startTime,
-          end_time: endTime,
-          reason: problem
-        });
-
-        if (response.success) {
-          toast.success('Appointment booked successfully!');
-          onClose();
-        } else {
-          throw new Error(response.message || 'Failed to book appointment');
-        }
+        throw new Error(response.message || 'Failed to book appointment');
       }
     } catch (error) {
       console.error('Error booking appointment:', error);
@@ -199,39 +193,61 @@ export function BookingDialog({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Number
+                  Patient's phone number
                 </label>
                 <PhoneInput
-                  country={'lb'}
+                  country={'us'}
                   value={phone}
                   onChange={setPhone}
-                  inputStyle={{
-                    width: '100%',
-                    height: '40px',
-                    fontSize: '16px',
-                    paddingLeft: '48px'
-                  }}
+                  inputClass="!w-full !h-10"
+                  containerClass="!w-full"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Problem Description
+                  Describe your problem
                 </label>
                 <Textarea
-                  placeholder="Describe your medical concern"
+                  placeholder="Briefly describe your medical concern"
                   value={problem}
                   onChange={(e) => setProblem(e.target.value)}
-                  className="min-h-[100px]"
+                  rows={4}
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload medical documents (optional)
+                </label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {document ? document.name : 'Choose file'}
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG
+                </p>
+              </div>
+
               <Button
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={handleSubmit}
                 disabled={isLoading}
+                className="w-full"
               >
-                {isLoading ? 'Booking...' : 'Confirm'}
+                {isLoading ? 'Booking...' : 'Book Appointment'}
               </Button>
             </div>
           </div>

@@ -42,37 +42,25 @@ export default function Layout({ children }: LayoutProps) {
       current: pathname === "/dashboard",
     },
     {
-      name: "Patient Records",
-      href: "/patient-records",
-      icon: FileText,
-      current: pathname === "/patient-records",
-    },
-    {
       name: "My Availability",
       href: "/availability",
       icon: Clock,
       current: pathname === "/availability",
+    },
+    {
+      name: "My Profile",
+      href: "/profile",
+      icon: User,
+      current: pathname === "/profile",
     }
   ];
 
   const patientNavigation = [
     {
-      name: "Book Appointment",
-      href: "/book-appointment",
-      icon: Calendar,
-      current: pathname === "/book-appointment",
-    },
-    {
       name: "My Appointments",
       href: "/dashboard",
       icon: Clock,
       current: pathname === "/dashboard",
-    },
-    {
-      name: "Medical Records",
-      href: "/medical-records",
-      icon: FileText,
-      current: pathname === "/medical-records",
     },
     {
       name: "Find Doctor",

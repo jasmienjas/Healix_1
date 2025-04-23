@@ -4,6 +4,9 @@ from django.core.files.storage import default_storage
 import os
 from datetime import datetime
 import logging
+import boto3
+from botocore.config import Config
+from django.conf import settings
 
 logger = logging.getLogger('accounts')
 
@@ -96,43 +99,53 @@ class PatientSerializer(serializers.ModelSerializer):
         fields = ['user', 'age', 'medical_history']
 
 class PatientRegisterSerializer(serializers.ModelSerializer):
+    # Fields from frontend
     firstName = serializers.CharField(write_only=True)
     lastName = serializers.CharField(write_only=True)
     phoneNumber = serializers.CharField(write_only=True)
     birthDate = serializers.DateField(write_only=True)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+    verificationToken = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'firstName', 'lastName', 'email', 'password', 'phoneNumber', 'birthDate']
+        fields = ['id', 'firstName', 'lastName', 'email', 'password', 'phoneNumber', 'birthDate', 'verificationToken']
 
     def create(self, validated_data):
         try:
-            # Create username from first and last name
-            username = f"{validated_data['firstName'].lower()}_{validated_data['lastName'].lower()}"
+            # Extract patient-specific data
+            phone_number = validated_data.pop('phoneNumber')
+            birth_date = validated_data.pop('birthDate')  # This will be in camelCase from frontend
+            verification_token = validated_data.pop('verificationToken', None)
             
-            # Create user
+            # Create the user with dob field
             user = CustomUser.objects.create_user(
-                username=username,
+                username=validated_data['email'],  # Use email as username
                 email=validated_data['email'],
                 password=validated_data['password'],
-                user_type='patient',
-                dob=validated_data['birthDate'],
                 first_name=validated_data['firstName'],
-                last_name=validated_data['lastName']
+                last_name=validated_data['lastName'],
+                user_type='patient',
+                verification_token=verification_token
             )
-
-            # Create patient profile
-            PatientProfile.objects.create(
-                user=user,
-                phone_number=validated_data['phoneNumber']
-            )
-
+            
+            # Create the patient profile with minimal required fields
+            try:
+                PatientProfile.objects.create(
+                    user=user,
+                    phone_number=phone_number,
+                    birth_date=birth_date  # This should match the model field name exactly
+                )
+            except Exception as e:
+                # Log the error but continue since user is created
+                logger.warning(f"Error creating patient profile: {str(e)}")
+            
             return user
         except Exception as e:
-            print(f"Error in create method: {str(e)}")
-            raise serializers.ValidationError(str(e))
+            # Log the error for debugging
+            logger.error(f"Error in PatientRegisterSerializer.create: {str(e)}")
+            raise
 
     def to_representation(self, instance):
         return {
@@ -215,21 +228,21 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
 
             print(f"User created with ID: {user.id}")
 
-            # Generate unique filenames
-            medical_license_name = f"medical_licenses/{username}_{timestamp}_{medical_license.name}"
-            phd_certificate_name = f"certificates/{username}_{timestamp}_{phd_certificate.name}"
-
-            print(f"Saving files: {medical_license_name}, {phd_certificate_name}")
-
-            # Save files to storage
-            medical_license_path = default_storage.save(medical_license_name, medical_license)
-            phd_certificate_path = default_storage.save(phd_certificate_name, phd_certificate)
-
-            print(f"Files saved: {medical_license_path}, {phd_certificate_path}")
-
-            # Create doctor profile
-            print(f"Creating doctor profile with license_number: {license_number}")
             try:
+                # Generate unique filenames
+                medical_license_name = f"medical_licenses/{username}_{timestamp}_{medical_license.name}"
+                phd_certificate_name = f"certificates/{username}_{timestamp}_{phd_certificate.name}"
+
+                print(f"Saving files: {medical_license_name}, {phd_certificate_name}")
+
+                # Save files to storage
+                medical_license_path = default_storage.save(medical_license_name, medical_license)
+                phd_certificate_path = default_storage.save(phd_certificate_name, phd_certificate)
+
+                print(f"Files saved: {medical_license_path}, {phd_certificate_path}")
+
+                # Create doctor profile
+                print(f"Creating doctor profile")
                 doctor_profile_data = {
                     'user': user,
                     'phone_number': phone_number,
@@ -237,7 +250,6 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
                     'office_address': office_address,
                     'medical_license': medical_license_path,
                     'certificate': phd_certificate_path,
-                    'license_number': license_number,
                     'specialty': 'General Medicine',
                     'appointment_cost': 0.00,
                     'office_hours_start': '09:00:00',
@@ -249,19 +261,19 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
                 print("Doctor profile data:", doctor_profile_data)
                 doctor_profile = DoctorProfile.objects.create(**doctor_profile_data)
                 print(f"Doctor profile created: {doctor_profile}")
-            except Exception as e:
-                print(f"Error creating doctor profile: {str(e)}")
-                # If profile creation fails, delete the user
-                user.delete()
-                raise e
 
-            return user
+                return user
+
+            except Exception as e:
+                print(f"Error in profile creation: {str(e)}")
+                # Only delete the user if it was created
+                if user and user.id:
+                    user.delete()
+                raise serializers.ValidationError(f"Error creating doctor profile: {str(e)}")
+
         except Exception as e:
             print(f"Error in create method: {str(e)}")
-            # If user was created but profile creation failed, delete the user
-            if 'user' in locals():
-                user.delete()
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(f"Error in registration: {str(e)}")
 
     def to_representation(self, instance):
         return {
@@ -277,27 +289,101 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         }
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    patient = UserSerializer(read_only=True)
-    doctor = DoctorProfileSerializer(read_only=True)
+    patient_name = serializers.SerializerMethodField()
+    patient_email = serializers.SerializerMethodField()
+    doctor_name = serializers.SerializerMethodField()
+    doctor_email = serializers.SerializerMethodField()
+    document_url = serializers.SerializerMethodField()
+    doctor_office_address = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
         fields = [
-            'id',
-            'patient',
-            'doctor',
-            'appointment_date',
-            'start_time',
-            'end_time',
-            'status',
-            'reason',
-            'created_at',
-            'updated_at'
+            'id', 'patient', 'patient_name', 'patient_email',
+            'doctor', 'doctor_name', 'doctor_email', 'doctor_office_address',
+            'appointment_date', 'start_time', 'end_time',
+            'status', 'reason', 'notes', 'document', 'document_url',
+            'created_at', 'updated_at'
         ]
+        read_only_fields = ['created_at', 'updated_at']
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        # Add notes field if it exists in the model
-        if hasattr(instance, 'notes'):
-            data['notes'] = instance.notes
-        return data
+    def get_patient_name(self, obj):
+        return f"{obj.patient.first_name} {obj.patient.last_name}"
+
+    def get_patient_email(self, obj):
+        return obj.patient.email
+
+    def get_doctor_name(self, obj):
+        return f"{obj.doctor.user.first_name} {obj.doctor.user.last_name}"
+
+    def get_doctor_email(self, obj):
+        return obj.doctor.user.email
+
+    def get_doctor_office_address(self, obj):
+        return obj.doctor.office_address
+
+    def get_document_url(self, obj):
+        try:
+            logger.info(f"Getting document URL for appointment {obj.id}")
+            if not obj.document:
+                logger.info("No document found for appointment")
+                return None
+
+            logger.info(f"Document name: {obj.document.name}")
+            logger.info(f"Document storage: {obj.document.storage}")
+
+            if settings.USE_S3:
+                logger.info("Using S3 storage")
+                try:
+                    # Configure boto3 with Signature Version 4
+                    config = Config(
+                        signature_version='s3v4',
+                        s3={'addressing_style': 'virtual'}
+                    )
+                    
+                    s3_client = boto3.client(
+                        's3',
+                        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                        region_name=settings.AWS_S3_REGION_NAME,
+                        config=config
+                    )
+                    
+                    # Log the bucket and key being used
+                    logger.info(f"Using bucket: {settings.AWS_STORAGE_BUCKET_NAME}")
+                    logger.info(f"Using key: {obj.document.name}")
+                    
+                    # Ensure the key has the media/ prefix
+                    key = obj.document.name
+                    if not key.startswith('media/'):
+                        key = f"media/{key}"
+                    
+                    url = s3_client.generate_presigned_url(
+                        'get_object',
+                        Params={
+                            'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                            'Key': key
+                        },
+                        ExpiresIn=3600
+                    )
+                    logger.info(f"Generated S3 presigned URL: {url}")
+                    return url
+                except Exception as e:
+                    logger.error(f"Error generating S3 presigned URL: {str(e)}", exc_info=True)
+                    return None
+            else:
+                logger.info("Using local storage")
+                try:
+                    request = self.context.get('request')
+                    if request is not None:
+                        url = request.build_absolute_uri(obj.document.url)
+                        logger.info(f"Generated local URL: {url}")
+                        return url
+                    logger.warning("No request found in context")
+                    return None
+                except Exception as e:
+                    logger.error(f"Error generating local URL: {str(e)}", exc_info=True)
+                    return None
+        except Exception as e:
+            logger.error(f"Error in get_document_url: {str(e)}", exc_info=True)
+            return None

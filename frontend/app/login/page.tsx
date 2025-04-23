@@ -1,11 +1,32 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, X } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useAuth } from '../context/auth-context'
+
+// Create a separate client component for handling verification message
+function VerificationMessage() {
+  const [successMessage, setSuccessMessage] = useState("")
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    // Check if user just verified their email
+    if (searchParams.get('verified') === 'true') {
+      setSuccessMessage('Your email has been verified successfully. Please log in.')
+    }
+  }, [searchParams])
+
+  if (!successMessage) return null
+
+  return (
+    <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+      {successMessage}
+    </div>
+  )
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -34,7 +55,6 @@ export default function LoginPage() {
     }
   }
 
-  // Rest of your component remains the same...
   return (
     <div className="flex min-h-screen">
       {/* Left side with image and logo */}
@@ -83,6 +103,10 @@ export default function LoginPage() {
           </div>
 
           {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
+
+          <Suspense fallback={null}>
+            <VerificationMessage />
+          </Suspense>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">

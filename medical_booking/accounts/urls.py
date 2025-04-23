@@ -17,7 +17,12 @@ from .views import (
     AdminRegisterView,
     get_doctor_details,
     get_doctor_availability,
-    CreateAppointmentView
+    CreateAppointmentView,
+    ConfirmAppointmentView,
+    DeleteAppointmentView,
+    send_verification_email_view,
+    verify_email,
+    DoctorApprovalView
 )
 
 urlpatterns = [
@@ -25,12 +30,17 @@ urlpatterns = [
     path('register/patient/', PatientRegisterView.as_view(), name='patient-register'),
     path('register/doctor/', DoctorRegisterView.as_view(), name='doctor-register'),
     path('register/admin/', AdminRegisterView.as_view(), name='admin-register'),
+    path('send-verification/', send_verification_email_view, name='send-verification'),
+    path('verify-email/', verify_email, name='verify-email'),
     path('appointments/<int:pk>/postpone/', PostponeAppointmentView.as_view(), name='postpone-appointment'),
     path('appointments/<int:pk>/cancel/', CancelAppointmentView.as_view(), name='cancel-appointment'),
+    path('appointments/<int:pk>/delete/', DeleteAppointmentView.as_view(), name='delete-appointment'),
+    path('appointments/confirm/<int:pk>/', ConfirmAppointmentView.as_view(), name='confirm-appointment'),
     path('appointments/schedule/', PatientScheduleView.as_view(), name='patient-schedule'),
     path('appointments/create/', CreateAppointmentView.as_view(), name='create-appointment'),
     path('appointments/doctor-schedule/', DoctorScheduleView.as_view(), name='doctor-schedule'),
     path('doctor/approval-status/<str:email>/', DoctorApprovalStatusView.as_view(), name='doctor-approval-status'),
+    path('doctor/approve/<int:doctor_id>/', DoctorApprovalView.as_view(), name='doctor-approve'),
     path('doctors/search/', DoctorSearchView.as_view(), name='doctor-search'),
     path('doctor/profile/', DoctorProfileView.as_view(), name='doctor-profile'),
     path('doctor/availability/', DoctorAvailabilityView.as_view(), name='doctor-availability'),

@@ -7,8 +7,19 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, X } from "lucide-react"
 import Link from "next/link"
-import { useAuth } from "../../context/auth-context"
 import { signupPatient } from "@/services/patient"
+
+interface SignupResponse {
+  success: boolean;
+  error?: string;
+  data?: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    user_type: string;
+  };
+}
 
 export default function PatientSignupPage() {
   const [firstName, setFirstName] = useState("")
@@ -26,28 +37,33 @@ export default function PatientSignupPage() {
   const [message, setMessage] = useState("")
 
   const router = useRouter()
-  const { signup } = useAuth()
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
-      const userData = {
-        firstName,
-        lastName,
+      // Generate verification token using browser-compatible method
+      const verificationToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+      
+      // Prepare form data
+      const formData = {
         email,
         password,
+        firstName,
+        lastName,
         phoneNumber,
         birthDate,
-      }
+        verificationToken,
+      };
 
-      console.log('Sending signup data:', userData)
-      const result = await signupPatient(userData)
-      console.log('Signup response:', result)
+      // Register user
+      const response = await signupPatient(formData) as SignupResponse;
 
-      if (result.success) {
+      if (response.success) {
         setRegisteredEmail(email)
         setIsVerificationSent(true)
         setMessage("Please check your email for verification instructions.")
@@ -55,44 +71,60 @@ export default function PatientSignupPage() {
         // Store unverified user data temporarily
         localStorage.setItem(`healix_unverified_${email}`, JSON.stringify({
           email,
-          user_type: 'patient'
+          user_type: 'patient',
+          verificationToken
         }))
-        
-        // Redirect to verification page
-        router.push(`/verify-email?email=${encodeURIComponent(email)}`)
       } else {
-        setError(result.message || "Registration failed")
+        setError(response.error || "Registration failed")
       }
-    } catch (err: any) {
-      console.error('Signup error:', err)
-      setError(err.message || "An error occurred during signup")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
     }
-  }
+  };
 
   const handleResendVerification = async () => {
     setIsLoading(true)
     try {
-      // Assuming you have a function called resendVerificationEmail in your auth-context
-      const resendVerificationEmail = () => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve(true)
-          }, 1000)
-        })
+      // Generate new verification token
+      const verificationToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      // Get stored user data
+      const storedData = localStorage.getItem(`healix_unverified_${registeredEmail}`);
+      if (!storedData) {
+        throw new Error("User data not found");
       }
-      const success = await resendVerificationEmail(registeredEmail)
-      if (!success) {
-        setError("Failed to resend verification email. Please try again.")
+
+      const userData = JSON.parse(storedData);
+
+      // Prepare form data with all required fields
+      const formData = {
+        email: registeredEmail,
+        verificationToken,
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
+        password: userData.password || "",
+        phoneNumber: userData.phoneNumber || "",
+        birthDate: userData.birthDate || "",
+      };
+
+      // Register user again to trigger verification email
+      const response = await signupPatient(formData) as SignupResponse;
+
+      if (response.success) {
+        setMessage("Verification email resent successfully. Please check your inbox.")
+      } else {
+        setError(response.error || "Failed to resend verification email")
       }
     } catch (err) {
-      setError("An error occurred while resending the verification email")
-      console.error(err)
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
     }
-  }
+  };
 
   if (isVerificationSent) {
     return (
@@ -163,7 +195,7 @@ export default function PatientSignupPage() {
 
               {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 
-              <form onSubmit={handleSignup}>
+              <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -281,17 +313,6 @@ export default function PatientSignupPage() {
                   {isLoading ? "Creating account..." : "Sign Up"}
                 </button>
               </form>
-
-              <div className="mt-4 text-center text-sm text-gray-600">
-                By signing up, you agree to our{" "}
-                <Link href="/terms" className="text-blue-600 hover:underline">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-blue-600 hover:underline">
-                  Privacy Policy
-                </Link>
-              </div>
             </>
           ) : (
             <div className="text-center">

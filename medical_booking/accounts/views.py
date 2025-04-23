@@ -21,6 +21,7 @@ from django.db.models import Q
 from django.db.utils import IntegrityError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
+from django.template.loader import render_to_string
 
 import logging
 import os
@@ -38,6 +39,58 @@ from .token_serializers import CustomTokenObtainPairSerializer
 
 logger = logging.getLogger('accounts')
 
+def send_verification_email(user):
+    """
+    Send verification email to the user
+    """
+    try:
+        logger.info(f"Starting email verification process for user: {user.email}")
+        
+        # Generate verification token
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        logger.info(f"Generated token and uid for user {user.email}")
+        
+        # Create verification URL
+        verification_url = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
+        logger.info(f"Verification URL: {verification_url}")
+        
+        # Render email templates
+        html_message = render_to_string('email/verification_email.html', {
+            'verification_url': verification_url,
+            'expiry_days': 1
+        })
+        
+        plain_message = render_to_string('email/verification_email.txt', {
+            'verification_url': verification_url,
+            'expiry_days': 1
+        })
+        logger.info("Email templates rendered successfully")
+
+        # Log email configuration
+        logger.info(f"Email configuration - From: {settings.DEFAULT_FROM_EMAIL}")
+        logger.info(f"Email configuration - Host: {settings.EMAIL_HOST}")
+        logger.info(f"Email configuration - Port: {settings.EMAIL_PORT}")
+        logger.info(f"Email configuration - TLS: {settings.EMAIL_USE_TLS}")
+
+        # Send email
+        send_mail(
+            subject='Verify your HEALIX account',
+            message=plain_message,
+            html_message=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False
+        )
+        
+        logger.info(f"Verification email sent successfully to {user.email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send verification email to {user.email}")
+        logger.error(f"Error details: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        return False
+
 class LoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -46,12 +99,13 @@ class PatientRegisterView(generics.CreateAPIView):
     
     def create(self, request, *args, **kwargs):
         # Log the incoming request data
-        print("Received data:", request.data)
+        logger.info("Received patient registration request")
+        logger.info(f"Request data: {request.data}")
         
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             # Log validation errors
-            print("Validation errors:", serializer.errors)
+            logger.error(f"Validation errors: {serializer.errors}")
             return Response({
                 'success': False,
                 'message': 'Validation failed',
@@ -60,24 +114,97 @@ class PatientRegisterView(generics.CreateAPIView):
             
         try:
             user = serializer.save()
+            logger.info(f"User created successfully: {user.email}")
+            
+            # Send verification email
+            try:
+                verification_token = user.verification_token
+                if verification_token:
+                    logger.info(f"Sending verification email to {user.email}")
+                    verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+                    
+                    html_message = render_to_string('email/verification_email.html', {
+                        'verification_url': verification_url,
+                        'expiry_days': 1
+                    })
+                    
+                    plain_message = render_to_string('email/verification_email.txt', {
+                        'verification_url': verification_url,
+                        'expiry_days': 1
+                    })
+
+                    # Log email details
+                    logger.info(f"Email details - From: {settings.DEFAULT_FROM_EMAIL}, To: {user.email}")
+                    logger.info(f"Verification URL: {verification_url}")
+
+                    send_mail(
+                        subject='Verify your HEALIX account',
+                        message=plain_message,
+                        html_message=html_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=False
+                    )
+                    logger.info("Verification email sent successfully")
+                else:
+                    logger.warning("No verification token found in user model")
+            except Exception as e:
+                logger.error(f"Error sending verification email: {str(e)}")
+                # Don't fail the registration if email sending fails
+                
             return Response({
                 'success': True,
                 'message': 'Registration successful',
-                'data': {
-                    'id': user.id,
-                    'email': user.email,
-                    'firstName': user.first_name,
-                    'lastName': user.last_name,
-                    'user_type': 'patient'
-                }
+                'user': serializer.data
             }, status=status.HTTP_201_CREATED)
+            
         except Exception as e:
-            print("Error during registration:", str(e))
+            logger.error(f"Error during registration: {str(e)}")
+            return Response({
+                'success': False,
+                'message': 'Registration failed',
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+class VerifyEmailView(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        try:
+            uid = request.GET.get('uid')
+            token = request.GET.get('token')
+            
+            if not uid or not token:
+                return Response({
+                    'success': False,
+                    'message': 'Missing verification parameters'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                uid = force_str(urlsafe_base64_decode(uid))
+                user = CustomUser.objects.get(pk=uid)
+            except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+                user = None
+            
+            if user is not None and is_verification_token_valid(user, token):
+                user.is_verified = True
+                user.save()
+                return Response({
+                    'success': True,
+                    'message': 'Email verified successfully'
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'Invalid verification link'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
             return Response({
                 'success': False,
                 'message': str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class DoctorRegisterView(APIView):
     """
     View for doctor registration.
@@ -225,10 +352,14 @@ class CancelAppointmentView(APIView):
     def patch(self, request, pk):
         appointment = get_object_or_404(Appointment, pk=pk)
         
-        if request.user.user_type != 'doctor':
+        # Check if the user is either the doctor or the patient of the appointment
+        is_doctor = request.user.user_type == 'doctor' and appointment.doctor.user == request.user
+        is_patient = request.user == appointment.patient
+        
+        if not (is_doctor or is_patient):
             return Response({
                 'success': False,
-                'message': 'Only doctors can cancel appointments.'
+                'message': 'You can only cancel your own appointments.'
             }, status=status.HTTP_403_FORBIDDEN)
         
         cancellation_message = request.data.get('cancellation_message')
@@ -244,19 +375,34 @@ class CancelAppointmentView(APIView):
         
         # Send email notification
         try:
-            subject = "Appointment Cancellation Notice"
-            message = (
-                f"Dear {appointment.patient.first_name},\n\n"
-                f"Your appointment scheduled on {appointment.appointment_date} at {appointment.start_time} "
-                f"has been cancelled by Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name}.\n\n"
-                f"Message from doctor: {cancellation_message}\n\n"
-                f"Best regards,\nHealix Team"
-            )
+            if is_doctor:
+                # Doctor cancelled the appointment
+                subject = "Appointment Cancellation Notice"
+                message = (
+                    f"Dear {appointment.patient.first_name},\n\n"
+                    f"Your appointment scheduled on {appointment.appointment_date} at {appointment.start_time} "
+                    f"has been cancelled by Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name}.\n\n"
+                    f"Message: {cancellation_message}\n\n"
+                    f"Best regards,\nHealix Team"
+                )
+                recipient = appointment.patient.email
+            else:
+                # Patient cancelled the appointment
+                subject = "Appointment Cancellation Notice"
+                message = (
+                    f"Dear Dr. {appointment.doctor.user.first_name} {appointment.doctor.user.last_name},\n\n"
+                    f"The appointment scheduled on {appointment.appointment_date} at {appointment.start_time} "
+                    f"has been cancelled by the patient {appointment.patient.first_name} {appointment.patient.last_name}.\n\n"
+                    f"Message: {cancellation_message}\n\n"
+                    f"Best regards,\nHealix Team"
+                )
+                recipient = appointment.doctor.user.email
+
             send_mail(
                 subject,
                 message,
                 settings.DEFAULT_FROM_EMAIL,
-                [appointment.patient.email]
+                [recipient]
             )
         except Exception as e:
             logger.error(f"Failed to send cancellation email: {e}")
@@ -274,13 +420,26 @@ class PatientScheduleView(generics.ListAPIView):
 
     def get_queryset(self):
         try:
+            logger.info("=== START OF PATIENT SCHEDULE FETCH ===")
             logger.info(f"Fetching appointments for patient: {self.request.user.id}")
-            return Appointment.objects.filter(
+            appointments = Appointment.objects.filter(
                 patient=self.request.user
             ).select_related(
                 'patient',
                 'doctor__user'
             )
+            logger.info(f"Found {appointments.count()} appointments")
+            
+            # Log details of each appointment
+            for appointment in appointments:
+                logger.info(f"Appointment {appointment.id}:")
+                logger.info(f"- Document: {appointment.document if appointment.document else 'None'}")
+                if appointment.document:
+                    logger.info(f"- Document name: {appointment.document.name}")
+                    logger.info(f"- Document URL: {appointment.document.url}")
+                    logger.info(f"- Document storage: {appointment.document.storage}")
+            
+            return appointments
         except Exception as e:
             logger.error(f"Error fetching patient appointments: {str(e)}", exc_info=True)
             raise
@@ -291,6 +450,7 @@ class PatientScheduleView(generics.ListAPIView):
             logger.info(f"Found {queryset.count()} appointments")
             serializer = self.get_serializer(queryset, many=True)
             logger.info("Successfully serialized appointments")
+            logger.info(f"Serialized data: {serializer.data}")
             return Response({
                 'success': True,
                 'message': 'Appointments retrieved successfully',
@@ -331,21 +491,21 @@ class DoctorScheduleView(APIView):
                     'message': 'Only doctors can access this endpoint'
                 }, status=status.HTTP_403_FORBIDDEN)
 
-            print(f"Fetching appointments for doctor: {request.user.id}")  # Debug log
+            logger.info(f"Fetching appointments for doctor: {request.user.id}")
             
             doctor_profile = request.user.doctor_profile
             appointments = Appointment.objects.filter(
                 doctor=doctor_profile
             ).select_related(
-                'patient__user',
-                'doctor__user'
+                'patient',
+                'doctor'
             )
             
-            print(f"Found {appointments.count()} appointments")  # Debug log
+            logger.info(f"Found {appointments.count()} appointments")
             
             serializer = AppointmentSerializer(appointments, many=True)
             serialized_data = serializer.data
-            print(f"Serialized data: {serialized_data}")  # Debug log
+            logger.info(f"Serialized data: {serialized_data}")
             
             return Response({
                 'success': True,
@@ -353,7 +513,7 @@ class DoctorScheduleView(APIView):
                 'data': serialized_data
             })
         except Exception as e:
-            print(f"Error in DoctorScheduleView: {str(e)}")  # Debug log
+            logger.error(f"Error in DoctorScheduleView: {str(e)}")
             return Response({
                 'success': False,
                 'message': str(e)
@@ -366,21 +526,82 @@ class DoctorSearchView(generics.ListAPIView):
     def get_queryset(self):
         queryset = DoctorProfile.objects.filter(is_approved=True)
         
+        # Basic filters
         name = self.request.query_params.get('name', None)
         specialty = self.request.query_params.get('specialty', None)
         location = self.request.query_params.get('location', None)
-
-        if name:
-            queryset = queryset.filter(
-                Q(user__first_name__icontains=name) |
-                Q(user__last_name__icontains=name)
-            )
         
+        # Experience range
+        min_experience = self.request.query_params.get('min_experience', None)
+        max_experience = self.request.query_params.get('max_experience', None)
+        
+        # Rating range
+        min_rating = self.request.query_params.get('min_rating', None)
+        max_rating = self.request.query_params.get('max_rating', None)
+        
+        # Sorting
+        sort_by = self.request.query_params.get('sort_by', 'name')
+        sort_order = self.request.query_params.get('sort_order', 'asc')
+
+        # Apply name filter
+        if name:
+            name_parts = [part.strip() for part in name.split() if part.strip()]
+            if len(name_parts) >= 2:
+                first_name = name_parts[0]
+                last_name = name_parts[-1]
+                queryset = queryset.filter(
+                    Q(user__first_name__icontains=first_name) &
+                    Q(user__last_name__icontains=last_name)
+                )
+            else:
+                queryset = queryset.filter(
+                    Q(user__first_name__icontains=name) |
+                    Q(user__last_name__icontains=name)
+                )
+        
+        # Apply specialty filter
         if specialty:
             queryset = queryset.filter(specialty__icontains=specialty)
             
+        # Apply location filter
         if location:
             queryset = queryset.filter(office_address__icontains=location)
+
+        # Apply experience range filter
+        if min_experience:
+            try:
+                min_exp = int(min_experience)
+                if min_exp >= 0:
+                    queryset = queryset.filter(years_of_experience__gte=min_exp)
+            except (ValueError, TypeError):
+                pass
+
+        if max_experience:
+            try:
+                max_exp = int(max_experience)
+                if max_exp >= 0:
+                    queryset = queryset.filter(years_of_experience__lte=max_exp)
+            except (ValueError, TypeError):
+                pass
+
+        # Apply rating range filter
+        if min_rating:
+            queryset = queryset.filter(rating__gte=min_rating)
+        if max_rating:
+            queryset = queryset.filter(rating__lte=max_rating)
+
+        # Apply sorting
+        sort_field = {
+            'name': 'user__first_name',
+            'experience': 'years_of_experience',
+            'rating': 'rating',
+            'fee': 'appointment_cost'
+        }.get(sort_by, 'user__first_name')
+
+        if sort_order == 'desc':
+            sort_field = f'-{sort_field}'
+
+        queryset = queryset.order_by(sort_field)
 
         return queryset
 
@@ -556,8 +777,8 @@ class DoctorAvailabilityView(APIView):
             # Get booked appointments
             appointments = Appointment.objects.filter(
                 doctor=request.user.doctor_profile,
-                appointment_datetime__year=year,
-                appointment_datetime__month=month
+                appointment_date__year=year,
+                appointment_date__month=month
             )
             
             logger.info(f"Found {appointments.count()} booked appointments")
@@ -571,8 +792,8 @@ class DoctorAvailabilityView(APIView):
 
                 # Check if this slot is booked
                 is_booked = appointments.filter(
-                    appointment_datetime__date=slot.date,
-                    appointment_datetime__time=slot.start_time
+                    appointment_date=slot.date,
+                    start_time=slot.start_time
                 ).exists()
 
                 availability_data[date_str].append({
@@ -963,91 +1184,372 @@ def get_doctor_availability(request, doctor_id, date):
 
 class CreateAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = AppointmentSerializer
+    parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
         try:
-            logger.info(f"Creating appointment with data: {request.data}")
+            logger.info("=== START OF APPOINTMENT CREATION ===")
+            logger.info(f"Request data: {request.data}")
+            logger.info(f"Request files: {request.FILES}")
             
-            # Validate required fields
-            required_fields = ['doctor', 'appointment_date', 'start_time', 'end_time']
-            if not all(field in request.data for field in required_fields):
-                return Response({
-                    'success': False,
-                    'message': f'Missing required fields: {", ".join(required_fields)}'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # Get doctor profile
+            # Get patient (CustomUser)
+            patient = request.user
+            
+            # Get doctor
+            doctor_id = request.data.get('doctor')
+            if not doctor_id:
+                return Response(
+                    {'error': 'Doctor ID is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             try:
-                doctor = DoctorProfile.objects.get(id=request.data['doctor'])
-            except DoctorProfile.DoesNotExist:
-                return Response({
-                    'success': False,
-                    'message': 'Doctor not found'
-                }, status=status.HTTP_404_NOT_FOUND)
+                # Convert doctor_id to integer since it comes as a string from FormData
+                doctor = DoctorProfile.objects.get(id=int(doctor_id))
+            except (DoctorProfile.DoesNotExist, ValueError):
+                return Response(
+                    {'error': 'Doctor not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
-            # Parse date and time
-            try:
-                appointment_date = datetime.strptime(request.data['appointment_date'], '%Y-%m-%d').date()
-                start_time = datetime.strptime(request.data['start_time'], '%H:%M').time()
-                end_time = datetime.strptime(request.data['end_time'], '%H:%M').time()
-            except ValueError:
-                return Response({
-                    'success': False,
-                    'message': 'Invalid date/time format. Use YYYY-MM-DD for date and HH:MM for time.'
-                }, status=status.HTTP_400_BAD_REQUEST)
+            # Validate appointment date and time
+            appointment_date = request.data.get('appointment_date')
+            start_time = request.data.get('start_time')
+            end_time = request.data.get('end_time')
 
-            # Check for overlapping appointments
-            if Appointment.objects.filter(
+            if not all([appointment_date, start_time, end_time]):
+                return Response(
+                    {'error': 'Appointment date, start time, and end time are required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Check if the time slot is available
+            existing_appointment = Appointment.objects.filter(
                 doctor=doctor,
-                appointment_date=appointment_date,
-                start_time=start_time
-            ).exists():
-                return Response({
-                    'success': False,
-                    'message': 'This time slot is already booked'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # Create appointment
-            appointment = Appointment.objects.create(
-                doctor=doctor,
-                patient=request.user,
                 appointment_date=appointment_date,
                 start_time=start_time,
                 end_time=end_time,
-                reason=request.data.get('reason'),
-                status='scheduled'
+                status__in=['pending', 'confirmed']
+            ).exists()
+
+            if existing_appointment:
+                return Response(
+                    {'error': 'This time slot is already booked'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Create appointment
+            appointment_data = {
+                'patient': patient.id,
+                'doctor': doctor.id,
+                'appointment_date': appointment_date,
+                'start_time': start_time,
+                'end_time': end_time,
+                'status': 'pending',
+                'reason': request.data.get('reason', ''),
+                'notes': request.data.get('notes', ''),
+            }
+
+            # Handle document upload
+            if 'document' in request.FILES:
+                logger.info("Document found in request.FILES")
+                document = request.FILES['document']
+                logger.info(f"Document name: {document.name}")
+                logger.info(f"Document size: {document.size}")
+                logger.info(f"Document content type: {document.content_type}")
+                appointment_data['document'] = document
+            else:
+                logger.info("No document found in request.FILES")
+
+            logger.info(f"Final appointment data: {appointment_data}")
+            serializer = AppointmentSerializer(data=appointment_data, context={'request': request})
+            
+            if serializer.is_valid():
+                logger.info("Serializer is valid")
+                appointment = serializer.save()
+                logger.info(f"Appointment saved with ID: {appointment.id}")
+                if appointment.document:
+                    logger.info(f"Document saved: {appointment.document.name}")
+                    logger.info(f"Document URL: {appointment.document.url}")
+                
+                # Try to send confirmation emails, but don't fail if they don't send
+                try:
+                    # Send confirmation email to patient
+                    send_mail(
+                        'Appointment Confirmation',
+                        f'Your appointment with Dr. {doctor.user.get_full_name()} has been scheduled for {appointment_date} at {start_time}.',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [patient.email],
+                        fail_silently=True,  # Set to True to prevent email errors from affecting the appointment creation
+                    )
+                    
+                    # Send notification to doctor
+                    send_mail(
+                        'New Appointment Request',
+                        f'You have a new appointment request from {patient.get_full_name()} for {appointment_date} at {start_time}.',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [doctor.user.email],
+                        fail_silently=True,  # Set to True to prevent email errors from affecting the appointment creation
+                    )
+                except Exception as e:
+                    # Log the email error but don't let it affect the appointment creation
+                    logger.error(f"Failed to send confirmation emails: {str(e)}")
+                
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                logger.error(f"Serializer errors: {serializer.errors}")
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            logger.error(f"Error creating appointment: {str(e)}", exc_info=True)
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-            # Send email notification
+class ConfirmAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            # Get the appointment
+            appointment = get_object_or_404(Appointment, pk=pk)
+            
+            # Ensure that only doctors can confirm appointments
+            if request.user.user_type != 'doctor':
+                return Response({
+                    'success': False,
+                    'message': 'Only doctors can confirm appointments.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Ensure the doctor is confirming their own appointment
+            if appointment.doctor.user != request.user:
+                return Response({
+                    'success': False,
+                    'message': 'You can only confirm your own appointments.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Update appointment status
+            appointment.status = 'confirmed'
+            appointment.save()
+            
+            # Send confirmation email to patient
             try:
-                subject = "Appointment Confirmation"
+                subject = "Appointment Confirmed"
                 message = (
-                    f"Dear {request.user.first_name},\n\n"
-                    f"Your appointment with Dr. {doctor.user.first_name} {doctor.user.last_name} "
-                    f"has been scheduled for {appointment_date} at {start_time}.\n\n"
+                    f"Dear {appointment.patient.first_name},\n\n"
+                    f"Your appointment with Dr. {appointment.doctor.user.get_full_name()} "
+                    f"on {appointment.appointment_date} at {appointment.start_time} has been confirmed.\n\n"
+                    f"Location: {appointment.doctor.office_address}\n\n"
                     f"Best regards,\nHealix Team"
                 )
                 send_mail(
                     subject,
                     message,
                     settings.DEFAULT_FROM_EMAIL,
-                    [request.user.email]
+                    [appointment.patient.email]
                 )
             except Exception as e:
                 logger.error(f"Failed to send confirmation email: {e}")
-
+            
             serializer = AppointmentSerializer(appointment)
             return Response({
                 'success': True,
-                'message': 'Appointment created successfully',
+                'message': 'Appointment confirmed successfully',
                 'data': serializer.data
-            }, status=status.HTTP_201_CREATED)
-
+            }, status=status.HTTP_200_OK)
+            
         except Exception as e:
-            logger.error(f"Error creating appointment: {str(e)}", exc_info=True)
+            logger.error(f"Error confirming appointment: {str(e)}")
             return Response({
                 'success': False,
-                'message': f'Error creating appointment: {str(e)}'
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DeleteAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            appointment = get_object_or_404(Appointment, pk=pk)
+            
+            # Check if the user is either the doctor or the patient of the appointment
+            is_doctor = request.user.user_type == 'doctor' and appointment.doctor.user == request.user
+            is_patient = request.user == appointment.patient
+            
+            if not (is_doctor or is_patient):
+                return Response({
+                    'success': False,
+                    'message': 'You can only delete your own appointments.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Check if the appointment is cancelled
+            if appointment.status != 'cancelled':
+                return Response({
+                    'success': False,
+                    'message': 'Only cancelled appointments can be deleted.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Delete the appointment
+            appointment.delete()
+            
+            return Response({
+                'success': True,
+                'message': 'Appointment deleted successfully'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error deleting appointment: {str(e)}")
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_verification_email_view(request):
+    try:
+        email = request.data.get('email')
+        verification_token = request.data.get('verificationToken')
+        
+        if not email or not verification_token:
+            return Response(
+                {'error': 'Email and verification token are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get the user
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response(
+                {'error': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Create verification URL
+        verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+
+        # Render email templates
+        html_message = render_to_string('email/verification_email.html', {
+            'verification_url': verification_url,
+            'expiry_days': 1
+        })
+        
+        plain_message = render_to_string('email/verification_email.txt', {
+            'verification_url': verification_url,
+            'expiry_days': 1
+        })
+
+        # Send email
+        send_mail(
+            subject='Verify your HEALIX account',
+            message=plain_message,
+            html_message=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False
+        )
+
+        return Response({'success': True, 'message': 'Verification email sent successfully'})
+    except Exception as e:
+        logger.error(f"Error sending verification email: {str(e)}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_email(request):
+    """
+    Verify user's email using the verification token
+    """
+    token = request.data.get('token')
+
+    if not token:
+        return Response({
+            'success': False,
+            'message': 'Invalid verification token'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Find user by verification token
+        user = get_object_or_404(CustomUser, verification_token=token)
+        
+        # Mark user as verified and clear the verification token
+        user.is_verified = True
+        user.verification_token = None
+        user.save()
+
+        return Response({
+            'success': True,
+            'message': 'Email verified successfully'
+        }, status=status.HTTP_200_OK)
+
+    except CustomUser.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Invalid verification token'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DoctorApprovalView(APIView):
+    """
+    View for approving doctor accounts and sending email notifications
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, doctor_id):
+        try:
+            if not request.user.is_staff:
+                return Response({
+                    'success': False,
+                    'message': 'Only admin users can approve doctors'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            try:
+                doctor_profile = DoctorProfile.objects.get(id=doctor_id)
+            except DoctorProfile.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'message': 'Doctor not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            # Approve the doctor
+            doctor_profile.is_approved = True
+            doctor_profile.save()
+
+            # Send approval email
+            subject = 'Your HEALIX Doctor Account Has Been Approved'
+            context = {
+                'doctor_name': f"{doctor_profile.user.first_name} {doctor_profile.user.last_name}",
+                'login_url': f"{settings.FRONTEND_URL}/login"
+            }
+            message = render_to_string('email/doctor_approval.html', context)
+            
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [doctor_profile.user.email],
+                html_message=message,
+                fail_silently=False
+            )
+
+            return Response({
+                'success': True,
+                'message': 'Doctor approved successfully and notification email sent'
+            })
+
+        except Exception as e:
+            logger.error(f"Error in doctor approval: {str(e)}")
+            return Response({
+                'success': False,
+                'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         

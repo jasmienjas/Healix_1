@@ -1,8 +1,9 @@
 import { API_BASE_URL } from '../config'
+import { JWT_STORAGE_KEY } from '@/lib/constants'
 
 // Helper function to get token
 function getToken() {
-  return localStorage.getItem('access_token')
+  return localStorage.getItem(JWT_STORAGE_KEY)
 }
 
 export async function getPatientAppointments() {
@@ -246,7 +247,7 @@ export async function deleteDoctorAvailability(slotId: string) {
   }
 }
 
-export async function cancelAppointment(appointmentId: string) {
+export async function cancelAppointment(appointmentId: string, reason: string) {
   const token = localStorage.getItem(JWT_STORAGE_KEY);
   if (!token) {
     throw new Error("No authentication token found");
@@ -255,11 +256,12 @@ export async function cancelAppointment(appointmentId: string) {
   const response = await fetch(
     `${API_BASE_URL}/api/accounts/appointments/${appointmentId}/cancel/`,
     {
-      method: "POST",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
+      body: JSON.stringify({ cancellation_message: reason })
     }
   );
 
@@ -325,4 +327,33 @@ export async function updateDoctorProfile(formData: FormData) {
   }
 
   return response.json();
+}
+
+export async function getDoctorAppointments() {
+  try {
+    const token = getToken()
+    if (!token) {
+      throw new Error('No authentication token found')
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/appointments/doctor-schedule/`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch appointments')
+    }
+    
+    const data = await response.json()
+    console.log('Doctor appointments:', data)
+    
+    // Return the appointments array directly
+    return data.data || []
+  } catch (error) {
+    console.error('Error fetching doctor appointments:', error)
+    throw error
+  }
 }
