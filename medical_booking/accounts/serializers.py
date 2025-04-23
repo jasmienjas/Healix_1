@@ -116,7 +116,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
         try:
             # Extract patient-specific data
             phone_number = validated_data.pop('phoneNumber')
-            birth_date = validated_data.pop('birthDate')
+            birth_date = validated_data.pop('birthDate')  # This will be in camelCase from frontend
             verification_token = validated_data.pop('verificationToken', None)
             
             # Create the user with dob field
@@ -127,7 +127,6 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
                 first_name=validated_data['firstName'],
                 last_name=validated_data['lastName'],
                 user_type='patient',
-                dob=birth_date,  # Map birthDate to dob
                 verification_token=verification_token
             )
             
@@ -136,7 +135,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
                 PatientProfile.objects.create(
                     user=user,
                     phone_number=phone_number,
-                    birth_date=birth_date
+                    birth_date=birth_date  # This should match the model field name exactly
                 )
             except Exception as e:
                 # Log the error but continue since user is created
