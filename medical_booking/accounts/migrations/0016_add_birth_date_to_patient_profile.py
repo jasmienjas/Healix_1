@@ -17,10 +17,23 @@ class Migration(migrations.Migration):
             name='appointment',
             options={},
         ),
-        migrations.AddField(
-            model_name='appointment',
-            name='document',
-            field=models.FileField(blank=True, null=True, upload_to='appointment_documents/'),
+        migrations.RunSQL(
+            sql="""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM information_schema.columns
+                    WHERE table_name = 'accounts_appointment'
+                    AND column_name = 'document'
+                ) THEN
+                    ALTER TABLE accounts_appointment ADD COLUMN document VARCHAR(100) NULL;
+                END IF;
+            END $$;
+            """,
+            reverse_sql="""
+            ALTER TABLE accounts_appointment DROP COLUMN IF EXISTS document;
+            """
         ),
         migrations.AddField(
             model_name='patientprofile',
