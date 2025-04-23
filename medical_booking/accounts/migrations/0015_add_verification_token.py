@@ -8,9 +8,22 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='customuser',
-            name='verification_token',
-            field=models.CharField(blank=True, default=None, max_length=100, null=True),
+        migrations.RunSQL(
+            sql="""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM information_schema.columns
+                    WHERE table_name = 'accounts_customuser'
+                    AND column_name = 'verification_token'
+                ) THEN
+                    ALTER TABLE accounts_customuser ADD COLUMN verification_token VARCHAR(100) NULL;
+                END IF;
+            END $$;
+            """,
+            reverse_sql="""
+            ALTER TABLE accounts_customuser DROP COLUMN IF EXISTS verification_token;
+            """
         ),
     ] 
