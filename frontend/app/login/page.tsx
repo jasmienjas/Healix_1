@@ -1,23 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, X } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useAuth } from '../context/auth-context'
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+// Create a separate client component for handling verification message
+function VerificationMessage() {
   const [successMessage, setSuccessMessage] = useState("")
-  
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const { login } = useAuth()
 
   useEffect(() => {
     // Check if user just verified their email
@@ -25,6 +18,25 @@ export default function LoginPage() {
       setSuccessMessage('Your email has been verified successfully. Please log in.')
     }
   }, [searchParams])
+
+  if (!successMessage) return null
+
+  return (
+    <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+      {successMessage}
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const router = useRouter()
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,7 +55,6 @@ export default function LoginPage() {
     }
   }
 
-  // Rest of your component remains the same...
   return (
     <div className="flex min-h-screen">
       {/* Left side with image and logo */}
@@ -93,7 +104,9 @@ export default function LoginPage() {
 
           {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
 
-          {successMessage && <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">{successMessage}</div>}
+          <Suspense fallback={null}>
+            <VerificationMessage />
+          </Suspense>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
