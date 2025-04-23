@@ -1532,6 +1532,12 @@ class DoctorApprovalView(APIView):
                     'login_url': f"{settings.FRONTEND_URL}/login"
                 }
                 
+                # Log email configuration
+                logger.info(f"Email configuration - From: {settings.DEFAULT_FROM_EMAIL}")
+                logger.info(f"Email configuration - Host: {settings.EMAIL_HOST}")
+                logger.info(f"Email configuration - Port: {settings.EMAIL_PORT}")
+                logger.info(f"Email configuration - TLS: {settings.EMAIL_USE_TLS}")
+                
                 # Render both HTML and plain text versions
                 html_message = render_to_string('email/doctor_approval.html', context)
                 plain_message = f"Dear Dr. {context['doctor_name']},\n\n"
@@ -1544,6 +1550,8 @@ class DoctorApprovalView(APIView):
                 logger.info(f"Sending approval email to {doctor_profile.user.email}")
                 logger.info(f"Email subject: {subject}")
                 logger.info(f"Login URL: {context['login_url']}")
+                logger.info(f"HTML message length: {len(html_message)}")
+                logger.info(f"Plain message length: {len(plain_message)}")
 
                 send_mail(
                     subject,
@@ -1558,6 +1566,8 @@ class DoctorApprovalView(APIView):
 
             except Exception as e:
                 logger.error(f"Failed to send approval email: {str(e)}")
+                logger.error(f"Error type: {type(e).__name__}")
+                logger.error(f"Error details: {str(e)}")
                 # Don't fail the approval if email sending fails
                 logger.warning("Continuing with approval despite email failure")
 
