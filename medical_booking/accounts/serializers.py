@@ -135,7 +135,8 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
             try:
                 PatientProfile.objects.create(
                     user=user,
-                    phone_number=phone_number
+                    phone_number=phone_number,
+                    birth_date=birth_date
                 )
             except Exception as e:
                 # Log the error but continue since user is created
