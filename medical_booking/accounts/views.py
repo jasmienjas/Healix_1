@@ -44,12 +44,16 @@ def send_verification_email(user):
     Send verification email to the user
     """
     try:
+        logger.info(f"Starting email verification process for user: {user.email}")
+        
         # Generate verification token
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
+        logger.info(f"Generated token and uid for user {user.email}")
         
         # Create verification URL
         verification_url = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
+        logger.info(f"Verification URL: {verification_url}")
         
         # Render email templates
         html_message = render_to_string('email/verification_email.html', {
@@ -61,6 +65,13 @@ def send_verification_email(user):
             'verification_url': verification_url,
             'expiry_days': 1
         })
+        logger.info("Email templates rendered successfully")
+
+        # Log email configuration
+        logger.info(f"Email configuration - From: {settings.DEFAULT_FROM_EMAIL}")
+        logger.info(f"Email configuration - Host: {settings.EMAIL_HOST}")
+        logger.info(f"Email configuration - Port: {settings.EMAIL_PORT}")
+        logger.info(f"Email configuration - TLS: {settings.EMAIL_USE_TLS}")
 
         # Send email
         send_mail(
@@ -72,10 +83,12 @@ def send_verification_email(user):
             fail_silently=False
         )
         
-        logger.info(f"Verification email sent to {user.email}")
+        logger.info(f"Verification email sent successfully to {user.email}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send verification email to {user.email}: {str(e)}")
+        logger.error(f"Failed to send verification email to {user.email}")
+        logger.error(f"Error details: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
         return False
 
 class LoginView(TokenObtainPairView):

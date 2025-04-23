@@ -71,11 +71,12 @@ export default function PatientSignupPage() {
         // Store unverified user data temporarily
         localStorage.setItem(`healix_unverified_${email}`, JSON.stringify({
           email,
-          user_type: 'patient'
+          user_type: 'patient',
+          verificationToken
         }))
         
         // Redirect to verification page
-        router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+        router.push(`/verify-email?email=${encodeURIComponent(email)}&token=${verificationToken}`)
       } else {
         setError(response.error || "Registration failed")
       }
