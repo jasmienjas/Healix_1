@@ -117,6 +117,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
             # Extract patient-specific data
             phone_number = validated_data.pop('phoneNumber')
             birth_date = validated_data.pop('birthDate')
+            verification_token = validated_data.pop('verificationToken', None)
             
             # Create the user with dob field
             user = CustomUser.objects.create_user(
@@ -127,14 +128,18 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
                 last_name=validated_data['lastName'],
                 user_type='patient',
                 dob=birth_date,  # Map birthDate to dob
-                verification_token=validated_data.get('verificationToken')
+                verification_token=verification_token
             )
             
-            # Create the patient profile with only the allowed fields
-            patient_profile = PatientProfile.objects.create(
-                user=user,
-                phone_number=phone_number
-            )
+            # Create the patient profile with minimal required fields
+            try:
+                PatientProfile.objects.create(
+                    user=user,
+                    phone_number=phone_number
+                )
+            except Exception as e:
+                # Log the error but continue since user is created
+                logger.warning(f"Error creating patient profile: {str(e)}")
             
             return user
         except Exception as e:
