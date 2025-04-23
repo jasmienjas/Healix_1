@@ -1497,4 +1497,59 @@ def verify_email(request):
             'success': False,
             'message': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DoctorApprovalView(APIView):
+    """
+    View for approving doctor accounts and sending email notifications
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, doctor_id):
+        try:
+            if not request.user.is_staff:
+                return Response({
+                    'success': False,
+                    'message': 'Only admin users can approve doctors'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            try:
+                doctor_profile = DoctorProfile.objects.get(id=doctor_id)
+            except DoctorProfile.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'message': 'Doctor not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            # Approve the doctor
+            doctor_profile.is_approved = True
+            doctor_profile.save()
+
+            # Send approval email
+            subject = 'Your HEALIX Doctor Account Has Been Approved'
+            context = {
+                'doctor_name': f"{doctor_profile.user.first_name} {doctor_profile.user.last_name}",
+                'login_url': f"{settings.FRONTEND_URL}/login"
+            }
+            message = render_to_string('email/doctor_approval.html', context)
+            
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [doctor_profile.user.email],
+                html_message=message,
+                fail_silently=False
+            )
+
+            return Response({
+                'success': True,
+                'message': 'Doctor approved successfully and notification email sent'
+            })
+
+        except Exception as e:
+            logger.error(f"Error in doctor approval: {str(e)}")
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         

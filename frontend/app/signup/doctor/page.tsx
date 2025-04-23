@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Eye, EyeOff, X, Calendar, Paperclip } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "../../context/auth-context"
-import { signupDoctor, checkDoctorApprovalStatus } from "@/services/doctor"
+import { signupDoctor } from "@/services/doctor"
 
 export default function DoctorSignupPage() {
   const [firstName, setFirstName] = useState("")
@@ -70,21 +70,6 @@ export default function DoctorSignupPage() {
       setIsLoading(false);
     }
   };
-
-  const [approvalStatus, setApprovalStatus] = useState<"pending" | "approved" | "rejected" | "not_found">("pending")
-
-  const checkStatus = async () => {
-    setIsLoading(true)
-    try {
-      const status = await checkDoctorApprovalStatus(registeredEmail)
-      setApprovalStatus(status)
-    } catch (err: any) {
-      console.error(err)
-      setError(err.message || "Failed to check status")
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -429,13 +414,6 @@ export default function DoctorSignupPage() {
                 This process typically takes 1-3 business days. You can check your application status anytime.
               </p>
               <div className="flex flex-col space-y-4">
-                <button
-                  onClick={checkStatus}
-                  disabled={isLoading}
-                  className="w-full bg-[#023664] text-white py-2 px-4 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-70"
-                >
-                  {isLoading ? "Checking..." : "Check Application Status"}
-                </button>
                 <Link href="/login" className="text-blue-600 hover:underline">
                   Back to login
                 </Link>
