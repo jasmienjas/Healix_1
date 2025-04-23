@@ -196,7 +196,7 @@ export function BookingDialog({
                   Patient's phone number
                 </label>
                 <PhoneInput
-                  country={'us'}
+                  country={'lb'}
                   value={phone}
                   onChange={setPhone}
                   inputClass="!w-full !h-10"

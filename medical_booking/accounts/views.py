@@ -1276,8 +1276,8 @@ class CreateAppointmentView(APIView):
                 try:
                     # Send confirmation email to patient
                     send_mail(
-                        'Appointment Confirmation',
-                        f'Your appointment with Dr. {doctor.user.get_full_name()} has been scheduled for {appointment_date} at {start_time}.',
+                        'Appointment Requested',
+                        f'Your appointment with Dr. {doctor.user.get_full_name()} has been requested for {appointment_date} at {start_time}.',
                         settings.DEFAULT_FROM_EMAIL,
                         [patient.email],
                         fail_silently=True,  # Set to True to prevent email errors from affecting the appointment creation
