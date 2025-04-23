@@ -21,9 +21,9 @@ class DoctorProfileAdmin(admin.ModelAdmin):
     list_filter = ('is_approved', 'specialty')
     search_fields = ('user__email', 'user__first_name', 'user__last_name', 'specialty')
     
-    def save_model(self, request, obj, form, change):
-        # Check if is_approved is being changed to True
-        if change and 'is_approved' in form.changed_data and obj.is_approved:
+    def response_change(self, request, obj):
+        # Check if is_approved is True
+        if obj.is_approved:
             # Send approval email
             try:
                 subject = 'Your HEALIX Doctor Account Has Been Approved'
@@ -71,7 +71,7 @@ class DoctorProfileAdmin(admin.ModelAdmin):
                 # Don't fail the approval if email sending fails
                 logger.warning("Continuing with approval despite email failure")
         
-        super().save_model(request, obj, form, change)
+        return super().response_change(request, obj)
 
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(PatientProfile)
