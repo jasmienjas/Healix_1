@@ -103,7 +103,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
     firstName = serializers.CharField(write_only=True)
     lastName = serializers.CharField(write_only=True)
     phoneNumber = serializers.CharField(write_only=True)
-    birthDate = serializers.DateField(write_only=True)
+    birthDate = serializers.DateField(write_only=True, source='dob')
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     verificationToken = serializers.CharField(write_only=True, required=False)
@@ -113,36 +113,27 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
         fields = ['id', 'firstName', 'lastName', 'email', 'password', 'phoneNumber', 'birthDate', 'verificationToken']
 
     def create(self, validated_data):
-        logger.info(f"Creating user with validated data: {validated_data}")
-        
-        # Extract the verification token before creating the user
-        verification_token = validated_data.pop('verificationToken', None)
-        
-        # Create username from first and last name
-        username = f"{validated_data['firstName'].lower()}_{validated_data['lastName'].lower()}"
+        # Extract patient-specific data
+        phone_number = validated_data.pop('phoneNumber')
+        birth_date = validated_data.pop('dob')  # This is now mapped from birthDate
         
         # Create the user
         user = CustomUser.objects.create_user(
-            username=username,
+            username=validated_data['email'],  # Use email as username
             email=validated_data['email'],
             password=validated_data['password'],
             first_name=validated_data['firstName'],
             last_name=validated_data['lastName'],
-            user_type='patient'
+            user_type='patient',
+            dob=birth_date,
+            verification_token=validated_data.get('verificationToken')
         )
         
         # Create the patient profile
         PatientProfile.objects.create(
             user=user,
-            phone_number=validated_data['phoneNumber'],
-            birth_date=validated_data['birthDate']
+            phone_number=phone_number
         )
-        
-        # Store the verification token if provided
-        if verification_token:
-            user.verification_token = verification_token
-            user.save()
-            logger.info(f"Stored verification token for user {user.email}")
         
         return user
 
