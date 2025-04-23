@@ -86,12 +86,13 @@ class PatientRegisterView(generics.CreateAPIView):
     
     def create(self, request, *args, **kwargs):
         # Log the incoming request data
-        print("Received data:", request.data)
+        logger.info("Received patient registration request")
+        logger.info(f"Request data: {request.data}")
         
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             # Log validation errors
-            print("Validation errors:", serializer.errors)
+            logger.error(f"Validation errors: {serializer.errors}")
             return Response({
                 'success': False,
                 'message': 'Validation failed',
@@ -100,11 +101,13 @@ class PatientRegisterView(generics.CreateAPIView):
             
         try:
             user = serializer.save()
+            logger.info(f"User created successfully: {user.email}")
             
             # Send verification email
             try:
                 verification_token = request.data.get('verificationToken')
                 if verification_token:
+                    logger.info(f"Sending verification email to {user.email}")
                     verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
                     
                     html_message = render_to_string('email/verification_email.html', {
@@ -117,6 +120,10 @@ class PatientRegisterView(generics.CreateAPIView):
                         'expiry_days': 1
                     })
 
+                    # Log email details
+                    logger.info(f"Email details - From: {settings.DEFAULT_FROM_EMAIL}, To: {user.email}")
+                    logger.info(f"Verification URL: {verification_url}")
+
                     send_mail(
                         subject='Verify your HEALIX account',
                         message=plain_message,
@@ -125,8 +132,11 @@ class PatientRegisterView(generics.CreateAPIView):
                         recipient_list=[user.email],
                         fail_silently=False
                     )
+                    logger.info("Verification email sent successfully")
+                else:
+                    logger.warning("No verification token provided")
             except Exception as e:
-                print(f"Error sending verification email: {str(e)}")
+                logger.error(f"Error sending verification email: {str(e)}")
                 # Don't fail the registration if email fails
                 pass
             
@@ -142,7 +152,7 @@ class PatientRegisterView(generics.CreateAPIView):
                 }
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
-            print("Error during registration:", str(e))
+            logger.error(f"Error during registration: {str(e)}")
             return Response({
                 'success': False,
                 'message': str(e)
