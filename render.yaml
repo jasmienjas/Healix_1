@@ -6,7 +6,7 @@ services:
     buildCommand: >
       cd medical_booking &&
       pip install -r requirements.txt &&
-      python manage.py migrate accounts 0014 --fake &&
+      python manage.py migrate accounts 0014 &&
       python manage.py migrate accounts 0015 --fake &&
       python manage.py migrate accounts 0016 --fake &&
       python manage.py migrate &&
