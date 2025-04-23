@@ -1466,16 +1466,16 @@ def verify_email(request):
     Verify user's email using the verification token
     """
     token = request.data.get('token')
-    email = request.data.get('email')
 
-    if not token or not email:
+    if not token:
         return Response({
             'success': False,
-            'message': 'Invalid verification data'
+            'message': 'Invalid verification token'
         }, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        user = get_object_or_404(CustomUser, email=email, verification_token=token)
+        # Find user by verification token
+        user = get_object_or_404(CustomUser, verification_token=token)
         
         # Mark user as verified and clear the verification token
         user.is_verified = True
@@ -1490,7 +1490,7 @@ def verify_email(request):
     except CustomUser.DoesNotExist:
         return Response({
             'success': False,
-            'message': 'Invalid verification token or email'
+            'message': 'Invalid verification token'
         }, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response({

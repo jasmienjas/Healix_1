@@ -13,10 +13,11 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     const verifyEmail = async () => {
       try {
-        const token = searchParams.get('token')
-        const email = searchParams.get('email')
+        // Get token from URL
+        const fullUrl = window.location.href
+        const token = fullUrl.split('token=')[1]
 
-        if (!token || !email) {
+        if (!token) {
           setError('Invalid verification link')
           setIsVerifying(false)
           return
@@ -27,7 +28,7 @@ export default function VerifyEmailPage() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ token, email }),
+          body: JSON.stringify({ token }),
         })
 
         const data = await response.json()
@@ -46,7 +47,7 @@ export default function VerifyEmailPage() {
     }
 
     verifyEmail()
-  }, [router, searchParams])
+  }, [router])
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
