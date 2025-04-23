@@ -1,10 +1,14 @@
 /** @type {import('tailwindcss').Config} */
+const { fontFamily } = require("tailwindcss/defaultTheme")
+
 module.exports = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+    "*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     container: {
@@ -16,16 +20,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: [
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'Roboto',
-          'Helvetica Neue',
-          'Arial',
-          'sans-serif'
-        ],
+        sans: ["Inter", ...fontFamily.sans],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -61,6 +56,32 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        navy: {
+          50: "#f0f4f9",
+          100: "#dce5f0",
+          200: "#bccce0",
+          300: "#8fa9ca",
+          400: "#6285b3",
+          500: "#446899",
+          600: "#355180",
+          700: "#2c4268",
+          800: "#273756",
+          900: "#1e2e48",
+          950: "#0f172a",
+        },
+        blue: {
+          50: "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a",
+          950: "#172554",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -69,20 +90,24 @@ module.exports = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: 0 },
+          from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
+          to: { height: "0" },
+        },
+        pulse: {
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.5 },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
     },
   },
   plugins: [require("tailwindcss-animate")],
 }
-
