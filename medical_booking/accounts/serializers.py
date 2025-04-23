@@ -118,8 +118,8 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
         # Extract the verification token before creating the user
         verification_token = validated_data.pop('verificationToken', None)
         
-        # Create username from email
-        username = validated_data['email'].split('@')[0]
+        # Create username from first and last name
+        username = f"{validated_data['firstName'].lower()}_{validated_data['lastName'].lower()}"
         
         # Create the user
         user = CustomUser.objects.create_user(
