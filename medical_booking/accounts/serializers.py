@@ -103,7 +103,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
     firstName = serializers.CharField(write_only=True)
     lastName = serializers.CharField(write_only=True)
     phoneNumber = serializers.CharField(write_only=True)
-    birthDate = serializers.DateField(write_only=True, source='dob')
+    birthDate = serializers.DateField(write_only=True)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     verificationToken = serializers.CharField(write_only=True, required=False)
@@ -115,7 +115,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Extract patient-specific data
         phone_number = validated_data.pop('phoneNumber')
-        birth_date = validated_data.pop('dob')  # This is now mapped from birthDate
+        birth_date = validated_data.pop('birthDate')  # Changed from 'dob' to 'birthDate'
         
         # Create the user
         user = CustomUser.objects.create_user(
@@ -125,7 +125,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data['firstName'],
             last_name=validated_data['lastName'],
             user_type='patient',
-            dob=birth_date,
+            dob=birth_date,  # Map birthDate to dob
             verification_token=validated_data.get('verificationToken')
         )
         
