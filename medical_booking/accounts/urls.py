@@ -20,7 +20,8 @@ from .views import (
     CreateAppointmentView,
     ConfirmAppointmentView,
     DeleteAppointmentView,
-    send_verification_email_view
+    send_verification_email_view,
+    verify_email
 )
 
 urlpatterns = [
@@ -29,6 +30,7 @@ urlpatterns = [
     path('register/doctor/', DoctorRegisterView.as_view(), name='doctor-register'),
     path('register/admin/', AdminRegisterView.as_view(), name='admin-register'),
     path('send-verification/', send_verification_email_view, name='send-verification'),
+    path('verify-email/', verify_email, name='verify-email'),
     path('appointments/<int:pk>/postpone/', PostponeAppointmentView.as_view(), name='postpone-appointment'),
     path('appointments/<int:pk>/cancel/', CancelAppointmentView.as_view(), name='cancel-appointment'),
     path('appointments/<int:pk>/delete/', DeleteAppointmentView.as_view(), name='delete-appointment'),

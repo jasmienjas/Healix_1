@@ -74,9 +74,6 @@ export default function PatientSignupPage() {
           user_type: 'patient',
           verificationToken
         }))
-        
-        // Redirect to verification page
-        router.push(`/verify-email?email=${encodeURIComponent(email)}&token=${verificationToken}`)
       } else {
         setError(response.error || "Registration failed")
       }

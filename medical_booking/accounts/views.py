@@ -1458,4 +1458,43 @@ def send_verification_email_view(request):
             {'error': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_email(request):
+    """
+    Verify user's email using the verification token
+    """
+    token = request.data.get('token')
+    email = request.data.get('email')
+
+    if not token or not email:
+        return Response({
+            'success': False,
+            'message': 'Invalid verification data'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = get_object_or_404(CustomUser, email=email, verification_token=token)
+        
+        # Mark user as verified and clear the verification token
+        user.is_verified = True
+        user.verification_token = None
+        user.save()
+
+        return Response({
+            'success': True,
+            'message': 'Email verified successfully'
+        }, status=status.HTTP_200_OK)
+
+    except CustomUser.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Invalid verification token or email'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
