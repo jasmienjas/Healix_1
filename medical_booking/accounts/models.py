@@ -15,6 +15,7 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=30)  # Override first_name to make it required
     last_name = models.CharField(max_length=30)   # Override last_name to make it required
     email = models.EmailField(unique=True)        # Override email to make it unique
+    verification_token = models.CharField(max_length=100, null=True, blank=True)
 
     # Avoid conflicts with Django auth system
     groups = models.ManyToManyField(Group, related_name="customuser_groups", blank=True)

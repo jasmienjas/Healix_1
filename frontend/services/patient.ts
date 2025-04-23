@@ -58,9 +58,6 @@ export async function signupPatient(data: PatientSignupData) {
             throw new Error(errorMessage);
         }
 
-        // Don't try to send verification email for now
-        // We'll add this back once basic registration works
-
         return {
             success: true,
             data: result

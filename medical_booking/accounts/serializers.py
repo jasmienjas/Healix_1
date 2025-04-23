@@ -133,6 +133,11 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
                 phone_number=validated_data['phoneNumber']
             )
 
+            # Store verification token in user's profile
+            if 'verificationToken' in validated_data:
+                user.verification_token = validated_data['verificationToken']
+                user.save()
+
             return user
         except Exception as e:
             print(f"Error in create method: {str(e)}")
