@@ -115,7 +115,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Extract patient-specific data
         phone_number = validated_data.pop('phoneNumber')
-        birth_date = validated_data.pop('birthDate')  # Changed from 'dob' to 'birthDate'
+        birth_date = validated_data.pop('birthDate')
         
         # Create the user
         user = CustomUser.objects.create_user(
@@ -129,8 +129,8 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
             verification_token=validated_data.get('verificationToken')
         )
         
-        # Create the patient profile
-        PatientProfile.objects.create(
+        # Create the patient profile with only the allowed fields
+        patient_profile = PatientProfile.objects.create(
             user=user,
             phone_number=phone_number
         )
