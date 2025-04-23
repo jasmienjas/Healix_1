@@ -118,7 +118,7 @@ class PatientRegisterView(generics.CreateAPIView):
             
             # Send verification email
             try:
-                verification_token = request.data.get('verificationToken')
+                verification_token = user.verification_token
                 if verification_token:
                     logger.info(f"Sending verification email to {user.email}")
                     verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
@@ -147,28 +147,23 @@ class PatientRegisterView(generics.CreateAPIView):
                     )
                     logger.info("Verification email sent successfully")
                 else:
-                    logger.warning("No verification token provided")
+                    logger.warning("No verification token found in user model")
             except Exception as e:
                 logger.error(f"Error sending verification email: {str(e)}")
-                # Don't fail the registration if email fails
-                pass
-            
+                # Don't fail the registration if email sending fails
+                
             return Response({
                 'success': True,
-                'message': 'Registration successful. Please check your email to verify your account.',
-                'data': {
-                    'id': user.id,
-                    'email': user.email,
-                    'firstName': user.first_name,
-                    'lastName': user.last_name,
-                    'user_type': 'patient'
-                }
+                'message': 'Registration successful',
+                'user': serializer.data
             }, status=status.HTTP_201_CREATED)
+            
         except Exception as e:
             logger.error(f"Error during registration: {str(e)}")
             return Response({
                 'success': False,
-                'message': str(e)
+                'message': 'Registration failed',
+                'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyEmailView(APIView):

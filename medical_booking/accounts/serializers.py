@@ -99,6 +99,7 @@ class PatientSerializer(serializers.ModelSerializer):
         fields = ['user', 'age', 'medical_history']
 
 class PatientRegisterSerializer(serializers.ModelSerializer):
+    # Fields from frontend
     firstName = serializers.CharField(write_only=True)
     lastName = serializers.CharField(write_only=True)
     phoneNumber = serializers.CharField(write_only=True)
@@ -112,36 +113,34 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
         fields = ['id', 'firstName', 'lastName', 'email', 'password', 'phoneNumber', 'birthDate', 'verificationToken']
 
     def create(self, validated_data):
-        try:
-            # Create username from first and last name
-            username = f"{validated_data['firstName'].lower()}_{validated_data['lastName'].lower()}"
-            
-            # Create user
-            user = CustomUser.objects.create_user(
-                username=username,
-                email=validated_data['email'],
-                password=validated_data['password'],
-                user_type='patient',
-                dob=validated_data['birthDate'],
-                first_name=validated_data['firstName'],
-                last_name=validated_data['lastName']
-            )
-
-            # Create patient profile
-            PatientProfile.objects.create(
-                user=user,
-                phone_number=validated_data['phoneNumber']
-            )
-
-            # Store verification token in user's profile
-            if 'verificationToken' in validated_data:
-                user.verification_token = validated_data['verificationToken']
-                user.save()
-
-            return user
-        except Exception as e:
-            print(f"Error in create method: {str(e)}")
-            raise serializers.ValidationError(str(e))
+        logger.info(f"Creating user with validated data: {validated_data}")
+        
+        # Extract the verification token before creating the user
+        verification_token = validated_data.pop('verificationToken', None)
+        
+        # Create the user
+        user = CustomUser.objects.create_user(
+            email=validated_data['email'],
+            password=validated_data['password'],
+            first_name=validated_data['firstName'],
+            last_name=validated_data['lastName'],
+            user_type='patient'
+        )
+        
+        # Create the patient profile
+        PatientProfile.objects.create(
+            user=user,
+            phone_number=validated_data['phoneNumber'],
+            birth_date=validated_data['birthDate']
+        )
+        
+        # Store the verification token if provided
+        if verification_token:
+            user.verification_token = verification_token
+            user.save()
+            logger.info(f"Stored verification token for user {user.email}")
+        
+        return user
 
     def to_representation(self, instance):
         return {
