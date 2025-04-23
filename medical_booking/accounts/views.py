@@ -1525,25 +1525,45 @@ class DoctorApprovalView(APIView):
             doctor_profile.save()
 
             # Send approval email
-            subject = 'Your HEALIX Doctor Account Has Been Approved'
-            context = {
-                'doctor_name': f"{doctor_profile.user.first_name} {doctor_profile.user.last_name}",
-                'login_url': f"{settings.FRONTEND_URL}/login"
-            }
-            message = render_to_string('email/doctor_approval.html', context)
-            
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [doctor_profile.user.email],
-                html_message=message,
-                fail_silently=False
-            )
+            try:
+                subject = 'Your HEALIX Doctor Account Has Been Approved'
+                context = {
+                    'doctor_name': f"{doctor_profile.user.first_name} {doctor_profile.user.last_name}",
+                    'login_url': f"{settings.FRONTEND_URL}/login"
+                }
+                
+                # Render both HTML and plain text versions
+                html_message = render_to_string('email/doctor_approval.html', context)
+                plain_message = f"Dear Dr. {context['doctor_name']},\n\n"
+                plain_message += "We are pleased to inform you that your HEALIX doctor account has been approved!\n\n"
+                plain_message += f"You can now log in to your account at {context['login_url']} and start managing your profile and appointments.\n\n"
+                plain_message += "If you have any questions or need assistance, please don't hesitate to contact our support team.\n\n"
+                plain_message += "Best regards,\nThe HEALIX Team"
+                
+                # Log email details
+                logger.info(f"Sending approval email to {doctor_profile.user.email}")
+                logger.info(f"Email subject: {subject}")
+                logger.info(f"Login URL: {context['login_url']}")
+
+                send_mail(
+                    subject,
+                    plain_message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [doctor_profile.user.email],
+                    html_message=html_message,
+                    fail_silently=False
+                )
+                
+                logger.info(f"Approval email sent successfully to {doctor_profile.user.email}")
+
+            except Exception as e:
+                logger.error(f"Failed to send approval email: {str(e)}")
+                # Don't fail the approval if email sending fails
+                logger.warning("Continuing with approval despite email failure")
 
             return Response({
                 'success': True,
-                'message': 'Doctor approved successfully and notification email sent'
+                'message': 'Doctor approved successfully'
             })
 
         except Exception as e:
