@@ -6,8 +6,7 @@ services:
     buildCommand: >
       cd medical_booking &&
       pip install -r requirements.txt &&
-      python manage.py migrate accounts zero &&
-      python manage.py migrate accounts &&
+      python manage.py migrate &&
       python manage.py collectstatic --noinput
     startCommand: cd medical_booking && gunicorn medical_booking.wsgi:application
     staticPublishPath: ./medical_booking/staticfiles
