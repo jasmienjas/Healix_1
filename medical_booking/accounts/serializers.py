@@ -113,30 +113,34 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
         fields = ['id', 'firstName', 'lastName', 'email', 'password', 'phoneNumber', 'birthDate', 'verificationToken']
 
     def create(self, validated_data):
-        # Extract patient-specific data
-        phone_number = validated_data.pop('phoneNumber')
-        birth_date = validated_data.pop('birthDate')
-        
-        # Create the user with dob field
-        user = CustomUser.objects.create_user(
-            username=validated_data['email'],  # Use email as username
-            email=validated_data['email'],
-            password=validated_data['password'],
-            first_name=validated_data['firstName'],
-            last_name=validated_data['lastName'],
-            user_type='patient',
-            dob=birth_date,  # Map birthDate to dob
-            verification_token=validated_data.get('verificationToken')
-        )
-        
-        # Create the patient profile with only the allowed fields
-        patient_profile = PatientProfile(
-            user=user,
-            phone_number=phone_number
-        )
-        patient_profile.save()
-        
-        return user
+        try:
+            # Extract patient-specific data
+            phone_number = validated_data.pop('phoneNumber')
+            birth_date = validated_data.pop('birthDate')
+            
+            # Create the user with dob field
+            user = CustomUser.objects.create_user(
+                username=validated_data['email'],  # Use email as username
+                email=validated_data['email'],
+                password=validated_data['password'],
+                first_name=validated_data['firstName'],
+                last_name=validated_data['lastName'],
+                user_type='patient',
+                dob=birth_date,  # Map birthDate to dob
+                verification_token=validated_data.get('verificationToken')
+            )
+            
+            # Create the patient profile with only the allowed fields
+            patient_profile = PatientProfile.objects.create(
+                user=user,
+                phone_number=phone_number
+            )
+            
+            return user
+        except Exception as e:
+            # Log the error for debugging
+            logger.error(f"Error in PatientRegisterSerializer.create: {str(e)}")
+            raise
 
     def to_representation(self, instance):
         return {
