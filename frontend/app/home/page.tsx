@@ -1,31 +1,34 @@
-import Link from "next/link"
-import { ArrowRight, Calendar, ChevronRight, Phone } from "lucide-react"
-import ContactModal from "@/components/home/contact-window"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import SiteHeader from "@/components/home/site-header";
+import Link from "next/link";
+import { ArrowRight, Calendar, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import ContactModal from "@/components/home/contact-window";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Header */}
+      <SiteHeader />
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-navy-950 to-navy-900 text-white">
         <div className="container px-4 py-20 md:py-28 lg:py-32">
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="space-y-6">
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-                Advanced Healthcare <span className="text-blue-400">Solutions</span>
+                Your Health <span className="text-blue-400">Our Priority</span>
               </h1>
               <p className="max-w-[600px] text-navy-100 md:text-xl">
-                Healix provides exceptional medical care with a focus on patient comfort and cutting-edge technology.
+                Connect with trusted healthcare professionals and book appointments with ease.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-                  Book an Appointment
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button size="lg" variant="outline" className="bg-navy-700 border-navy-700 text-white hover:bg-navy-800">
-                  Learn More
-                </Button>
+                <Link href="/signup">
+                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Get Started
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
             </div>
             <div className="relative mx-auto lg:ml-auto flex items-center justify-center">
@@ -51,26 +54,26 @@ export default function Home() {
           <div className="mx-auto max-w-3xl text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">Excellence in Healthcare</h2>
             <p className="mt-4 text-lg text-navy-600">
-              Providing exceptional medical services with a commitment to patient care and innovation
+              Quality healthcare at your fingertips.
             </p>
           </div>
           <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3 items-start">
             {[
               {
-                title: "Patient-Centered Care",
-                description: "We prioritize your comfort and well-being throughout your healthcare journey.",
-                icon: "🏥",
+                title: "Easy Appointment Booking",
+                description: "Skip the phone calls and waiting lines. Book your doctor’s appointment instantly, anytime, from anywhere.",
+                icon: "✅ ",
               },
               {
-                title: "Advanced Technology",
+                title: "Smart & Secure Platform",
                 description:
-                  "Our facilities are equipped with the latest medical technology for accurate diagnostics and treatment.",
-                icon: "🔬",
+                  "Our system is built for speed, simplicity, and privacy — giving you a stress-free healthcare experience from start to finish.",
+                icon: "💻",
               },
               {
-                title: "Expert Medical Team",
-                description: "Our board-certified physicians bring years of experience and specialized knowledge.",
-                icon: "👨‍⚕️",
+                title: "Access to Trusted Doctors",
+                description: "Find the right doctor with ease. Browse profiles and choose the best care for your needs.",
+                icon: "👩‍⚕️",
               },
             ].map((feature, i) => (
               <Card key={i} className="border-none shadow-md bg-white">
@@ -78,13 +81,6 @@ export default function Home() {
                   <div className="mb-6 text-3xl">{feature.icon}</div>
                   <h3 className="mb-3 text-xl font-bold text-navy-900">{feature.title}</h3>
                   <p className="text-navy-600">{feature.description}</p>
-                  <Link
-                    href="#"
-                    className="mt-4 inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
-                  >
-                    Learn more
-                    <ChevronRight className="ml-1 h-4 w-4" />
-                  </Link>
                 </CardContent>
               </Card>
             ))}
@@ -128,26 +124,27 @@ export default function Home() {
             {[
               {
                 quote:
-                  "The doctors at Healix are exceptional. They took the time to understand my condition and provide the best care possible.",
-                name: "Sarah Johnson",
+                  "As someone with a busy schedule, being able to find and book a doctor online is a game changer. Thank you Healix!",
+                name: "Sarah F.",
                 role: "Patient",
               },
               {
                 quote:
                   "I've never had such a smooth experience scheduling appointments and getting the care I need. Highly recommended!",
-                name: "Michael Chen",
+                name: "Cynthia K.",
                 role: "Patient",
               },
               {
                 quote:
-                  "The online consultation feature saved me so much time. I got the medical advice I needed without leaving my home.",
-                name: "Aisha Rahman",
+                  "This website saved me so much time! I booked an appointment in less than 2 minutes. No more waiting on hold.",
+                name: "Joy N.",
                 role: "Patient",
               },
             ].map((testimonial, i) => (
               <Card key={i} className="border-none shadow-md bg-navy-50">
                 <CardContent className="p-8">
                   <div className="mb-6 text-blue-600">
+                    {/* Quote Icon */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="48"
@@ -178,37 +175,36 @@ export default function Home() {
         </div>
       </section>
 
-        {/* CTA Section */}
-  <section className="bg-navy-900 py-20 text-white">
-    <div className="container px-4">
-      <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">Experience Premium Healthcare</h2>
-        <p className="text-lg text-navy-100 mb-8">Schedule a consultation with one of our specialists today</p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-                  <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Link href="/login">
-              <Calendar className="mr-2 h-5 w-5" />
-              Book an Appointment
-            </Link>
-          </Button>
-
-          <ContactModal
-            trigger={
-              <Button
-                size="lg"
-                variant="outline"
-                className="bg-navy-700 border-navy-700 text-white hover:bg-navy-800"
-              >
-                <Phone className="mr-2 h-5 w-5" />
-                Contact Us
+      {/* CTA Section */}
+      <section className="bg-navy-900 py-20 text-white">
+        <div className="container px-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">Experience Premium Healthcare</h2>
+            <p className="text-lg text-navy-100 mb-8">Schedule a consultation with one of our specialists today</p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Link href="/login">
+                  <Calendar className="mr-2 h-5 w-5" />
+                  Book an Appointment
+                </Link>
               </Button>
-            }
-          />
-        </div>
-      </div>
-    </div>
-  </section>
 
+              <ContactModal
+                trigger={
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="bg-navy-700 border-navy-700 text-white hover:bg-navy-800"
+                  >
+                    <Phone className="mr-2 h-5 w-5" />
+                    Contact Us
+                  </Button>
+                }
+              />
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  )
+  );
 }
