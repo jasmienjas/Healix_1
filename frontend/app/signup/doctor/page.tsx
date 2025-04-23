@@ -380,17 +380,6 @@ export default function DoctorSignupPage() {
                 >
                   {isLoading ? "Creating account..." : "Sign Up"}
                 </button>
-
-                <div className="mt-4 text-center text-sm text-gray-600">
-                  By signing up, you agree to our{" "}
-                  <Link href="/terms" className="text-blue-600 hover:underline">
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="/privacy" className="text-blue-600 hover:underline">
-                    Privacy Policy
-                  </Link>
-                </div>
               </form>
             </>
           ) : (
