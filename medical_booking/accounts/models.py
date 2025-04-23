@@ -57,6 +57,7 @@ class DoctorProfile(models.Model):
 class PatientProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='patient_profile')
     phone_number = models.CharField(max_length=15, null=True, blank=True)
+    #age = models.IntegerField(null=True, blank=True)
     medical_history = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

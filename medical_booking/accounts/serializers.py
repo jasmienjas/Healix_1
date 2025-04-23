@@ -117,7 +117,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
         phone_number = validated_data.pop('phoneNumber')
         birth_date = validated_data.pop('birthDate')
         
-        # Create the user
+        # Create the user with dob field
         user = CustomUser.objects.create_user(
             username=validated_data['email'],  # Use email as username
             email=validated_data['email'],
@@ -130,10 +130,11 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
         )
         
         # Create the patient profile with only the allowed fields
-        patient_profile = PatientProfile.objects.create(
+        patient_profile = PatientProfile(
             user=user,
             phone_number=phone_number
         )
+        patient_profile.save()
         
         return user
 
